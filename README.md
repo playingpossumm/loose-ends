@@ -6,36 +6,61 @@ or [`docs/setup.md`](docs/setup.md). Design rationale in
 [`docs/decisions.md`](docs/decisions.md); the 90 questions behind it in
 [`docs/architecture-qa.md`](docs/architecture-qa.md).
 
-A personal knowledge base that does two things:
+A persistent personal memory layer. Not an app — a folder of markdown files that any agent
+can read, holding everything you have read and everything about how you work.
 
-1. Answers **what do I know about X**, with citations back to the thing you actually read.
-2. Notices **what did I say I'd do that I haven't** — and tells you, every week.
+It has to do four things, and all four are the offering. Drop any one and the rest stop
+being worth the effort:
 
-Six well-known write-ups of this idea were used as benchmarks. All six build the first
-thing. None of them builds the second. The second is the point.
+| | |
+|---|---|
+| **Never start from zero** | Any session, any project, any agent already knows who you are, what you are working on, and what you have decided. You stop re-explaining yourself. |
+| **One archive you can interrogate** | Notes, LLM transcripts, Twitter saves, PDFs — scattered everywhere, consolidated into one place that answers questions with citations. |
+| **Reachable from anywhere** | Not locked inside one folder or one tool. Any agent, any project, eventually any device. |
+| **It compounds** | Connections form between things read months apart. It gets better with every source rather than merely larger. |
 
-How this compares to GBrain, Karpathy's llm-wiki, and the wider category — including where
-they are better — is in [`docs/comparison.md`](docs/comparison.md).
+On top of that memory it does something none of the benchmark systems do: it **notices what
+you said you would do and didn't**, and brings it back until you decide.
+
+Six well-known write-ups of this idea were used as benchmarks — Karpathy's llm-wiki, Garry
+Tan's GBrain, and four others. How this differs, and where they are better, is in
+[`docs/comparison.md`](docs/comparison.md).
 
 ---
 
-## The core object is a loop
+## Reach is a design constraint, not a feature
 
-The two motivating cases are not knowledge queries:
+"Reachable from anywhere" is the pillar that shapes the architecture, because it is the one
+that fails silently if you design for it late.
 
-> *"I said I wanted to learn this, shared a PDF, and never read it."*
+A vault that only works when Claude Code is open in its own folder is not a memory layer —
+it is a folder. So the vault is exposed through an **MCP server**, and every surface is a
+client of it: Claude Code in *any* project, the CLI, later a phone.
+
+Two kinds of reach, with very different costs:
+
+| Reach | Needs | Cost |
+|---|---|---|
+| Any agent, any project, on this laptop | an MCP server, running locally on demand | free |
+| Your phone, away from the laptop | an always-on host running OpenClaw | ~$5/mo |
+
+Most of the value is in the first row, and it was originally scheduled last. It has been
+moved up. WhatsApp stays deferred, but it is now understood as covering only the phone
+case rather than the whole of reach.
+
+## Loops
+
+Alongside the memory, the system tracks **open loops** — things stated that never resolved:
+
+> *"I said I wanted to learn this, filed the PDF, and never read it."*
 > *"A friend's birthday went in, and nothing ever made it a calendar event."*
 
-Both are **open loops** — something stated that never resolved. So the primary object is
-not a wiki page. It is a loop: an intent, commitment, or dated fact extracted from material
-you captured for some other reason, carrying a status, tracked until it closes.
+A loop is a file with a status, a counter of how often it has been surfaced unacknowledged,
+and provenance back to the source that produced it. It returns in the weekly brief until you
+kill it, schedule it, or demote it to someday.
 
-The wiki is the substrate. **The weekly brief is the product.**
-
-### Why this is not a task manager
-
-You never enter a task. Nothing here has an "add item" button. The system infers loops from
-things you captured for other reasons, and you react to them once a week. The moment it
+**This is not task management.** You never enter a task; nothing here has an "add item"
+button. Loops are inferred from material you captured for other reasons. The moment it
 requires deliberate task entry, it has become the thing this project explicitly excludes.
 
 ---
@@ -122,14 +147,15 @@ yet. Borrowed from GBrain; the best single idea in the six sources.
 | A compiled-vs-RAG benchmark | Interesting, but not what this is for. |
 | 24/7 daemon | Weekly cadence needs no always-on process. |
 | Calendar writes | The brief tells you to make the event. No OAuth write scope. |
-| WhatsApp | Deferred — see below. |
+| Phone / WhatsApp reach | Deferred — see below. |
 | Task entry | See above. |
 
-**WhatsApp** is deferred, not cancelled. As capture inbox and query surface it needs
-OpenClaw running 24/7, which means a VPS or similar (~$5/mo of infrastructure, not API
-cost). Nothing in the design changes when it arrives: the brain exposes an MCP server and
-OpenClaw becomes one client among several. Build the thing first, confirm it gets used,
-then buy the always-on layer once it is earned.
+**Phone reach** is deferred, not cancelled — and it is the *only* part of reach that is.
+Reaching the vault from any project or agent on this laptop is step 10 and costs nothing.
+Reaching it from your phone needs OpenClaw running 24/7, which means a VPS or similar
+(~$5/mo of infrastructure, not API cost). Nothing in the design changes when it arrives:
+the MCP server already exists by then and OpenClaw becomes one more client. Build the
+memory first, confirm it gets used, then buy the always-on layer once it is earned.
 
 ---
 
@@ -194,7 +220,12 @@ Kill or rethink if any of these hold:
 | 7 | Query with citations and coverage note | **done** — `/ask` |
 | 8 | Lint — contradiction, staleness, link integrity | **done** — `/lint` |
 | 9 | Decompilation | **done** — `/unsource` |
-| 10 | WhatsApp, BM25/vector | deferred by decision |
+| **10** | **MCP server — the vault readable from any project or agent** | **next** — promoted; see reach above |
+| 11 | Phone reach via OpenClaw, BM25/vector | deferred by decision |
+
+Step 10 was originally last. It moved because "reachable from anywhere" turned out to be
+part of the core offering rather than a later convenience, and without it the memory only
+exists inside one folder.
 
 Two things are not code and cannot be: the `/bootstrap` interview needs your answers, and
 the brief's delivery channel needs one decision. Both in [`docs/setup.md`](docs/setup.md).

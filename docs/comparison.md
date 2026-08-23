@@ -7,11 +7,25 @@ the thing you built is not worth writing down.
 
 ## The short version
 
-Every system in this category is a **knowledge store**: you put things in, it organises them,
-you ask it questions. This one is a knowledge store *plus* a **commitment tracker** — it
-watches for things you said you would do and never did, and it brings them back until you
-decide. That layer is the reason the project exists. Remove it and there is little point
-building this instead of installing one of the alternatives.
+This is the same *category* as the others — a persistent personal memory layer — and it does
+not pretend otherwise. Everyone here wants the same four things: you never start from zero,
+one archive you can interrogate, reachable wherever you work, and understanding that
+compounds.
+
+What differs is the combination of guarantees underneath:
+
+- **Provenance is mandatory and machine-checked**, not a prompt instruction. Every claim
+  traces to a source and a locator, and `/lint` fails the vault when one does not.
+- **Compilation is reversible.** A source can be removed and its influence reverted across
+  every page it touched. Nothing else in the comparison offers this.
+- **Commitments persist.** Others surface open items when asked; here they are tracked
+  objects with a status, an ignore-counter, and an escalation rule.
+- **Reach is agent-agnostic by design** — an MCP server over plain markdown, not a plugin
+  bound to one editor or one vendor.
+
+None of those is a new idea in isolation. The claim is that the four together, at a scale
+where the machinery stays simple enough to read, is a different thing from any one of the
+alternatives.
 
 ---
 
@@ -34,6 +48,9 @@ decide-now block: kill it, schedule it, or demote it.
 The motivating case — *"I said I wanted to learn this, filed the PDF, never read it"* — is
 not a question anyone would think to ask a knowledge base. That is exactly why it needs to
 be pushed rather than queried.
+
+It is a capability of the memory layer, not the reason for it. The memory has to be worth
+having on its own; loops are what you can do once it is.
 
 ### 2. Decompilation
 

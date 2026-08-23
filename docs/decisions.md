@@ -176,3 +176,33 @@ Nothing open. Specification is closed — see [`../README.md`](../README.md).
 Written this round: `CLAUDE.md` (the vault schema — build step 1), `.claude/skills/capture`
 (step 2), `.claude/skills/ingest` (step 4). Remaining skills — `/brief`, `/ask`, `/lint`,
 `/unsource` — are written at their build steps, not speculatively.
+
+## Locked — round 5 (the offering, corrected)
+
+Loops were promoted to the spine of the project on the strength of two examples in A1. That
+was an over-read. **Correction: the offering is the memory layer itself, and it is all four
+of these at once** — none subordinate:
+
+1. **Never start from zero** — any session, project, or agent already knows you.
+2. **One archive you can interrogate** — everything scattered, consolidated, citable.
+3. **Reachable from anywhere** — not locked in one folder or one tool.
+4. **It compounds** — connections form across time.
+
+Loops remain wanted, as a **capability of** the memory rather than the reason for it.
+
+### Consequence: the MCP server moves from last to next
+
+Pillar 3 was scheduled at step 10 and treated as roughly equivalent to WhatsApp. That
+conflated two very different things:
+
+| Reach | Needs | Cost | Was | Now |
+|---|---|---|---|---|
+| Any agent or project on this laptop | MCP server, local, on demand | free | step 10 | **step 10, next up** |
+| Phone, away from the laptop | OpenClaw on an always-on host | ~$5/mo | step 10 | step 11, still deferred |
+
+Most of pillar 3's value is in the first row and costs nothing. A vault reachable only when
+Claude Code is open in its own folder is a folder, not a memory layer — which means the
+current state fails pillar 3 outright, and pillars 1 and 2 partially (the memory cannot
+reach you while you work in `rag-project` or `kyarayum`).
+
+Rewritten this round: README spine, `docs/comparison.md` positioning.
