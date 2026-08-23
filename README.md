@@ -1,8 +1,9 @@
 # second-brain
 
-**Status: specification. Nothing is built yet.** The design below is settled; see
-[`docs/decisions.md`](docs/decisions.md) for how it got there and
-[`docs/architecture-qa.md`](docs/architecture-qa.md) for the 90 questions behind it.
+**Status: built and empty.** Vault, schema, and all seven skills are in place; no sources
+compiled yet. Start with [`docs/setup.md`](docs/setup.md). Design rationale in
+[`docs/decisions.md`](docs/decisions.md); the 90 questions behind it in
+[`docs/architecture-qa.md`](docs/architecture-qa.md).
 
 A personal knowledge base that does two things:
 
@@ -177,15 +178,33 @@ Kill or rethink if any of these hold:
 
 ## Build order
 
-1. Vault skeleton, frontmatter schema, git
-2. Capture doors — `raw/inbox/`, Web Clipper, `/capture` for Claude Code
-3. `mem/` bootstrap via a one-question-at-a-time interview
-4. Compile loop, supervised, with claim-level citations
-5. Loop extraction and status tracking
-6. Weekly brief, scheduled and pushed, with the escalation rule
-7. Query — `index.md` + grep, synthesised answers with citations and a coverage note
-8. Lint passes — contradiction, staleness, link integrity
-9. Decompilation (`unsource`)
-10. Later, if earned — WhatsApp via OpenClaw, BM25 or vector if volume demands it
+| # | Step | Status |
+|---|---|---|
+| 1 | Vault skeleton, frontmatter schema, git | **done** — [`CLAUDE.md`](CLAUDE.md) |
+| 2 | Capture doors — `raw/inbox/`, Web Clipper, `/capture` | **done** — Clipper is a browser install, see setup |
+| 3 | `mem/` bootstrap interview | **skill written** — needs you to run `/bootstrap` |
+| 4 | Compile loop with claim-level citations | **done** — `/ingest` |
+| 5 | Loop extraction and status tracking | **done** — inside `/ingest` |
+| 6 | Weekly brief with the escalation rule | **done** — `/brief`; delivery channel open |
+| 7 | Query with citations and coverage note | **done** — `/ask` |
+| 8 | Lint — contradiction, staleness, link integrity | **done** — `/lint` |
+| 9 | Decompilation | **done** — `/unsource` |
+| 10 | WhatsApp, BM25/vector | deferred by decision |
 
-Steps 1–3 are one sitting. Step 4 is the interesting one.
+Two things are not code and cannot be: the `/bootstrap` interview needs your answers, and
+the brief's delivery channel needs one decision. Both in [`docs/setup.md`](docs/setup.md).
+
+## Skills
+
+| Command | Does |
+|---|---|
+| `/capture` | file something into `raw/inbox/` — fast, verbatim, no interpretation |
+| `/ingest` | compile one source into `wiki/` + `loops/`, max 15 pages, plan shown first |
+| `/bootstrap` | interview to fill `mem/`, one question at a time |
+| `/brief` | the weekly brief, capped at ten lines |
+| `/ask` | synthesised answer, citations, coverage note |
+| `/lint` | citation validity, links, orphans, contradictions, staleness |
+| `/unsource` | remove a source and revert its influence |
+
+They live in [`.claude/skills/`](.claude/skills/) and load when Claude Code opens this
+folder. No installation, no third-party dependencies.
