@@ -151,8 +151,14 @@ refinement — it does return every week, but after 4 unacknowledged appearances
 promoted to a **decide-now** block at the top of the brief: kill it, schedule it, or
 demote it to someday. Still weekly, with a forcing function.
 
-## OPEN
+## Locked — round 3
 
-- **Calendar** — does the system *create* events, or only tell you to? (Unanswered.)
-- **Always-on host** — VPS for WhatsApp, or defer WhatsApp and push the brief by email?
-- **Nudge escalation** — accept the refinement above, or keep it flat weekly?
+| # | Decision |
+|---|---|
+| Calendar | **Advise only.** The brief says the event does not exist; you make it. No OAuth write scope. |
+| WhatsApp | **Deferred.** Revisit once the system is in daily use and the ~$5/mo always-on host is earned. |
+| Nudge escalation | **Accepted** — weekly return, promoted to a decide-now block after 4 unacknowledged appearances. |
+| OneDrive inbox sync | **Dropped.** No phone capture in v1. Capture is laptop-only: drag-drop, Web Clipper, `/capture`. |
+| Brief delivery | Scheduled Claude Code routine → **email**. The only push channel needing no always-on host. |
+
+Nothing open. Specification is closed — see [`../README.md`](../README.md).
