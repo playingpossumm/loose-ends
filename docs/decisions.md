@@ -81,13 +81,78 @@ Kill or rethink if any of these hold:
 
 See `docs/gbrain-verdict.md`.
 
+## Locked — round 2
+
+| # | Decision |
+|---|---|
+| Scope | **Both** surfaces: "what do I know about X" (wiki query) *and* "what did I say I'd do" (loop nudging). Neither is subordinate. Synthesised answers with citations move into v1. |
+| Cost | **Claude Code subscription**, not the API. ~$0 marginal for compilation and briefs. |
+| Vault | One folder, subfolders inside. Tree below. |
+| Brief | **Pushed** to the user, not left in a file to be found. |
+| Nudges | Open loops **re-surface every week**. See escalation note below. |
+| C1 | WhatsApp as **both** capture inbox and query surface. |
+| L | **No confidentiality constraint** — all material is the user's own to keep. Simplifies section L considerably. |
+
+## Vault layout
+
+```
+brain/                    ← the vault. one folder, opened in Obsidian.
+├─ CLAUDE.md              ← thin index, points at mem/
+├─ index.md               ← catalogue of every wiki page
+├─ log.md                 ← append-only chronological record
+│
+├─ raw/                   ← immutable. never edited after landing.
+│  ├─ inbox/              ← THE single landing zone. every capture door drops here.
+│  ├─ articles/  pdfs/  images/  transcripts/  notes/
+│
+├─ wiki/                  ← LLM-owned. answers "what do I know about X"
+│  ├─ sources/            ← one page per raw item
+│  ├─ entities/           ← people, tools, papers, projects
+│  ├─ concepts/
+│  └─ synthesis/          ← filed answers to your own questions
+│
+├─ loops/                 ← the acting layer. answers "what did I say I'd do"
+│  ├─ open/  closed/
+│  └─ dates/              ← birthdays, deadlines, recurring
+│
+├─ mem/                   ← human-authoritative. compiler proposes, never writes.
+│  └─ profile.md  goals.md  projects.md  people.md  rules.md
+│
+└─ briefs/                ← one file per week, archived
+```
+
+## Capture: one landing zone, many doors
+
+Everything lands in `raw/inbox/`. The compiler watches one place; the number of ways
+material gets there is unlimited and can grow without touching the pipeline.
+
+| Door | For | Status |
+|---|---|---|
+| Drag-and-drop into `raw/inbox/` | anything on the laptop | works day one, zero setup |
+| Obsidian Web Clipper | Twitter saves, articles | best value per minute of setup |
+| `/capture` in Claude Code | LLM transcripts, mid-session thoughts | free, and nothing else builds this |
+| OneDrive-synced `raw/inbox/` | phone capture | **sync the inbox subfolder only**, never the vault root — OneDrive and `.git` conflict badly |
+| WhatsApp → OpenClaw | phone, lowest friction | needs an always-on host — see conflict below |
+
+## Unresolved conflict: always-on
+
+Subscription-only and WhatsApp are in tension. Compilation and brief *generation* run fine
+on the subscription (interactively, or as a scheduled Claude Code routine). But WhatsApp as
+a live capture inbox and query surface needs OpenClaw running 24/7 — a closed laptop means
+a dead assistant. That requires a small VPS (~$5/mo), a Pi, or an always-on desktop.
+
+Everything else on the list runs at ~$0. WhatsApp is the only item that does not.
+
+## Nudge escalation
+
+"Every week, forever" as stated has a failure mode that is also abandonment condition #2: a
+loop ignored twelve weeks running trains you to skim past the whole brief. Proposed
+refinement — it does return every week, but after 4 unacknowledged appearances it is
+promoted to a **decide-now** block at the top of the brief: kill it, schedule it, or
+demote it to someday. Still weekly, with a forcing function.
+
 ## OPEN
 
-- **C1** — which WhatsApp role: capture inbox, query surface, or chat-history corpus.
-- **Calendar** — does the system *create* events, or only tell you to?
-- **Capture path** — how material physically reaches `raw/` from desktop and phone.
-- **Brief delivery** — where the weekly brief arrives.
-- **Nudge persistence** — re-raise forever, escalate, or expire.
-- **Subscription vs API** — the $0 vs ~$25/mo fork.
-- **Main-job material** — confidentiality constraints, if any.
-- **N1** — monthly ceiling.
+- **Calendar** — does the system *create* events, or only tell you to? (Unanswered.)
+- **Always-on host** — VPS for WhatsApp, or defer WhatsApp and push the brief by email?
+- **Nudge escalation** — accept the refinement above, or keep it flat weekly?
