@@ -162,3 +162,17 @@ demote it to someday. Still weekly, with a forcing function.
 | Brief delivery | Scheduled Claude Code routine → **email**. The only push channel needing no always-on host. |
 
 Nothing open. Specification is closed — see [`../README.md`](../README.md).
+
+## Locked — round 4 (tooling)
+
+| # | Decision |
+|---|---|
+| **D4 reversed** | **Repo and vault are the same folder.** The original split (private vault, shareable code) assumed a confidentiality boundary that round 2 removed — the repo is already private, single-user, all material the user's own. Merging them means skills load automatically on opening the folder, everything is versioned together, and the Windows skill-copy problem never arises. |
+| Skills location | `.claude/skills/` inside the repo. Project-scoped, version-controlled, no install step. |
+| Third-party llm-wiki plugins | **Not installed.** Same reasoning as the GBrain verdict — they implement the generic pattern and would fight the `loops/` layer, the two-store split, and decompilation. |
+| Built-in skills used | `schedule` (weekly brief), `update-config` (permissions and hooks), `code-review` / `simplify` (once there is code). |
+| Installed user skills | All 17 are design/animation packs. **None relevant.** No action. |
+
+Written this round: `CLAUDE.md` (the vault schema — build step 1), `.claude/skills/capture`
+(step 2), `.claude/skills/ingest` (step 4). Remaining skills — `/brief`, `/ask`, `/lint`,
+`/unsource` — are written at their build steps, not speculatively.
