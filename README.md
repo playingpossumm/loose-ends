@@ -14,6 +14,9 @@ A personal knowledge base that does two things:
 Six well-known write-ups of this idea were used as benchmarks. All six build the first
 thing. None of them builds the second. The second is the point.
 
+How this compares to GBrain, Karpathy's llm-wiki, and the wider category — including where
+they are better — is in [`docs/comparison.md`](docs/comparison.md).
+
 ---
 
 ## The core object is a loop
