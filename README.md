@@ -1,6 +1,6 @@
 # second-brain
 
-**Status: built and empty.** Vault, schema, and all seven skills are in place; no sources
+**Status: built and empty.** Vault, schema, and all eight skills are in place; no sources
 compiled yet. **Start here: [the walkthrough](https://claude.ai/code/artifact/e811ca29-719a-46f9-a4c8-d72ca392bdba)**
 or [`docs/setup.md`](docs/setup.md). Design rationale in
 [`docs/decisions.md`](docs/decisions.md); the 90 questions behind it in
@@ -14,13 +14,13 @@ being worth the effort:
 
 | | |
 |---|---|
-| **Never start from zero** | Any session, any project, any agent already knows who you are, what you are working on, and what you have decided. You stop re-explaining yourself. |
-| **One archive you can interrogate** | Notes, LLM transcripts, Twitter saves, PDFs — scattered everywhere, consolidated into one place that answers questions with citations. |
+| **One memory you can interrogate** | Everything you have read and everything about how you work — notes, LLM transcripts, Twitter saves, PDFs, your goals and projects — consolidated into one place that answers with citations. |
 | **Reachable from anywhere** | Not locked inside one folder or one tool. Any agent, any project, eventually any device. |
 | **It compounds** | Connections form between things read months apart. It gets better with every source rather than merely larger. |
+| **It closes loops** | It notices what you said you would do and didn't, pushes you until you decide — and hands you the thing already half-done. |
 
-On top of that memory it does something none of the benchmark systems do: it **notices what
-you said you would do and didn't**, and brings it back until you decide.
+The last one is the differentiator. Every system in this category *stores*; this one is
+built to make you *act*. See below.
 
 Six well-known write-ups of this idea were used as benchmarks — Karpathy's llm-wiki, Garry
 Tan's GBrain, and four others. How this differs, and where they are better, is in
@@ -48,16 +48,32 @@ Most of the value is in the first row, and it was originally scheduled last. It 
 moved up. WhatsApp stays deferred, but it is now understood as covering only the phone
 case rather than the whole of reach.
 
-## Loops
+## Closing loops
 
-Alongside the memory, the system tracks **open loops** — things stated that never resolved:
+The system tracks **open loops** — things stated that never resolved:
 
 > *"I said I wanted to learn this, filed the PDF, and never read it."*
 > *"A friend's birthday went in, and nothing ever made it a calendar event."*
+> *"I told them I'd send the thing, and never did."*
 
 A loop is a file with a status, a counter of how often it has been surfaced unacknowledged,
-and provenance back to the source that produced it. It returns in the weekly brief until you
-kill it, schedule it, or demote it to someday.
+and provenance back to the source that produced it. It returns weekly until you kill it,
+schedule it, or demote it to someday.
+
+**The part that matters is what comes with the nudge.** A reminder you have already ignored
+three times does not need a fourth reminder; it needs the friction removed. So the brief
+does not stop at telling you a loop is open — it arrives with the work already started:
+
+| Loop | What arrives with the nudge |
+|---|---|
+| You owe someone an email | a **drafted email**, in your voice, with the context from the vault already in it |
+| A birthday or deadline | the event details ready to paste, and the fact that no event exists |
+| A PDF you never read | a short summary, so you can decide whether you still care instead of re-opening it |
+| A decision you never made | the options, with what the vault knows about each |
+
+**Drafts only.** Nothing is ever sent, and nothing is written to a calendar. The system
+produces the artifact and hands it to you; pressing send stays a human act. That boundary is
+enforced by not holding credentials that could do otherwise, not by an instruction.
 
 **This is not task management.** You never enter a task; nothing here has an "add item"
 button. Loops are inferred from material you captured for other reasons. The moment it
@@ -68,9 +84,15 @@ requires deliberate task entry, it has become the thing this project explicitly 
 ## Architecture
 
 ```
-capture ──► raw/ ──► compile ──► wiki/  ──► query   "what do I know about X"
-                          └────► loops/ ──► brief   "what did I say I'd do"
+capture ──► raw/ ──► compile ──┬──► wiki/  ──► ask     "what do I know about X"
+                               │
+                               └──► loops/ ──► brief ──► close
+                                             "you said   "here's the email.
+                                              you'd..."   send it or kill it."
 ```
+
+The bottom row is the part that distinguishes this. Everything else in the category stops
+at the middle column.
 
 Two knowledge stores, kept strictly apart — this is the load-bearing decision:
 
@@ -126,7 +148,9 @@ still unwired; run it by hand until that is decided. Contents, capped at roughly
 - contradictions found between new sources and existing pages
 - loops that went stale
 - **decide-now**: loops surfaced 4 times without acknowledgement — kill, schedule, or
-  demote to someday
+  demote to someday — each arriving **with the artifact that closes it**, written out in
+  full: the drafted email, the event details, the summary. Drafts do not count against the
+  ten-line cap; three lines of nudge and one good email draft is the brief working correctly.
 
 Open loops return every week. The escalation exists because flat repetition trains you to
 skim, which is failure condition #2 below.
@@ -240,6 +264,7 @@ the brief's delivery channel needs one decision. Both in [`docs/setup.md`](docs/
 | `/brief` | the weekly brief, capped at ten lines |
 | `/ask` | synthesised answer, citations, coverage note |
 | `/lint` | citation validity, links, orphans, contradictions, staleness |
+| `/close` | close one loop — produces the drafted email, summary, or next action |
 | `/unsource` | remove a source and revert its influence |
 
 They live in [`.claude/skills/`](.claude/skills/) and load when Claude Code opens this

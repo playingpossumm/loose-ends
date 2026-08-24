@@ -25,8 +25,9 @@ skimmed, then ignored. Cut the least important thing rather than adding an eleve
 # Week of YYYY-MM-DD
 
 ## Decide now
-<loops with surfaced >= 4. For each: what it was, where it came from, and the three
-options — kill it, schedule it, or demote to someday. Empty section if none.>
+<loops with surfaced >= 4. For each: what it was, where it came from, the three
+options — kill it, schedule it, demote to someday — AND the artifact that closes it,
+written out in full. See "arrive with the work started" below. Empty section if none.>
 
 ## Open loops
 <the rest, ranked by relevance to current goals and projects. One line each, with a
@@ -52,6 +53,31 @@ questions asked this week that the vault couldn't answer.>
   acknowledged or acted on since the last brief.
 - Write to `briefs/YYYY-MM-DD.md`.
 - Append to `log.md`: `## [YYYY-MM-DD] brief | week of YYYY-MM-DD`.
+
+## Arrive with the work started
+
+A loop the user has ignored four times does not need a fifth reminder. It needs the friction
+removed. For everything in **Decide now**, produce the artifact that would close it — in
+full, inline, ready to use:
+
+| Loop | Produce |
+|---|---|
+| owes someone an email or message | the **drafted message**, in their voice, with vault context already in it |
+| a date or deadline | the event details ready to paste, and the fact that nothing exists yet |
+| something unread | a short summary from the source, so they can decide whether they still care |
+| an undecided decision | the options, with what the vault knows about each |
+| anything else | the smallest concrete next action, written out, not described |
+
+Draw the voice from `mem/profile.md` and past material in `raw/`. Draw the facts from the
+vault and cite them. If you lack what you need to draft well, say what is missing rather
+than inventing details — a wrong draft costs more than no draft.
+
+**Drafts only. Never send anything, never write a calendar.** Produce the artifact and stop.
+If a draft needs a fact you do not have, leave a clearly marked `[gap: ...]` rather than
+guessing.
+
+Keep the ten-line cap for the brief's *summary* sections. Drafts sit below it and do not
+count — a brief that is three lines of nudge and one good email draft is working correctly.
 
 ## Rules
 

@@ -18,8 +18,11 @@ What differs is the combination of guarantees underneath:
   traces to a source and a locator, and `/lint` fails the vault when one does not.
 - **Compilation is reversible.** A source can be removed and its influence reverted across
   every page it touched. Nothing else in the comparison offers this.
-- **Commitments persist.** Others surface open items when asked; here they are tracked
-  objects with a status, an ignore-counter, and an escalation rule.
+- **Commitments persist, and arrive half-done.** Others surface open items when asked; here
+  they are tracked objects with a status, an ignore-counter, and an escalation rule — and
+  the nudge comes with the artifact that closes it. This is the real dividing line: every
+  other system in the comparison ends at *telling you*. **They store; this one is built to
+  make you act.**
 - **Reach is agent-agnostic by design** — an MCP server over plain markdown, not a plugin
   bound to one editor or one vendor.
 
@@ -51,6 +54,23 @@ be pushed rather than queried.
 
 It is a capability of the memory layer, not the reason for it. The memory has to be worth
 having on its own; loops are what you can do once it is.
+
+### 1b. The nudge arrives with the work started
+
+Tracking a commitment is cheap and nobody's differentiator. What none of the six do is
+**remove the friction that kept the loop open in the first place.**
+
+A loop you have ignored four times does not need a fifth reminder — the reminder was never
+the bottleneck. So the brief hands you the drafted email in your own voice with the vault's
+context already in it, or the event details ready to paste, or a summary of the PDF so you
+can decide whether you still care without reopening it.
+
+GBrain will tell you that Alice owes you a security review and you owe her pricing. It will
+not write the follow-up. That is the gap this fills.
+
+**Drafts only** — nothing is sent, nothing is written to a calendar, and that boundary holds
+because the system has no credentials that could do otherwise. The judgement of whether to
+send stays where it belongs.
 
 ### 2. Decompilation
 

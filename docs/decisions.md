@@ -206,3 +206,42 @@ current state fails pillar 3 outright, and pillars 1 and 2 partially (the memory
 reach you while you work in `rag-project` or `kyarayum`).
 
 Rewritten this round: README spine, `docs/comparison.md` positioning.
+
+## Locked — round 6 (the differentiator)
+
+**"Never start from zero" is dropped as a separate pillar.** It overlapped with the archive
+pillar — from the user's side, "knows who I am" and "knows what I read" are one thing. Merged
+into **one memory you can interrogate**, which now explicitly covers `mem/` as well as
+`wiki/`.
+
+**Replaced by: it closes loops.** Not just noticing what you said you would do — arriving
+with the work already started.
+
+| Loop | Artifact produced |
+|---|---|
+| owes someone an email | the drafted message, in the user's voice, vault context included |
+| a date or deadline | event details ready to paste |
+| something unread | a summary, so they can decide if they still care |
+| an undecided decision | options plus what the vault knows about each |
+
+This is the sharpest line against the field. Every benchmark system ends at *telling you*.
+GBrain will say Alice owes you a security review; it will not write the follow-up.
+
+### Hard boundary: drafts only
+
+Nothing is sent. Nothing is written to a calendar. Nothing is posted. The system produces
+the artifact and hands it over.
+
+**Enforced by holding no credentials that could do otherwise** — not by an instruction in a
+skill file. This follows the "keys, not prompts" rule from source #2 and keeps the earlier
+scope decisions intact (A3: no task management; calendar: advise only).
+
+### Four pillars, final
+
+1. One memory you can interrogate
+2. Reachable from anywhere
+3. It compounds
+4. **It closes loops** ← the differentiator
+
+Added this round: `.claude/skills/close`. Updated: `/brief` now produces closing artifacts
+for every decide-now item, and drafts are exempt from the ten-line cap.
