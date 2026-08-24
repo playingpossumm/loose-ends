@@ -57,6 +57,34 @@ is refused rather than served.
 WhatsApp stays deferred, but it now covers only the phone case rather than the whole of
 reach.
 
+### Channels have different jobs
+
+| Channel | Direction | Job | Status |
+|---|---|---|---|
+| **Email** | out, to you only | the weekly brief, loop nudges, and the drafted artifacts that close them | built, needs credentials |
+| **WhatsApp** | in, and round-trip | capture on the move, and quick retrieval — *"what do I know about X"* | deferred |
+| **MCP** | round-trip | the vault available inside any other project | built |
+| **Claude Code** | round-trip | compiling, closing, anything supervised | built |
+
+Email is asynchronous and archival: a nudge sits in the inbox until it is dealt with, and a
+drafted email arrives in the one place you would send it from. WhatsApp is fast and
+conversational: right for *save this* and *what do I know about X*, wrong for a weekly brief
+that would be buried by the next message.
+
+### The one credential, and why it is safe
+
+Email means SMTP, and SMTP means this project holds its first secret. That threatens the
+property that made drafts-only self-enforcing — a system that can send mail can, in
+principle, send it to anyone.
+
+[`scripts/send_brief.py`](scripts/send_brief.py) closes that: **it has no recipient
+parameter.** Not in the signature, not on the command line, nowhere. The destination is read
+once from `BRAIN_EMAIL_TO` and cannot be overridden. `--to someone@else.com` is a parse
+error, not a policy violation.
+
+So the guarantee holds in the form that matters: drafts written for other people are never
+transmissible, because no code path exists that sends to an arbitrary address.
+
 ## Closing loops
 
 The system tracks **open loops** — things stated that never resolved:

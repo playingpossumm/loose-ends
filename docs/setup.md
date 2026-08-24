@@ -86,6 +86,32 @@ is refused rather than served.
 
 If you move the folder, re-run the command above with the new path.
 
+## 5. Email delivery for the brief
+
+Loops and reminders go to email; WhatsApp is later, and only for capture and retrieval.
+
+1. Copy `.env.example` to `.env` and fill it in. `.env` is gitignored — never commit it.
+2. Gmail needs an **App Password**, not your account password: myaccount.google.com →
+   Security → 2-Step Verification → App passwords. Any SMTP host works.
+3. Test without sending:
+
+```
+.venv\Scripts\python.exe scripts/send_brief.py --dry-run
+```
+
+4. Then for real:
+
+```
+.venv\Scripts\python.exe scripts/send_brief.py
+```
+
+The script sends the most recent file in `briefs/` to exactly one address — the one in
+`BRAIN_EMAIL_TO`. There is no recipient argument, deliberately: the vault drafts emails to
+other people, and no code path exists that could transmit one.
+
+Schedule it weekly once you have run `/brief` a few times by hand and know what belongs in
+it.
+
 ## Daily use
 
 | Command | When |

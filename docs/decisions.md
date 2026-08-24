@@ -270,3 +270,35 @@ Six tools: `brain_index`, `brain_search`, `brain_read`, `brain_loops`, `brain_ca
 
 Project scope works via `.mcp.json`; user scope needs one `claude mcp add` command, in
 `docs/setup.md`. Build step 10 done; WhatsApp is now step 11 and covers only phone reach.
+
+## Locked — round 8 (channel split)
+
+**Email and WhatsApp do different jobs.** Previously both were vaguely "reach"; now split by
+what each medium is actually good at:
+
+| Channel | Job |
+|---|---|
+| **Email** | loops, reminders, the weekly brief, and the drafted artifacts that close them |
+| **WhatsApp** | capture on the move, and quick retrieval — "what do I know about X" |
+
+Rationale: email is asynchronous and archival — a nudge sits in the inbox until dealt with,
+and a drafted email lands in the one place you would send it from. WhatsApp is synchronous
+and conversational — right for *save this* and quick lookups, wrong for a weekly brief that
+the next message buries.
+
+This reverses the round-7 suggestion of scheduled-routine + push notification. Push is
+ephemeral; a nudge that vanishes is not a nudge.
+
+### The credential problem, and the fix
+
+Email means SMTP, which means the project holds its first secret — threatening the property
+that made "drafts only" self-enforcing rather than a promise.
+
+**`scripts/send_brief.py` has no recipient parameter.** Destination comes from
+`BRAIN_EMAIL_TO` and cannot be overridden; `--to` is an argparse error. Verified. Drafts for
+third parties remain non-transmissible because no code path sends to an arbitrary address.
+
+`.env` is gitignored; `.env.example` documents the fields. Gmail requires an App Password.
+
+Built this round: `scripts/send_brief.py`, `.env.example`. Tested: missing-config path,
+dry-run render, and redirection refusal.
