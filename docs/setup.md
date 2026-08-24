@@ -38,20 +38,13 @@ It solves your main capture path with no pipeline code.
    under Settings → Hotkeys. Clip, press the hotkey, images land locally instead of as URLs
    that rot.
 
-## 3. Weekly brief scheduling (needs one decision from you)
+## 3. Run the brief by hand for a few weeks
 
-`/brief` works today — run it manually any time. Automating the push needs a delivery
-channel, which is the one open item in this project:
+`/brief` works today. Run it at the end of the week and read what comes out.
 
-| Option | Cost | Notes |
-|---|---|---|
-| Run `/brief` manually, weekly | free | Works now. Relies on you remembering, which is exactly what this system exists to fix. |
-| Scheduled Claude Code routine | free on your plan | Generates the brief on a cron. Delivery still needs a channel. |
-| Email | free | Needs SMTP config or a mail account for it to send from. |
-| WhatsApp via OpenClaw | ~$5/mo host | Deferred by decision. The brain exposes MCP; OpenClaw becomes a client. |
-
-Tell me which and I will wire it up. Manual for the first few weeks is a reasonable start —
-you will learn what the brief should contain before automating it.
+Do this before automating anything. You will learn what belongs in the brief — and, more
+usefully, what does not — and that is much easier to adjust while you are still running it
+yourself. Email delivery is step 5, once you know the thing is worth delivering.
 
 ## 4. Reach it from your other projects (recommended)
 
@@ -119,6 +112,7 @@ it.
 | `/capture` | anything worth keeping — a link, a PDF, a thought, this conversation |
 | `/ingest` | compile one waiting source. One at a time, on purpose. |
 | `/ask` | any question the brain might know |
+| `/close` | deal with one open loop — get the drafted email, summary, or next action |
 | `/brief` | weekly |
 | `/lint` | monthly, or before a brief |
 | `/unsource` | a source turned out to be wrong |
