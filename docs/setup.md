@@ -53,6 +53,39 @@ channel, which is the one open item in this project:
 Tell me which and I will wire it up. Manual for the first few weeks is a reasonable start —
 you will learn what the brief should contain before automating it.
 
+## 4. Reach it from your other projects (recommended)
+
+Without this, the brain only exists when Claude Code is open in this folder. With it, the
+vault is available in `rag-project`, `kyarayum`, anywhere — your memory follows you instead
+of waiting in a directory.
+
+The MCP server is built and tested. Inside this folder it works already via `.mcp.json`.
+To make it available **everywhere**, register it once at user scope:
+
+```
+claude mcp add --scope user second-brain -- "C:/Users/ArdellFavourCapital/Desktop/second-brain/.venv/Scripts/python.exe" "C:/Users/ArdellFavourCapital/Desktop/second-brain/mcp/server.py"
+```
+
+Then from any project: *"search my brain for what I know about reranking"*.
+
+Six tools, all read-mostly:
+
+| Tool | Does |
+|---|---|
+| `brain_index` | the catalogue — what exists at all |
+| `brain_search` | ranked search with matching lines |
+| `brain_read` | one page in full |
+| `brain_loops` | what is still outstanding |
+| `brain_capture` | file something new into the inbox |
+| `brain_recent` | last N things that happened |
+
+The only tool that writes is `brain_capture`, and it only ever appends a new file to
+`raw/inbox/`. Nothing over MCP can edit or delete anything — compilation stays inside the
+vault where you can see it. Paths are checked against the vault root, so a traversal attempt
+is refused rather than served.
+
+If you move the folder, re-run the command above with the new path.
+
 ## Daily use
 
 | Command | When |

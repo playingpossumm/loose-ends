@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "second-brain": {
+      "command": "C:/Users/ArdellFavourCapital/Desktop/second-brain/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/ArdellFavourCapital/Desktop/second-brain/mcp/server.py"
+      ],
+      "env": {
+        "BRAIN_VAULT": "C:/Users/ArdellFavourCapital/Desktop/second-brain"
+      }
+    }
+  }
+}

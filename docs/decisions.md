@@ -245,3 +245,28 @@ scope decisions intact (A3: no task management; calendar: advise only).
 
 Added this round: `.claude/skills/close`. Updated: `/brief` now produces closing artifacts
 for every decide-now item, and drafts are exempt from the ten-line cap.
+
+## Locked — round 7 (reach)
+
+**MCP server built** — `mcp/server.py`, Python 3.12, `mcp==2.0.0`. Note the SDK renamed
+`FastMCP` to `MCPServer` in 2.0; code is written against the installed API, not the older
+pattern found in most tutorials.
+
+Six tools: `brain_index`, `brain_search`, `brain_read`, `brain_loops`, `brain_capture`,
+`brain_recent`. Verified end to end over stdio — initialize handshake, `tools/list`,
+`tools/call`.
+
+**Design choices:**
+
+- **Data access only, no synthesis.** The server returns pages and snippets; the calling
+  agent does the reasoning. This is what keeps it useful to Claude Code, a CLI, or anything
+  else that speaks MCP, rather than binding the vault to one client.
+- **Retrieval is Python, not ripgrep.** No external binary dependency; scoring weights a
+  filename match 12x a body hit, since a page named for a term is usually *about* it.
+- **`raw/` searched last.** The wiki is compiled understanding; raw is the fallback.
+- **Write surface is one tool.** `brain_capture` appends to `raw/inbox/`. Nothing over MCP
+  edits or deletes — compilation stays inside the vault under supervision.
+- **Path traversal refused**, not sanitised. Tested.
+
+Project scope works via `.mcp.json`; user scope needs one `claude mcp add` command, in
+`docs/setup.md`. Build step 10 done; WhatsApp is now step 11 and covers only phone reach.

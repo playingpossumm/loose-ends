@@ -39,14 +39,23 @@ client of it: Claude Code in *any* project, the CLI, later a phone.
 
 Two kinds of reach, with very different costs:
 
-| Reach | Needs | Cost |
-|---|---|---|
-| Any agent, any project, on this laptop | an MCP server, running locally on demand | free |
-| Your phone, away from the laptop | an always-on host running OpenClaw | ~$5/mo |
+| Reach | Needs | Cost | Status |
+|---|---|---|---|
+| Any agent, any project, on this laptop | an MCP server, running locally on demand | free | **built** |
+| Your phone, away from the laptop | an always-on host running OpenClaw | ~$5/mo | deferred |
 
-Most of the value is in the first row, and it was originally scheduled last. It has been
-moved up. WhatsApp stays deferred, but it is now understood as covering only the phone
-case rather than the whole of reach.
+Most of the value is in the first row, and it was originally scheduled last. It was moved
+up and is now done — [`mcp/server.py`](mcp/server.py) exposes six tools (`brain_index`,
+`brain_search`, `brain_read`, `brain_loops`, `brain_capture`, `brain_recent`) over stdio.
+Registration is one command, in [`docs/setup.md`](docs/setup.md).
+
+The write surface is deliberately tiny: `brain_capture` appends a file to `raw/inbox/` and
+that is all. Nothing reachable over MCP can edit or delete a page — compilation stays inside
+the vault where you can watch it happen. Paths resolve against the vault root, so traversal
+is refused rather than served.
+
+WhatsApp stays deferred, but it now covers only the phone case rather than the whole of
+reach.
 
 ## Closing loops
 
