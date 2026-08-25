@@ -1,17 +1,43 @@
 # Setup
 
-The vault is built and the skills are written. Three things remain, and only the first is
-required to start using it.
+## 0. Two repositories, one folder
 
-## 1. Open Claude Code in this folder (required)
+This repository holds the **system** — skills, MCP server, scripts, docs — and is meant to be
+shareable. Your **content** lives in `vault/`, which this repo ignores entirely and which is
+its own separate private repository.
+
+```
+second-brain/            the system. shareable.
+├─ .claude/skills/  mcp/  scripts/  docs/
+├─ CLAUDE.md  README.md
+├─ .env                  your credentials. gitignored. never leaves this machine.
+└─ vault/                YOUR CONTENT. gitignored here; its own private repo.
+   └─ raw/ wiki/ loops/ mem/ briefs/  index.md  log.md
+```
+
+You open the outer folder in Claude Code — that is where the skills load from — and
+everything the skills write goes into `vault/`.
+
+After cloning:
+
+```
+python scripts/init_vault.py
+cd vault && git init && git add -A && git commit -m "empty vault"
+gh repo create my-brain --private --source=. --push
+```
+
+Keep that second repo **private**. It holds your goals, your projects, the people you work
+with, and everything you have ever captured.
+
+## 1. Open Claude Code in the repository root (required)
 
 ```
 <wherever you cloned it>
 ```
 
-Project skills only load when this folder is the working directory. Opening Claude Code in
-your home folder gives you no `/capture`, no `/ingest`. Confirm with `/capture` — if it
-does not autocomplete, you are in the wrong directory.
+Project skills only load when this folder is the working directory — the outer one, not
+`vault/`. Opening Claude Code anywhere else gives you no `/capture`, no `/ingest`. Confirm
+with `/capture`: if it does not autocomplete, you are in the wrong directory.
 
 Then run `/bootstrap`. It interviews you one question at a time and fills `mem/`. About
 twenty minutes; you can stop and resume. Until it runs, every answer the brain gives is
@@ -23,7 +49,7 @@ Obsidian is a **viewer**. Nothing in the pipeline needs it running — that depe
 makes most published setups of this pattern fragile.
 
 1. Install from [obsidian.md](https://obsidian.md) — free.
-2. *Open folder as vault* → this folder. Not "create new vault".
+2. *Open folder as vault* → the `vault/` subfolder. Not "create new vault".
 3. Graph view shows the shape of what you have built, and which pages are orphans.
 
 ### Web Clipper — the highest-value fifteen minutes here
@@ -32,9 +58,9 @@ The browser extension turns articles, Twitter threads, and PDFs into markdown in
 It solves your main capture path with no pipeline code.
 
 1. Install *Obsidian Web Clipper* for your browser.
-2. Point its save location at `raw/inbox/`.
+2. Point its save location at `vault/raw/inbox/`.
 3. For image-heavy pages: Obsidian → Settings → Files and links → set *Attachment folder
-   path* to `raw/images/`, then bind *Download attachments for current file* to a hotkey
+   path* to `images/`, then bind *Download attachments for current file* to a hotkey
    under Settings → Hotkeys. Clip, press the hotkey, images land locally instead of as URLs
    that rot.
 
