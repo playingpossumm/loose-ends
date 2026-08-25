@@ -302,3 +302,41 @@ third parties remain non-transmissible because no code path sends to an arbitrar
 
 Built this round: `scripts/send_brief.py`, `.env.example`. Tested: missing-config path,
 dry-run render, and redirection refusal.
+
+## Locked — round 9 (Telegram over WhatsApp)
+
+**WhatsApp is dropped as the phone channel. Telegram replaces it.**
+
+Investigated properly rather than assumed:
+
+| | WhatsApp | Telegram |
+|---|---|---|
+| API | Baileys — unofficial, reverse-engineered | official Bot API |
+| Ban risk | real and unpredictable, even for personal use | none |
+| OpenClaw's default | Baileys (Cloud API only a feature request) | official |
+| Offline queue | 14 days, linked-device session expires | 24 hours |
+| Cost to run properly | $10-15/mo VPS | free |
+
+The decisive finding: **OpenClaw uses Baileys by default**, so adopting OpenClaw does not
+avoid the ban risk — it ships it. Correcting an earlier estimate: a VPS is $7-24/mo, not
+~$5, and OpenClaw wants 2 vCPU / 4 GB.
+
+**Capture is deferred, and that is the whole trick.** Telegram queues bot updates for 24h,
+so nothing needs to be running when you send. `scripts/telegram_capture.py --once` drains
+the backlog whenever you next open the laptop. No host, no subscription, no risk.
+
+**Security:** only `BRAIN_TELEGRAM_CHAT_ID` is accepted. Anyone can find a bot; without the
+check, anyone could write to the vault.
+
+**Stdlib only** — `urllib`, no `requests`. A script that runs unattended should not break
+when a dependency does.
+
+### Deliberately not built: query from phone
+
+Answering a question needs a model on the other end. The subscription lives in Claude Code
+and cannot be driven by a polling script, so query-from-phone means either an API budget or
+OpenClaw bridging to a local agent. Both were deferred. Capture is the higher-value half and
+is now free; revisit query once there is evidence of reaching for it.
+
+Built this round: `scripts/telegram_capture.py`. Tested: text, links, forwards with
+provenance, photos, PDFs, voice-note fallback, empty messages, filename collisions.

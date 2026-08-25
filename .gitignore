@@ -9,3 +9,6 @@ node_modules/
 
 # scratch dirs
 .tmp-*/
+
+# Telegram polling cursor — local state, not history
+.telegram-offset

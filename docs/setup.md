@@ -105,6 +105,42 @@ other people, and no code path exists that could transmit one.
 Schedule it weekly once you have run `/brief` a few times by hand and know what belongs in
 it.
 
+## 6. Telegram capture from your phone (optional)
+
+Send things to the brain from anywhere. Telegram queues bot updates for 24 hours, so
+**nothing needs to be running when you send** — you message the bot, and next time you open
+your laptop the backlog drains into `raw/inbox/`.
+
+Telegram rather than WhatsApp on purpose: the bot API is official and free, where every
+WhatsApp route either risks your account (Baileys, which is what OpenClaw uses by default)
+or needs a $10-15/mo always-on host.
+
+1. Message **@BotFather** on Telegram, send `/newbot`, follow the prompts. Copy the token
+   into `.env` as `BRAIN_TELEGRAM_TOKEN`.
+2. Send your new bot any message.
+3. Find your chat id:
+
+```
+.venv\Scripts\python.exe scripts/telegram_capture.py --setup
+```
+
+   Put the printed `BRAIN_TELEGRAM_CHAT_ID` into `.env`. Messages from any other chat are
+   ignored — without this, anyone who found your bot could write into your vault.
+4. Then whenever you sit down:
+
+```
+.venv\Scripts\python.exe scripts/telegram_capture.py --once
+```
+
+Handles text, links, forwards (the original sender is kept as provenance), photos and PDFs
+(downloaded into `raw/`). Voice notes keep the caption and drop the audio, per the earlier
+decision to leave transcription out of scope.
+
+`--watch` keeps polling if you want it live while you work.
+
+**It captures only.** Asking questions from your phone needs a model on the other end, which
+is the part that needs OpenClaw or an API budget — see the note in `decisions.md`.
+
 ## Daily use
 
 | Command | When |
