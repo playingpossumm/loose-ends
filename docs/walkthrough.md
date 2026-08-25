@@ -87,6 +87,17 @@ Answer properly. Vague answers here produce a vague assistant forever.
 Or drag a file into `vault/raw/inbox/`. Capture is deliberately dumb and instant — it files
 things word for word and does no thinking at all.
 
+Everything you set up later drops into that same folder, which is why adding a new way to
+capture never touches the rest of the system:
+
+| Door | For |
+|---|---|
+| Drag into `vault/raw/inbox/` | anything already on your machine |
+| `/capture` | a link, a thought, or the conversation you're in |
+| Obsidian Web Clipper | articles and threads, one click from the browser |
+| Telegram | anything, from your phone, anywhere |
+| `brain_capture` over MCP | from inside any other project |
+
 ### 6. Compile it
 
 ```
@@ -215,6 +226,41 @@ Each is independent; set up none, some, or all. Details in [`setup.md`](setup.md
 | **MCP server** | The vault reachable from every other project you work in, not just this folder. |
 | **Email delivery** | The weekly brief pushed to you instead of waiting in a file. |
 | **Telegram capture** | Send things from your phone. Nothing needs to be running when you send. |
+
+### How the Telegram one works
+
+Worth understanding, because it's the part that sounds like it should cost money and doesn't.
+
+Normally, messaging an assistant from your phone means a server is listening somewhere —
+that's the $7–24/mo most builds of this assume. But **Telegram holds bot messages for 24
+hours**, so nothing has to be running when you send:
+
+```
+Monday, on the train   →  you message your bot three links and a thought
+Tuesday, at your desk  →  .venv/Scripts/python scripts/telegram_capture.py --once
+
+                          vault/raw/inbox/2026-08-25-hybrid-retrieval-paper.md
+                          vault/raw/inbox/2026-08-25-look-into-this-for-the-.md
+                          vault/raw/inbox/2026-08-25-whiteboard-photo.md
+                          Captured 4 message(s). Run /ingest to compile.
+
+                       →  /ingest
+```
+
+You fire things at it all week from wherever you are; it drains when you next sit down.
+
+It handles text, links, forwards (keeping the original sender as provenance), photos and
+PDFs — those get downloaded into `vault/raw/` so the source survives even if the link rots.
+Only your own chat ID is accepted, so nobody who stumbles across your bot can write into
+your vault.
+
+**One tradeoff, stated plainly:** this is capture, not conversation. It won't answer you.
+Replying needs a model running somewhere always-on, which is the single thing in this project
+that would cost money — so it's left out. Capture is the more valuable half, and it's the
+half that's free.
+
+Setup is about five minutes: message @BotFather, run `--setup` to find your chat ID, paste
+two values into `.env`. Full steps in [`setup.md`](setup.md#6-telegram-capture-from-your-phone-optional).
 
 ---
 

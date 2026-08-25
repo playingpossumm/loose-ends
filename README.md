@@ -48,6 +48,54 @@ has **no recipient parameter at all**: the destination is a config value, and
 
 ---
 
+## Getting things in
+
+These systems don't die because the compiler is bad. They die because capture is
+inconvenient, you stop feeding them, and a knowledge base nobody feeds is a dead repo. So
+capture is designed to be the easiest part.
+
+**One landing zone, many doors.** Everything ends up in `vault/raw/inbox/`, and the compiler
+watches exactly one folder. That means new ways to get things in can be added forever
+without touching the pipeline.
+
+| Door | For | Setup |
+|---|---|---|
+| Drag into `vault/raw/inbox/` | anything already on your machine | none |
+| `/capture` in Claude Code | a link, a thought, or the conversation you're in | none |
+| **Obsidian Web Clipper** | articles, threads, PDFs — one click from the browser | ~15 min |
+| **Telegram** | anything, from your phone, anywhere | ~5 min |
+| `brain_capture` over MCP | from inside any other project you're working in | one command |
+
+### The Telegram trick
+
+Sending to your brain from your phone normally means running a server somewhere — that's
+the $7–24/mo most builds of this quietly assume.
+
+It isn't necessary. **Telegram queues bot updates for 24 hours.** So nothing has to be
+listening when you send:
+
+```
+Monday, on the train      →  you message your bot three links and a thought
+Tuesday, at your desk     →  python scripts/telegram_capture.py --once
+                             ...four files land in vault/raw/inbox/
+                          →  /ingest
+```
+
+You fire things at it all week from wherever you are; it drains when you next sit down.
+No host, no VPS, no subscription, and the Telegram bot API is official — unlike every
+WhatsApp route, which either needs a paid always-on host or a reverse-engineered library
+that can get your number banned.
+
+It handles text, links, forwards (keeping the original sender as provenance), photos and
+PDFs. Only your own chat ID is accepted, so nobody who stumbles across your bot can write
+into your vault.
+
+**The tradeoff, stated plainly:** this gets you *capture* from your phone, not *answers*.
+Replying needs a model running somewhere always-on, which is the one thing here that would
+cost money. Capture is the more valuable half, and it's the half that's free.
+
+---
+
 ## $0/month, and why that's possible
 
 Every piece was chosen so nothing bills you:
