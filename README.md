@@ -1,124 +1,103 @@
 # second-brain
 
-**Status: built and empty.** Vault, schema, and all eight skills are in place; no sources
-compiled yet. **Start here: [the walkthrough](https://claude.ai/code/artifact/e811ca29-719a-46f9-a4c8-d72ca392bdba)**
-or [`docs/setup.md`](docs/setup.md). Design rationale in
-[`docs/decisions.md`](docs/decisions.md); the 90 questions behind it in
-[`docs/architecture-qa.md`](docs/architecture-qa.md).
+A personal knowledge base that doesn't just remember what you read — it notices what you
+said you'd do, and hands you the thing already half-done.
 
-A persistent personal memory layer. Not an app — a folder of markdown files that any agent
-can read, holding everything you have read and everything about how you work.
+It answers two questions:
 
-It has to do four things, and all four are the offering. Drop any one and the rest stop
-being worth the effort:
+1. **What do I know about X?** — with citations back to the thing you actually read.
+2. **What did I say I'd do and haven't?** — every week, until you decide.
 
-| | |
-|---|---|
-| **One memory you can interrogate** | Everything you have read and everything about how you work — notes, LLM transcripts, Twitter saves, PDFs, your goals and projects — consolidated into one place that answers with citations. |
-| **Reachable from anywhere** | Not locked inside one folder or one tool. Any agent, any project, eventually any device. |
-| **It compounds** | Connections form between things read months apart. It gets better with every source rather than merely larger. |
-| **It closes loops** | It notices what you said you would do and didn't, pushes you until you decide — and hands you the thing already half-done. |
+Six well-known write-ups of this idea were used as benchmarks, including Karpathy's
+[llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and Garry
+Tan's GBrain. All six build the first thing. None of them builds the second.
 
-The last one is the differentiator. Every system in this category *stores*; this one is
-built to make you *act*. See below.
-
-Six well-known write-ups of this idea were used as benchmarks — Karpathy's llm-wiki, Garry
-Tan's GBrain, and four others. How this differs, and where they are better, is in
-[`docs/comparison.md`](docs/comparison.md).
+**It runs at $0/month.** No API keys, no database, no server, no vector store.
 
 ---
 
-## Reach is a design constraint, not a feature
+## The part that's different
 
-"Reachable from anywhere" is the pillar that shapes the architecture, because it is the one
-that fails silently if you design for it late.
+Most systems in this category are storage. You put things in, they organise them, you ask
+questions. This one also tracks **open loops** — things you said and never resolved:
 
-A vault that only works when Claude Code is open in its own folder is not a memory layer —
-it is a folder. So the vault is exposed through an **MCP server**, and every surface is a
-client of it: Claude Code in *any* project, the CLI, later a phone.
+> *"I want to learn this"* — and the PDF has sat unread for six weeks.
+> *"I'll send them that thing"* — and you didn't.
+> A friend's birthday went in, and no calendar event ever appeared.
 
-Two kinds of reach, with very different costs:
+You never type these in. They're inferred from material you captured for other reasons.
 
-| Reach | Needs | Cost | Status |
-|---|---|---|---|
-| Any agent, any project, on this laptop | an MCP server, running locally on demand | free | **built** |
-| Capture from your phone, any time | a Telegram bot; nothing running when you send | free | **built** |
-| *Asking* from your phone, laptop closed | an always-on host | $10–15/mo | deferred |
+**And the nudge arrives with the work already started.** A reminder you've ignored three
+times doesn't need a fourth — the reminder was never the bottleneck:
 
-Most of the value is in the first row, and it was originally scheduled last. It was moved
-up and is now done — [`mcp/server.py`](mcp/server.py) exposes six tools (`brain_index`,
-`brain_search`, `brain_read`, `brain_loops`, `brain_capture`, `brain_recent`) over stdio.
-Registration is one command, in [`docs/setup.md`](docs/setup.md).
-
-The write surface is deliberately tiny: `brain_capture` appends a file to `raw/inbox/` and
-that is all. Nothing reachable over MCP can edit or delete a page — compilation stays inside
-the vault where you can watch it happen. Paths resolve against the vault root, so traversal
-is refused rather than served.
-
-Phone capture is solved too, and free — see the Telegram row above.
-
-### Channels have different jobs
-
-| Channel | Direction | Job | Status |
-|---|---|---|---|
-| **Email** | out, to you only | the weekly brief, loop nudges, and the drafted artifacts that close them | built, needs credentials |
-| **Telegram** | in, from your phone | capture on the move — deferred, so nothing needs to be running when you send | **built** |
-| **MCP** | round-trip | the vault available inside any other project | built |
-| **Claude Code** | round-trip | compiling, closing, anything supervised | built |
-
-Email is asynchronous and archival: a nudge sits in the inbox until it is dealt with, and a
-drafted email arrives in the one place you would send it from. Telegram is fast and
-conversational: right for *save this* on the move, wrong for a weekly brief that the next
-message would bury.
-
-### The one credential, and why it is safe
-
-Email means SMTP, and SMTP means this project holds its first secret. That threatens the
-property that made drafts-only self-enforcing — a system that can send mail can, in
-principle, send it to anyone.
-
-[`scripts/send_brief.py`](scripts/send_brief.py) closes that: **it has no recipient
-parameter.** Not in the signature, not on the command line, nowhere. The destination is read
-once from `BRAIN_EMAIL_TO` and cannot be overridden. `--to someone@else.com` is a parse
-error, not a policy violation.
-
-So the guarantee holds in the form that matters: drafts written for other people are never
-transmissible, because no code path exists that sends to an arbitrary address.
-
-## Closing loops
-
-The system tracks **open loops** — things stated that never resolved:
-
-> *"I said I wanted to learn this, filed the PDF, and never read it."*
-> *"A friend's birthday went in, and nothing ever made it a calendar event."*
-> *"I told them I'd send the thing, and never did."*
-
-A loop is a file with a status, a counter of how often it has been surfaced unacknowledged,
-and provenance back to the source that produced it. It returns weekly until you kill it,
-schedule it, or demote it to someday.
-
-**The part that matters is what comes with the nudge.** A reminder you have already ignored
-three times does not need a fourth reminder; it needs the friction removed. So the brief
-does not stop at telling you a loop is open — it arrives with the work already started:
-
-| Loop | What arrives with the nudge |
+| The loop | What arrives with it |
 |---|---|
-| You owe someone an email | a **drafted email**, in your voice, with the context from the vault already in it |
-| A birthday or deadline | the event details ready to paste, and the fact that no event exists |
-| A PDF you never read | a short summary, so you can decide whether you still care instead of re-opening it |
-| A decision you never made | the options, with what the vault knows about each |
+| You owe someone an email | the **drafted email**, in your voice, with context from your notes already in it |
+| A birthday or deadline | the event details ready to paste, and the fact that nothing exists yet |
+| A PDF you never read | a summary, so you can decide whether you still care without reopening it |
+| A decision you never made | the options, and what your notes know about each |
 
-**Drafts only.** Nothing is ever sent, and nothing is written to a calendar. The system
-produces the artifact and hands it to you; pressing send stays a human act. That boundary is
-enforced by not holding credentials that could do otherwise, not by an instruction.
+GBrain will tell you that Alice owes you a security review and you owe her pricing. It won't
+write the follow-up. That's the gap this fills.
 
-**This is not task management.** You never enter a task; nothing here has an "add item"
-button. Loops are inferred from material you captured for other reasons. The moment it
-requires deliberate task entry, it has become the thing this project explicitly excludes.
+**Drafts only.** Nothing is ever sent and nothing is written to a calendar. That boundary
+holds because the system has no credential that could do otherwise — not because a prompt
+asks it nicely. The one script that can send mail ([`send_brief.py`](scripts/send_brief.py))
+has **no recipient parameter at all**: the destination is a config value, and
+`--to someone@else.com` is a parse error rather than a policy violation.
 
 ---
 
-## Architecture
+## $0/month, and why that's possible
+
+Every piece was chosen so nothing bills you:
+
+| Part | How it's free |
+|---|---|
+| **Compilation and answers** | Runs on an existing Claude Code subscription. No API keys, no per-token billing. |
+| **Storage** | Markdown files on your disk. No database, no hosting, no sync service. |
+| **Retrieval** | An index file and `grep`. No vector store, no embedding API — deliberate, see below. |
+| **Phone capture** | A Telegram bot. Official API, free, and *nothing needs to be running when you send*. |
+| **The weekly brief** | Sent through your own email account. |
+| **Reach from other projects** | A local MCP server, started on demand. No daemon, no open port. |
+| **Viewing** | Obsidian — free, and optional. Nothing depends on it. |
+
+For comparison, the usual builds of this idea assume a $7–24/mo VPS, an API budget of roughly
+$15–40/mo at moderate volume, or a hosted vector database. None of that is here.
+
+One thing is deliberately left out *because* it would cost money: **asking questions from
+your phone while your laptop is closed.** That needs a model running somewhere always-on.
+Capturing from your phone works and is free; answering doesn't.
+
+---
+
+## Why you'd want this
+
+**You own it.** Plain markdown in a git repo. Not a database, not a SaaS account, not a
+proprietary format. Readable in Notepad, in ten years, after the tools that made it are gone.
+
+**No lock-in.** The vault is files plus a schema. Point a different model at it next year and
+it still works. Nothing here is Claude-specific except convenience.
+
+**Everything is checkable.** Every claim cites the source it came from. When it tells you
+something, you can verify it instead of trusting it.
+
+**It's reversible.** `/unsource` removes a bad source *and everything it caused*, across
+every page it touched. Compilation spreads one source across a dozen pages; the published
+write-ups of this pattern acknowledge that problem and offer no way back. `git revert`
+doesn't solve it either — later good edits sit on top of the bad ones.
+
+**Nothing to maintain.** No PARA, no Zettelkasten, no folder taxonomy to keep tidy. Pages
+exist because a source created them, and structure emerges from citations. The maintenance
+burden is what kills personal wikis; there isn't one here.
+
+**Private by default.** Files on your disk, and the vault is a separate private repo.
+Content passes through the model when you ask it to read something — the same as any
+conversation — but the memory itself never leaves your machine.
+
+---
+
+## How it works
 
 ```
 capture ──► raw/ ──► compile ──┬──► wiki/  ──► ask     "what do I know about X"
@@ -128,181 +107,127 @@ capture ──► raw/ ──► compile ──┬──► wiki/  ──► ask
                                               you'd..."   send it or kill it."
 ```
 
-The bottom row is the part that distinguishes this. Everything else in the category stops
-at the middle column.
+Two stores, kept strictly apart. This is the load-bearing decision:
 
-Two knowledge stores, kept strictly apart — this is the load-bearing decision:
-
-| | **World knowledge** (`wiki/`) | **Self knowledge** (`mem/`) |
+| | **`wiki/`** — what you've read | **`mem/`** — who you are |
 |---|---|---|
-| Author | the model | you |
-| Size | unbounded | small |
-| Contradictions are | *findings* — flag and keep both | *bugs* — surface and fix |
-| Compiler may | write freely | propose only, never write |
+| Written by | the model | you |
+| Rebuildable from `raw/` | yes | **no** |
+| A contradiction is | a *finding* — flag it, keep both | a *bug* — surface it, you fix it |
+| The compiler may | write freely | **propose only, never write** |
 
-Every source that conflates these gets muddled. `wiki/` is compiled and disposable —
-it can be rebuilt from `raw/`. `mem/` is authoritative and cannot.
+That asymmetry is the point. A conflict between two articles is interesting and gets
+preserved. A conflict between your stated goal and your actual commitments is a problem and
+gets escalated. Same word, two mechanisms — systems that blur them feel vague.
 
-### Vault layout
+### Two repositories, one folder
 
 ```
-brain/                    the vault. one folder, opened in Obsidian.
-├─ CLAUDE.md              thin index → points at mem/
-├─ index.md               catalogue of every wiki page
-├─ log.md                 append-only record of what happened when
-│
-├─ raw/                   immutable. never edited after landing.
-│  ├─ inbox/              the single landing zone — every capture door drops here
-│  └─ articles/ pdfs/ images/ transcripts/ notes/
-│
-├─ wiki/                  sources/ entities/ concepts/ synthesis/
-├─ loops/                 open/ closed/ dates/
-├─ mem/                   profile.md goals.md projects.md people.md rules.md
-└─ briefs/                one file per week
+second-brain/            the system — skills, server, scripts, docs. Shareable.
+├─ .claude/skills/       the eight commands
+├─ mcp/ scripts/ docs/
+├─ CLAUDE.md             the schema the model must follow
+├─ .env                  your credentials. gitignored, never leaves your machine.
+└─ vault/                YOUR CONTENT. ignored here; its own private repo.
+   ├─ raw/               what you fed it. immutable. ground truth.
+   ├─ wiki/              sources, entities, concepts, synthesis
+   ├─ loops/             open, closed, dates
+   ├─ mem/               profile, goals, projects, people, rules
+   ├─ briefs/            one file per week
+   └─ index.md  log.md   the catalogue, and what happened when
 ```
 
-Markdown is the source of truth, git-versioned. Obsidian is a **viewer, not a dependency** —
-nothing in the pipeline requires it running. Any index or cache is derived and rebuildable.
+You open the outer folder in Claude Code; everything the skills write goes into `vault/`.
+Separating them is what lets the system be public while your notes stay private — and
+versioning the vault on its own means every compile is a commit you can inspect or roll back.
 
-### Capture: one landing zone, many doors
+### Why grep and not embeddings
 
-Everything lands in `raw/inbox/`. The compiler watches exactly one folder, so capture
-methods can be added forever without touching the pipeline.
-
-| Door | For |
-|---|---|
-| Drag into `raw/inbox/` | anything on the laptop |
-| Obsidian Web Clipper | Twitter saves, articles, PDFs |
-| `/capture` in Claude Code | LLM transcripts, mid-session thoughts |
-
-### The weekly brief
-
-Run `/brief` weekly. It is designed to be **pushed** rather than fetched — a brief you have
-to remember to open is a brief you stop reading — but the delivery channel is the one thing
-still unwired; run it by hand until that is decided. Contents, capped at roughly ten lines:
-
-- what compiled this week
-- contradictions found between new sources and existing pages
-- loops that went stale
-- **decide-now**: loops surfaced 4 times without acknowledgement — kill, schedule, or
-  demote to someday — each arriving **with the artifact that closes it**, written out in
-  full: the drafted email, the event details, the summary. Drafts do not count against the
-  ten-line cap; three lines of nudge and one good email draft is the brief working correctly.
-
-Open loops return every week. The escalation exists because flat repetition trains you to
-skim, which is failure condition #2 below.
-
-Every answer and every brief ends with a **coverage note** — what the brain does *not* know
-yet. Borrowed from GBrain; the best single idea in the six sources.
+At a few hundred pages, an index file plus `grep` beats a vector store on latency, cost,
+debuggability, and your ability to read your own system. Retrieval sits behind one interface,
+so swapping it later is a change rather than a rewrite. Vector search earns its keep
+somewhere north of ~5,000 pages; most personal vaults never get there.
 
 ---
 
-## Deliberately not here
+## Getting started
+
+Full walkthrough: [`docs/walkthrough.md`](docs/walkthrough.md). The short version:
+
+```bash
+git clone https://github.com/ArdellAlfatih/second-brain.git
+cd second-brain
+python -m venv .venv
+.venv/Scripts/python -m pip install -r mcp/requirements.txt   # Scripts/ → bin/ on macOS and Linux
+python scripts/init_vault.py
+```
+
+Then make your vault its own private repo, so your notes get history and a backup:
+
+```bash
+cd vault && git init && git add -A && git commit -m "empty vault"
+gh repo create my-brain --private --source=. --push
+```
+
+Now open Claude Code **in the repository root** — the commands only exist there — and run:
+
+```
+/bootstrap
+```
+
+It interviews you one question at a time to fill `mem/`: your work, your goals, active
+projects, the people who matter, and the rules it must follow. Twenty minutes, and you can
+stop and resume. Everything downstream is generic until it runs.
+
+After that: `/capture` something, `/ingest` it, `/ask` a question.
+
+Optional, and independent of each other — [Obsidian and the Web
+Clipper](docs/setup.md#2-obsidian-optional-recommended) for one-click article saving, the
+[MCP server](docs/setup.md#4-reach-it-from-your-other-projects-recommended) so the vault
+reaches your other projects, [email delivery](docs/setup.md#5-email-delivery-for-the-brief)
+for the weekly brief, and [Telegram
+capture](docs/setup.md#6-telegram-capture-from-your-phone-optional) from your phone.
+
+## The commands
+
+| | |
+|---|---|
+| `/capture` | file something — a link, a PDF, a thought, the conversation you're in |
+| `/ingest` | compile one source into pages and loops. One at a time, on purpose. |
+| `/ask` | a real answer with citations, and an explicit note on what the vault *doesn't* know |
+| `/close` | deal with one loop — get the drafted email, summary, or next action |
+| `/brief` | the weekly review |
+| `/lint` | citation validity, broken links, orphans, stale pages |
+| `/bootstrap` | the interview that fills `mem/` |
+| `/unsource` | remove a source and revert everything it caused |
+
+## What it deliberately isn't
 
 | Not building | Why |
 |---|---|
-| Vector store, embeddings | No existing corpus; hobby-scale volume. `index.md` + grep wins on latency, cost, and debuggability until roughly 5,000 pages. Retrieval sits behind one interface so this is a swap, not a rewrite. |
-| Graph database | Typed relations live in frontmatter. The database earns its keep at 100k pages, not hundreds. |
-| Building on GBrain | Scale and shape mismatch — [`docs/gbrain-verdict.md`](docs/gbrain-verdict.md). |
-| Reusing `rag-project` | Independent project by decision. |
-| A compiled-vs-RAG benchmark | Interesting, but not what this is for. |
-| 24/7 daemon | Weekly cadence needs no always-on process. |
-| Calendar writes | The brief tells you to make the event. No OAuth write scope. |
-| Asking from your phone | Deferred — needs a model on the other end, so an API budget or an always-on host. Phone *capture* is built and free; see above. |
-| Task entry | See above. |
+| A task manager | You never enter a task. Loops are inferred from things captured for other reasons. The moment it needs deliberate entry, it has become the thing this avoids. |
+| A vector store or graph DB | Earns its keep at 100k pages, not hundreds. |
+| A web UI | The interface is Claude Code, plus Obsidian for reading. |
+| A 24/7 daemon | A weekly cadence needs no always-on process. |
+| Anything that sends on your behalf | It drafts. You send. |
+| Calendar writes | It tells you the event doesn't exist. You make it. |
 
-**Phone reach** is deferred, not cancelled — and it is the *only* part of reach that is.
-Reaching the vault from any project or agent on this laptop is step 10 and costs nothing.
-Reaching it from your phone needs OpenClaw running 24/7, which means a VPS or similar
-(~$5/mo of infrastructure, not API cost). Nothing in the design changes when it arrives:
-the MCP server already exists by then and OpenClaw becomes one more client. Build the
-memory first, confirm it gets used, then buy the always-on layer once it is earned.
+## Honest status
 
----
+**This is new and unproven.** The system is complete; it has not been lived with. The claim
+that it changes anything is an argument, not a result.
 
-## Provenance and reversibility
+The metric it should be judged on is **nudge precision** — of the loops surfaced each week,
+how many were worth surfacing. If that lands under ~30%, the concept is wrong. The other
+stated failure conditions: nothing entering `raw/` for three consecutive weeks (capture
+friction is fatal no matter how good the compiler is), or catching yourself maintaining the
+wiki by hand.
 
-Two properties none of the six benchmark sources implement, both required by the fact that
-compilation is lossy and touches many pages at once:
+How this compares to GBrain, llm-wiki, and the wider category — **including where they are
+better** — is in [`docs/comparison.md`](docs/comparison.md). The design decisions and how
+they were reached are in [`docs/decisions.md`](docs/decisions.md), and the ninety questions
+behind them in [`docs/architecture-qa.md`](docs/architecture-qa.md).
 
-- **Claim-level citation.** Every claim on a wiki page, and every loop, traces to a source
-  page plus a locator. Including claims derived from images — a summary drawn from a
-  screenshot must point back at that screenshot.
-- **Decompilation.** Every page edit is tagged with the source that caused it, so
-  `unsource X` is a real operation. One of the benchmark write-ups admits a bad source
-  touches fifteen pages before you notice it, and offers no remedy. This is the remedy.
+## License
 
----
-
-## Cost
-
-Runs on the existing **Claude Code subscription** — roughly $0 marginal for compilation,
-queries, and briefs at this cadence and volume. For reference, the API equivalent would run
-about $15–40/month (Opus 5 at $5/$25 per MTok, ~100 sources/month), which is what the
-subscription path avoids.
-
-The only cost that grows with corpus size is the weekly maintenance sweep. It is
-incremental by design — it touches pages changed since the last run, not the whole vault.
-
----
-
-## Measurement
-
-Deliberately light. The bar here is "is this useful", not "is this defensible".
-
-- **Nudge precision** *(headline)* — of the loops surfaced each week, how many were worth
-  surfacing. One click per item. This is the honest measure of whether the thing works.
-- **Citation validity** *(automated guard)* — every claim resolves to a real source
-  locator. Run on every compile.
-
-## Failure conditions
-
-Kill or rethink if any of these hold:
-
-1. Nothing enters `raw/` for three consecutive weeks — capture friction is fatal no matter
-   how good the compiler is.
-2. Brief precision drops below ~30% — an ignored brief is worse than no brief.
-3. You start maintaining the wiki by hand — the compiler has failed and you have rebuilt
-   the filing cabinet.
-4. Cost exceeds value.
-
----
-
-## Build order
-
-| # | Step | Status |
-|---|---|---|
-| 1 | Vault skeleton, frontmatter schema, git | **done** — [`CLAUDE.md`](CLAUDE.md) |
-| 2 | Capture doors — `raw/inbox/`, Web Clipper, `/capture` | **done** — Clipper is a browser install, see setup |
-| 3 | `mem/` bootstrap interview | **skill written** — needs you to run `/bootstrap` |
-| 4 | Compile loop with claim-level citations | **done** — `/ingest` |
-| 5 | Loop extraction and status tracking | **done** — inside `/ingest` |
-| 6 | Weekly brief with the escalation rule | **done** — `/brief`; delivery channel open |
-| 7 | Query with citations and coverage note | **done** — `/ask` |
-| 8 | Lint — contradiction, staleness, link integrity | **done** — `/lint` |
-| 9 | Decompilation | **done** — `/unsource` |
-| **10** | **MCP server — the vault readable from any project or agent** | **next** — promoted; see reach above |
-| 11 | Phone reach via OpenClaw, BM25/vector | deferred by decision |
-
-Step 10 was originally last. It moved because "reachable from anywhere" turned out to be
-part of the core offering rather than a later convenience, and without it the memory only
-exists inside one folder.
-
-Two things are not code and cannot be: the `/bootstrap` interview needs your answers, and
-the brief's delivery channel needs one decision. Both in [`docs/setup.md`](docs/setup.md).
-
-## Skills
-
-| Command | Does |
-|---|---|
-| `/capture` | file something into `raw/inbox/` — fast, verbatim, no interpretation |
-| `/ingest` | compile one source into `wiki/` + `loops/`, max 15 pages, plan shown first |
-| `/bootstrap` | interview to fill `mem/`, one question at a time |
-| `/brief` | the weekly brief, capped at ten lines |
-| `/ask` | synthesised answer, citations, coverage note |
-| `/lint` | citation validity, links, orphans, contradictions, staleness |
-| `/close` | close one loop — produces the drafted email, summary, or next action |
-| `/unsource` | remove a source and revert its influence |
-
-They live in [`.claude/skills/`](.claude/skills/) and load when Claude Code opens this
-folder. No installation, no third-party dependencies.
+MIT — see [`LICENSE`](LICENSE).
