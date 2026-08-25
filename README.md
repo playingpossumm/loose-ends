@@ -208,7 +208,7 @@ yet. Borrowed from GBrain; the best single idea in the six sources.
 | A compiled-vs-RAG benchmark | Interesting, but not what this is for. |
 | 24/7 daemon | Weekly cadence needs no always-on process. |
 | Calendar writes | The brief tells you to make the event. No OAuth write scope. |
-| Phone / WhatsApp reach | Deferred — see below. |
+| Asking from your phone | Deferred — needs a model on the other end, so an API budget or an always-on host. Phone *capture* is built and free; see above. |
 | Task entry | See above. |
 
 **Phone reach** is deferred, not cancelled — and it is the *only* part of reach that is.
