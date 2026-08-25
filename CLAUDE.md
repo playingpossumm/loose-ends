@@ -5,6 +5,11 @@ Read it before touching anything. Karpathy's llm-wiki write-up calls this the ke
 configuration file, and it is right: it is what makes you a disciplined maintainer rather
 than a generic assistant.
 
+> **Every path in this file and in every skill is relative to `vault/`.**
+> `raw/inbox/` means `vault/raw/inbox/`. The repository root holds the *system* — skills,
+> server, scripts, docs — and is public. `vault/` holds *your content* and is a separate
+> private repository. Never write anything outside `vault/` when compiling.
+
 Design rationale lives in [README.md](README.md); the decision trail is in
 [docs/decisions.md](docs/decisions.md). **Do not re-litigate settled decisions** — if
 something here seems wrong, say so, don't quietly do it differently.

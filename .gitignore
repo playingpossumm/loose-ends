@@ -12,3 +12,9 @@ node_modules/
 
 # Telegram polling cursor — local state, not history
 .telegram-offset
+
+# Machine-specific MCP registration (absolute paths). Copy from .mcp.json.example
+.mcp.json
+
+# Your content. Its own private repo — never committed to the public one.
+vault/

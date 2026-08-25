@@ -26,15 +26,16 @@ import sys
 from email.message import EmailMessage
 from pathlib import Path
 
-VAULT = Path(os.environ.get("BRAIN_VAULT", Path(__file__).resolve().parent.parent)).resolve()
+ROOT = Path(__file__).resolve().parent.parent
+VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 
 REQUIRED = ("BRAIN_SMTP_HOST", "BRAIN_SMTP_USER", "BRAIN_SMTP_PASS", "BRAIN_EMAIL_TO")
 
 
 def load_env() -> dict[str, str]:
-    """Read .env from the vault root. No dependency on python-dotenv."""
+    """Read .env from the repo root — config lives with the system, not the content."""
     env = dict(os.environ)
-    envfile = VAULT / ".env"
+    envfile = ROOT / ".env"
     if envfile.is_file():
         for line in envfile.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -72,7 +73,7 @@ def main() -> None:
         sys.exit(
             "Missing config: "
             + ", ".join(missing)
-            + f"\nCopy {VAULT / '.env.example'} to .env and fill it in."
+            + f"\nCopy {ROOT / '.env.example'} to .env and fill it in."
         )
 
     brief = latest_brief()

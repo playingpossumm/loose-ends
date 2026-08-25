@@ -28,9 +28,10 @@ import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 
-VAULT = Path(os.environ.get("BRAIN_VAULT", Path(__file__).resolve().parent.parent)).resolve()
+ROOT = Path(__file__).resolve().parent.parent
+VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 INBOX = VAULT / "raw" / "inbox"
-STATE = VAULT / ".telegram-offset"
+STATE = ROOT / ".telegram-offset"
 API = "https://api.telegram.org"
 
 # Telegram holds undelivered updates for 24h. Anything older is gone regardless.
@@ -39,7 +40,7 @@ LONG_POLL = 50
 
 def load_env() -> dict[str, str]:
     env = dict(os.environ)
-    f = VAULT / ".env"
+    f = ROOT / ".env"
     if f.is_file():
         for line in f.read_text(encoding="utf-8").splitlines():
             line = line.strip()

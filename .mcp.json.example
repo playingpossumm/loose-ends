@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "second-brain": {
+      "command": "/ABSOLUTE/PATH/TO/second-brain/.venv/Scripts/python.exe",
+      "args": ["/ABSOLUTE/PATH/TO/second-brain/mcp/server.py"],
+      "env": { "BRAIN_VAULT": "/ABSOLUTE/PATH/TO/second-brain/vault" }
+    }
+  }
+}

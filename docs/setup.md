@@ -6,7 +6,7 @@ required to start using it.
 ## 1. Open Claude Code in this folder (required)
 
 ```
-C:\Users\ArdellFavourCapital\Desktop\second-brain
+<wherever you cloned it>
 ```
 
 Project skills only load when this folder is the working directory. Opening Claude Code in
@@ -56,7 +56,7 @@ The MCP server is built and tested. Inside this folder it works already via `.mc
 To make it available **everywhere**, register it once at user scope:
 
 ```
-claude mcp add --scope user second-brain -- "C:/Users/ArdellFavourCapital/Desktop/second-brain/.venv/Scripts/python.exe" "C:/Users/ArdellFavourCapital/Desktop/second-brain/mcp/server.py"
+claude mcp add --scope user second-brain -- "/ABSOLUTE/PATH/TO/second-brain/.venv/Scripts/python.exe" "/ABSOLUTE/PATH/TO/second-brain/mcp/server.py"
 ```
 
 Then from any project: *"search my brain for what I know about reranking"*.

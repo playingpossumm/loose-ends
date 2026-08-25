@@ -16,7 +16,7 @@ from pathlib import Path
 
 from mcp.server import MCPServer
 
-VAULT = Path(os.environ.get("BRAIN_VAULT", Path(__file__).resolve().parent.parent)).resolve()
+VAULT = Path(os.environ.get("BRAIN_VAULT", Path(__file__).resolve().parent.parent / "vault")).resolve()
 
 # Searched in priority order. raw/ is last: the wiki is compiled understanding, raw is
 # ground truth you fall back to.
