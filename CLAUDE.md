@@ -46,7 +46,35 @@ log.md         append-only, chronological
 
 ## Frontmatter
 
-Mandatory on every page in `wiki/` and `loops/`:
+### Items in `raw/inbox/`
+
+Written by whichever door captured them — `/capture`, the Telegram script, the MCP server,
+or by hand. Read these before compiling:
+
+```yaml
+---
+id: 2026-08-25-some-slug
+captured: YYYY-MM-DD        # when it was filed
+sent: <ISO timestamp>       # when it was actually said, if known — may be days earlier
+kind: note | article | pdf | image | transcript | file
+origin: <url, file path, "conversation", "telegram", or
+         "telegram (forwarded from NAME)">
+title: <short human title>
+attachment: raw/pdfs/foo.pdf    # OPTIONAL — see below
+status: uncompiled | compiled
+---
+```
+
+**`attachment:` means the markdown is a stub.** The real content is in the file it names —
+open that. A Telegram-captured PDF has a one-line body and the whole document beside it.
+
+**A forwarded origin is provenance about a third party.** `forwarded from Kyara` means Kyara
+said it and the user relayed it; attribute the claim to Kyara. Losing that turns someone
+else's opinion into the user's own.
+
+### Pages in `wiki/` and `loops/`
+
+Mandatory on every page:
 
 ```yaml
 ---

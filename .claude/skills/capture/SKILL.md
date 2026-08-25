@@ -9,6 +9,10 @@ Put something into `raw/inbox/` so `/ingest` can compile it later. Capture is de
 dumb and fast — it files, it does not think. Friction here kills the whole system, so never
 interrogate the user before filing.
 
+This is one of several doors into `raw/inbox/` — alongside the Telegram script, the Obsidian
+Web Clipper, `brain_capture` over MCP, and plain drag-and-drop. They all land in the same
+folder and produce the same shape of file, so `/ingest` never needs to care which was used.
+
 ## What to file
 
 The argument, or if there is none, infer from context:

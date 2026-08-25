@@ -17,7 +17,16 @@ anything here.
 **1. Pick the source.** Named by the user, or the oldest `status: uncompiled` file in
 `raw/inbox/`. If several are waiting, say how many and compile one.
 
-**2. Read it fully.** For images, view the image itself, not only the transcription.
+**2. Read it fully — including anything it points at.**
+
+Check the frontmatter before you start:
+
+| Field | What it means for you |
+|---|---|
+| `attachment:` | **The markdown is only a stub. Open the file it names** — that is the real source. A Telegram-captured PDF or photo has its text in the attachment, not the page. |
+| `origin: telegram (forwarded from X)` | X sent this, the user relayed it. Attribute claims to X, not to the user. This distinction matters and is easy to lose. |
+| `kind: image` | View the image itself, not only any transcription beside it. |
+| `sent:` vs `captured:` | When they said it vs when it was filed. Use `sent:` for anything time-sensitive — a forwarded message can arrive days late. |
 
 **3. Orient before writing.** Read `index.md`, then every existing page plausibly related.
 You cannot flag a contradiction against a page you did not read — this step is what makes

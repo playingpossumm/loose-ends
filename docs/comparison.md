@@ -204,6 +204,9 @@ rather than from a folder scheme you have to maintain.
 - **GBrain** — vastly more capable at scale, has multi-user ACLs, autonomous enrichment,
   measured retrieval benchmarks, and years of production use. If the corpus ever passes
   ~5,000 pages, revisit.
+- **Anything with an always-on host** — including OpenClaw — can *answer* you from your
+  phone. This can only *receive* from your phone. See below; that gap is deliberate but it
+  is a real one.
 - **Packaged skill sets** — dozens of ready commands and cross-agent support (Claude, Codex,
   Gemini). This has seven commands and is shaped for Claude Code.
 - **The tutorials** — an evening to set up, no custom skills to maintain.
@@ -215,6 +218,32 @@ something, twice, and then didn't. That is the one thing this is for.
 
 ---
 
+## Phone reach: the deferred-capture trick
+
+Every system here that reaches your phone assumes a host listening around the clock. OpenClaw
+is explicit about it; GBrain runs a 24/7 daemon. That is the $7–24/mo most of these quietly
+require, and for WhatsApp specifically it is worse — OpenClaw's default transport is Baileys,
+an unofficial reverse-engineered library that can get your number banned without warning.
+
+This project avoids the cost by giving up synchronicity. **Telegram queues bot updates for 24
+hours**, so nothing has to be listening when you send. You message the bot from anywhere; the
+backlog drains next time you open your laptop.
+
+| | Always-on host | Deferred capture |
+|---|---|---|
+| Send from your phone | yes | yes |
+| Get an answer back | yes | **no** |
+| Cost | $7–24/mo | free |
+| Account risk (WhatsApp route) | ban possible | n/a — Telegram's API is official |
+
+**The honest trade:** capture from anywhere is free, answers from anywhere are not. Answering
+needs a model running somewhere, and no amount of cleverness removes that. Capture is the more
+valuable half — it is what keeps the vault fed, and an unfed vault is the most common way
+these systems die — so it is the half worth having for free.
+
+If asking-from-phone turns out to matter, nothing needs redesigning: the vault already speaks
+MCP, so an always-on host becomes one more client rather than a rewrite.
+
 ## Which to pick
 
 | Situation | Use |
@@ -224,3 +253,4 @@ something, twice, and then didn't. That is the one thing this is for.
 | Want something working tonight with no custom code | an Obsidian + Claude tutorial |
 | Want Claude to know who you are, nothing more | a prompt OS like @aiedge_'s |
 | Want your notes to chase you about what you said you'd do | this |
+| Want phone capture without paying for a host | this |

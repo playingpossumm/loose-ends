@@ -141,48 +141,123 @@ it there than fifteen pages later.
 
 ---
 
-## What a real session looks like
+## What using it actually feels like
 
-**You:**
-```
-/capture that PDF on retrieval I keep meaning to read
-```
-**It replies:**
-```
-Filed 2026-08-24-retrieval-survey (pdf). Uncompiled.
-```
+Not a list of commands — a month, in order, so you can see where the value shows up.
 
-**You:**
-```
-/ingest
-```
-It shows the plan above, you approve, it writes.
+### Week 1, Monday — on the train
 
-Then a week later, without you asking:
+You see a paper worth reading. You send it to your Telegram bot and forget about it. Takes
+three seconds. Nothing is running; nothing needs to be.
+
+### Week 1, Tuesday — at your desk
 
 ```
-Week of 2026-08-31
+.venv/Scripts/python scripts/telegram_capture.py --once
+```
+```
+  vault/raw/inbox/2026-08-25-hybrid-retrieval-survey.md
+Captured 1 message(s) into raw/inbox/. Run /ingest to compile.
+```
+
+The PDF itself landed in `vault/raw/pdfs/` — the actual file, not just a link that will rot.
+
+You type `/ingest`. Before writing anything, it shows you what it intends to do:
+
+```
+Plan — 6 pages:
+  new     wiki/sources/2026-08-25-hybrid-retrieval-survey
+  new     wiki/concepts/hybrid-retrieval
+  update  wiki/entities/bm25              (+1 source)
+  loop    "read the hybrid retrieval survey"
+          — you also said this on 12 Aug
+  flag    contradicts wiki/concepts/reranking on latency
+
+Proceed?
+```
+
+Three things happened there that are worth noticing.
+
+It **read the PDF**, not just the message you sent. It **noticed you'd said the same thing
+three weeks ago** — so this isn't a new intention, it's a recurring one you keep not acting
+on. And it **caught that this paper disagrees** with something already in your notes about
+reranking latency, which you would not have remembered.
+
+You approve. Six pages get written, every claim citing the PDF.
+
+### Week 1, Friday
+
+```
+/ask what do I actually know about reranking latency?
+```
+
+You get prose, not a list of files — with citations you can follow, and this at the end:
+
+```
+Coverage: three sources, all before June. Two of them disagree about
+latency under load and the conflict is unresolved. Nothing covers
+behaviour above 10k documents.
+```
+
+That last paragraph is the part most systems don't give you. Knowing what your notes *don't*
+cover is often more useful than what they do.
+
+### Week 3, Monday morning — the brief arrives by email
+
+You didn't ask for this. It shows up because it's Monday.
+
+```
+Week of 2026-09-08
 
 DECIDE NOW
-  "Read the retrieval survey" — surfaced 4x since 12 Aug.
+  "Read the hybrid retrieval survey" — surfaced 4x since 12 Aug.
+
+  You keep saying you'll read this and not reading it. Here's the
+  summary so you can decide in ten seconds instead of an evening:
+
+  38 pages. Section 4 is the only part relevant to you — BM25 and
+  vector fusion, the thing you flagged in March. The other 30 pages
+  are benchmark tables you don't need.
+
   Kill it, schedule it, or move to someday?
 
-  Summary, so you can decide without reopening it:
-  38 pages on hybrid retrieval. The part relevant to you is §4 —
-  BM25 and vector fusion, which is the thing you flagged in March.
-  The rest is benchmark tables.
-
 COMING UP
-  A birthday, 4 Sep. No calendar event exists.
+  Sarah's birthday, 12 Sep. No calendar event exists.
+
+FLAGGED
+  The survey contradicts your reranking notes on latency.
+  Still unresolved from 25 Aug.
 
 WHAT THE BRAIN DOESN'T KNOW
-  Three sources on retrieval, all pre-June. Nothing on how any
-  of it behaves at scale.
+  Nothing added since 28 Aug. Two topics you asked about this
+  month have no sources at all.
 ```
 
-That first block is the point of the project. Nothing else you use notices that you said you
-would read something, twice, and then didn't — and then hands you the summary so the decision
-takes ten seconds instead of an evening.
+**This is the point of the whole project.** Not that it remembered the paper — anything can
+do that. That it noticed you'd committed to reading it four times, and then removed the
+reason you kept avoiding it, by telling you which 8 pages of 38 actually matter.
+
+### Week 3, still Monday
+
+```
+/close the retrieval survey
+```
+
+It gives you the full section-4 summary, you read it in five minutes, and the loop moves to
+`vault/loops/closed/`. It never appears again.
+
+Or you say kill it — and it also never appears again, without guilt, because you made an
+actual decision instead of letting it rot in a list.
+
+---
+
+### What that looked like in effort
+
+Three seconds on a train. One command on Tuesday. Reading a brief on Monday. Everything
+else — the reading, the linking, the cross-referencing, the noticing — happened without you.
+
+That's the trade the whole design is built around: **you choose what goes in and what to do
+about it; the system does the bookkeeping.**
 
 ---
 
