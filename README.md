@@ -55,8 +55,7 @@ that is all. Nothing reachable over MCP can edit or delete a page — compilatio
 the vault where you can watch it happen. Paths resolve against the vault root, so traversal
 is refused rather than served.
 
-WhatsApp stays deferred, but it now covers only the phone case rather than the whole of
-reach.
+Phone capture is solved too, and free — see the Telegram row above.
 
 ### Channels have different jobs
 
@@ -68,9 +67,9 @@ reach.
 | **Claude Code** | round-trip | compiling, closing, anything supervised | built |
 
 Email is asynchronous and archival: a nudge sits in the inbox until it is dealt with, and a
-drafted email arrives in the one place you would send it from. WhatsApp is fast and
-conversational: right for *save this* and *what do I know about X*, wrong for a weekly brief
-that would be buried by the next message.
+drafted email arrives in the one place you would send it from. Telegram is fast and
+conversational: right for *save this* on the move, wrong for a weekly brief that the next
+message would bury.
 
 ### The one credential, and why it is safe
 
