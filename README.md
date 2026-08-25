@@ -42,7 +42,8 @@ Two kinds of reach, with very different costs:
 | Reach | Needs | Cost | Status |
 |---|---|---|---|
 | Any agent, any project, on this laptop | an MCP server, running locally on demand | free | **built** |
-| Your phone, away from the laptop | an always-on host running OpenClaw | ~$5/mo | deferred |
+| Capture from your phone, any time | a Telegram bot; nothing running when you send | free | **built** |
+| *Asking* from your phone, laptop closed | an always-on host | $10–15/mo | deferred |
 
 Most of the value is in the first row, and it was originally scheduled last. It was moved
 up and is now done — [`mcp/server.py`](mcp/server.py) exposes six tools (`brain_index`,
@@ -62,7 +63,7 @@ reach.
 | Channel | Direction | Job | Status |
 |---|---|---|---|
 | **Email** | out, to you only | the weekly brief, loop nudges, and the drafted artifacts that close them | built, needs credentials |
-| **WhatsApp** | in, and round-trip | capture on the move, and quick retrieval — *"what do I know about X"* | deferred |
+| **Telegram** | in, from your phone | capture on the move — deferred, so nothing needs to be running when you send | **built** |
 | **MCP** | round-trip | the vault available inside any other project | built |
 | **Claude Code** | round-trip | compiling, closing, anything supervised | built |
 
