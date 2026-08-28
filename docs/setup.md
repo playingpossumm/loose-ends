@@ -110,8 +110,12 @@ If you move the folder, re-run the command above with the new path.
 Loops and reminders go to email; WhatsApp is later, and only for capture and retrieval.
 
 1. Copy `.env.example` to `.env` and fill it in. `.env` is gitignored — never commit it.
-2. Gmail needs an **App Password**, not your account password: myaccount.google.com →
-   Security → 2-Step Verification → App passwords. Any SMTP host works.
+2. Gmail needs an **App Password**, not your account password. Go to
+   **myaccount.google.com/apppasswords**.
+
+   If it says *"the setting you are looking for is not available for your account"*, you
+   need **2-Step Verification** switched on first (Security → 2-Step Verification), then
+   the app-passwords page appears. Any SMTP host works if you would rather not use Gmail.
 3. Test without sending:
 
 ```
@@ -127,6 +131,15 @@ Loops and reminders go to email; WhatsApp is later, and only for capture and ret
 The script sends the most recent file in `briefs/` to exactly one address — the one in
 `BRAIN_EMAIL_TO`. There is no recipient argument, deliberately: the vault drafts emails to
 other people, and no code path exists that could transmit one.
+
+It goes out flagged **high priority** (`Importance: High` and the `X-Priority` headers), and
+when the brief has an unresolved decide-now section the subject gains `· decisions waiting`
+so you can see it in the list without opening it.
+
+A caveat worth knowing: Outlook, Apple Mail and Thunderbird show priority flags; **Gmail
+largely ignores them** — its importance markers are algorithmic. If you read mail in Gmail
+and want these to stand out reliably, add a filter: *from* your own address, *subject
+contains* `Brain —`, action *star it* or *apply a label*.
 
 Schedule it weekly once you have run `/brief` a few times by hand and know what belongs in
 it.

@@ -189,6 +189,32 @@ You open the outer folder in Claude Code; everything the skills write goes into 
 Separating them is what lets the system be public while your notes stay private — and
 versioning the vault on its own means every compile is a commit you can inspect or roll back.
 
+### What the MCP server is for, in plain terms
+
+Without it, your notes only exist when you have this one folder open. That's a filing
+cabinet in a room you have to walk to.
+
+The MCP server is a small program that lets **any** Claude Code session read the vault —
+whatever project you happen to be working in. Register it once, and from then on you can
+just say *"search my brain for what I know about X"* while you're deep in some unrelated
+codebase, and get an answer without switching folders.
+
+Think of it as the difference between *going to your notes* and *having your notes with
+you*.
+
+What travels, and what doesn't:
+
+| From anywhere | Only inside this folder |
+|---|---|
+| search, read, list open loops, save something new | `/ingest`, `/brief`, `/close`, `/lint`, `/unsource`, `/bootstrap` |
+
+That split is deliberate rather than a limitation. Reading is safe from anywhere.
+Compiling rewrites ten to fifteen pages and can't be undone with an undo key — so it
+happens where you're actually looking at the vault, not half-distracted from another
+project.
+
+Setup is one command, in [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
+
 ### Why grep and not embeddings
 
 At a few hundred pages, an index file plus `grep` beats a vector store on latency, cost,

@@ -302,6 +302,39 @@ Each is independent; set up none, some, or all. Details in [`setup.md`](setup.md
 | **Email delivery** | The weekly brief pushed to you instead of waiting in a file. |
 | **Telegram capture** | Send things from your phone. Nothing needs to be running when you send. |
 
+### What the MCP server actually does
+
+The plainest way to put it: **without it, your notes only exist when you have this folder
+open.** With it, they come with you.
+
+Register it once and any Claude Code session — in any project, any folder — can read your
+vault. You're deep in some unrelated codebase, you type *"search my brain for what I know
+about vinyl players"*, and you get an answer. No switching windows, no slash commands.
+
+```
+Before                          After
+──────                          ─────
+Want to check your notes?       Ask, wherever you are.
+Open second-brain.
+Ask.
+Go back to what you were doing.
+```
+
+Reading travels with you. Writing doesn't:
+
+| From anywhere | Only in this folder |
+|---|---|
+| *"search my brain for X"* | `/ingest` |
+| *"what's still open?"* | `/brief` |
+| *"save this to my brain"* | `/close`, `/lint`, `/unsource`, `/bootstrap` |
+
+That's on purpose. Looking things up is harmless from anywhere. Compiling rewrites ten to
+fifteen pages at once and is the one step you can't casually undo — so it happens where
+you're actually looking at the vault.
+
+One command to set up, in [`setup.md`](setup.md#4-reach-it-from-your-other-projects-recommended).
+After registering, restart any other Claude Code windows so they pick it up.
+
 ### How the Telegram one works
 
 Worth understanding, because it's the part that sounds like it should cost money and doesn't.
