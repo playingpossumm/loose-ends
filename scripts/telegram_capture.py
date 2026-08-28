@@ -112,6 +112,10 @@ def save(msg: dict, token: str) -> Path | None:
         # C5: voice notes are out of scope. Keep the text, say the audio was dropped.
         text = (text + "\n\n[voice note received — transcription is out of scope]").strip()
 
+    # Bot commands (/start, /help, /revoke...) are addressed to Telegram, not to the vault.
+    if text.startswith("/") and not attachment and len(text.split()) == 1:
+        return None
+
     if not text and not attachment:
         return None
 
