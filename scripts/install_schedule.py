@@ -53,10 +53,14 @@ def create(name: str, mode: str, sched: list[str], when: str) -> bool:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--day", default="MON", choices=DAYS, help="weekly brief day")
-    ap.add_argument("--time", default="08:00", help="weekly brief time, HH:MM")
+    ap.add_argument("--cadence", default="weekly",
+                    choices=["daily", "weekly", "fortnightly"],
+                    help="how often the brief writes and sends itself")
+    ap.add_argument("--day", default="MON", choices=DAYS,
+                    help="which day (ignored when --cadence daily)")
+    ap.add_argument("--time", default="08:00", help="what time, HH:MM")
     ap.add_argument("--capture-time", default="18:00", help="daily Telegram drain, HH:MM")
-    ap.add_argument("--weekly-only", action="store_true", help="skip the daily capture task")
+    ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
     ap.add_argument("--remove", action="store_true", help="remove both tasks")
     args = ap.parse_args()
 
@@ -69,16 +73,31 @@ def main() -> None:
     if not PY.is_file():
         sys.exit(f"No venv python at {PY}. Create it first — see README.")
 
+    # Windows has no fortnightly; WEEKLY with /mo 2 means every other week.
+    sched = {
+        "daily":       ["/sc", "DAILY"],
+        "weekly":      ["/sc", "WEEKLY", "/d", args.day],
+        "fortnightly": ["/sc", "WEEKLY", "/mo", "2", "/d", args.day],
+    }[args.cadence]
+
+    when = {
+        "daily":       f"every day at {args.time}",
+        "weekly":      f"every {args.day} at {args.time}",
+        "fortnightly": f"every other {args.day} at {args.time}",
+    }[args.cadence]
+
     print("Registering scheduled tasks:")
-    ok = create(WEEKLY, "--weekly", ["/sc", "WEEKLY", "/d", args.day], args.time)
-    if not args.weekly_only:
+    ok = create(WEEKLY, "--weekly", sched, args.time)
+    if not args.no_capture:
         ok &= create(CAPTURE, "--capture", ["/sc", "DAILY"], args.capture_time)
 
     if ok:
-        print(f"\nThe brief now writes and emails itself every {args.day} at {args.time}.")
-        print("Check it worked:  schtasks /query /tn SecondBrain-WeeklyBrief")
-        print("Run it now:       schtasks /run /tn SecondBrain-WeeklyBrief")
-        print("Stop it:          python scripts/install_schedule.py --remove")
+        print(f"\nThe brief now writes and emails itself {when}.")
+        print("\nChange your mind — just re-run with different flags:")
+        print("  python scripts/install_schedule.py --cadence daily --time 07:30")
+        print("  python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00")
+        print("\nRun it now:  schtasks /run /tn SecondBrain-WeeklyBrief")
+        print("Stop it:     python scripts/install_schedule.py --remove")
     else:
         sys.exit("Some tasks failed to register — see above.")
 

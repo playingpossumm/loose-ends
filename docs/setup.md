@@ -142,8 +142,33 @@ largely ignores them** — its importance markers are algorithmic. If you read m
 and want these to stand out reliably, add a filter: *from* your own address, *subject
 contains* `Brain —`, action *star it* or *apply a label*.
 
-Schedule it weekly once you have run `/brief` a few times by hand and know what belongs in
-it.
+### Make it push you — this is the step that matters
+
+Everything above still requires you to *remember*, which is the exact habit the brief exists
+to replace. This is what closes that gap:
+
+```
+python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00
+```
+
+That registers two Windows tasks:
+
+| Task | Does | Default |
+|---|---|---|
+| `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen day and time |
+| `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
+
+Both run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
+`fortnightly`. Re-run the command any time to change it; `--remove` stops both.
+
+`scripts/autopilot.py` is what they call — it drives Claude Code headlessly with
+`--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
+appends to `autopilot.log`.
+
+A laptop that is off at the scheduled time gets its brief at next login rather than never.
+
+Check it:  `schtasks /query /tn SecondBrain-WeeklyBrief`
+Force it:  `schtasks /run /tn SecondBrain-WeeklyBrief`
 
 ## 6. Telegram capture from your phone (optional)
 

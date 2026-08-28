@@ -282,7 +282,7 @@ capture](docs/setup.md#6-telegram-capture-from-your-phone-optional) from your ph
 | A task manager | You never enter a task. Loops are inferred from things captured for other reasons. The moment it needs deliberate entry, it has become the thing this avoids. |
 | A vector store or graph DB | Earns its keep at 100k pages, not hundreds. |
 | A web UI | The interface is Claude Code, plus Obsidian for reading. |
-| A 24/7 daemon | A weekly cadence needs no always-on process. |
+| A 24/7 daemon | Scheduled tasks fire on a cadence; nothing needs to sit resident. |
 | Anything that sends on your behalf | It drafts. You send. |
 | Calendar writes | It tells you the event doesn't exist. You make it. |
 
