@@ -165,7 +165,21 @@ Both run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`
 `--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
 appends to `autopilot.log`.
 
-A laptop that is off at the scheduled time gets its brief at next login rather than never.
+**Your laptop has to be on.** These are Windows scheduled tasks; they do not run on a
+machine that is off or asleep, and there is no way around that without paying for an
+always-on host.
+
+What they *do* handle, because the installer overrides Windows' laptop-hostile defaults:
+
+| | |
+|---|---|
+| Laptop asleep at the scheduled time | the run happens **when you next open it** (`StartWhenAvailable`) |
+| On battery | runs anyway — Windows blocks this by default |
+| You unplug mid-run | keeps going — Windows aborts by default |
+
+So a Saturday spent away from your desk means the brief arrives Sunday, or Monday. Late,
+not lost. The only way to get it exactly on time regardless is a machine that never sleeps,
+which is the ~$10-15/mo this project deliberately avoids.
 
 Check it:  `schtasks /query /tn SecondBrain-WeeklyBrief`
 Force it:  `schtasks /run /tn SecondBrain-WeeklyBrief`

@@ -40,6 +40,26 @@ def remove(name: str) -> None:
     print(f"  {'removed' if code == 0 else 'not present'}: {name}")
 
 
+def harden(name: str) -> None:
+    """Undo Windows' laptop-hostile defaults.
+
+    Out of the box a scheduled task refuses to start on battery, aborts if you unplug
+    mid-run, and silently skips a missed occurrence forever. On a laptop that means the
+    brief quietly never happens — which is worse than not scheduling it at all, because
+    you think it is handled.
+    """
+    ps = (
+        f"$s = New-ScheduledTaskSettingsSet "
+        f"-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable "
+        f"-MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 1); "
+        f"Set-ScheduledTask -TaskName '{name}' -Settings $s | Out-Null"
+    )
+    r = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        print(f"    warning: could not adjust settings — {(r.stderr or '').strip()[:200]}")
+
+
 def create(name: str, mode: str, sched: list[str], when: str) -> bool:
     remove(name)
     cmd = f'"{PY}" "{AUTOPILOT}" {mode}'
@@ -48,7 +68,9 @@ def create(name: str, mode: str, sched: list[str], when: str) -> bool:
     print(f"  {'created' if code == 0 else 'FAILED'}: {name} — {when}")
     if code != 0:
         print(f"    {out[:300]}")
-    return code == 0
+        return False
+    harden(name)
+    return True
 
 
 def main() -> None:
