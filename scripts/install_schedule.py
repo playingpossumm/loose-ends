@@ -40,17 +40,23 @@ def remove(name: str) -> None:
     print(f"  {'removed' if code == 0 else 'not present'}: {name}")
 
 
-def harden(name: str) -> None:
+def harden(name: str, wake: bool = False) -> None:
     """Undo Windows' laptop-hostile defaults.
 
     Out of the box a scheduled task refuses to start on battery, aborts if you unplug
     mid-run, and silently skips a missed occurrence forever. On a laptop that means the
     brief quietly never happens — which is worse than not scheduling it at all, because
     you think it is handled.
+
+    `wake` additionally lets the task wake a sleeping machine. Worth it for the brief,
+    which happens weekly; not for the daily capture, which is not worth waking a laptop
+    for. Wake timers are typically allowed on mains power and disabled on battery, so on
+    battery this degrades to StartWhenAvailable — late rather than never.
     """
     ps = (
         f"$s = New-ScheduledTaskSettingsSet "
         f"-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable "
+        f"{'-WakeToRun ' if wake else ''}"
         f"-MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 1); "
         f"Set-ScheduledTask -TaskName '{name}' -Settings $s | Out-Null"
     )
@@ -60,7 +66,7 @@ def harden(name: str) -> None:
         print(f"    warning: could not adjust settings — {(r.stderr or '').strip()[:200]}")
 
 
-def create(name: str, mode: str, sched: list[str], when: str) -> bool:
+def create(name: str, mode: str, sched: list[str], when: str, wake: bool = False) -> bool:
     remove(name)
     cmd = f'"{PY}" "{AUTOPILOT}" {mode}'
     code, out = schtasks(["/create", "/tn", name, "/tr", cmd,
@@ -69,7 +75,7 @@ def create(name: str, mode: str, sched: list[str], when: str) -> bool:
     if code != 0:
         print(f"    {out[:300]}")
         return False
-    harden(name)
+    harden(name, wake=wake)
     return True
 
 
@@ -109,7 +115,7 @@ def main() -> None:
     }[args.cadence]
 
     print("Registering scheduled tasks:")
-    ok = create(WEEKLY, "--weekly", sched, args.time)
+    ok = create(WEEKLY, "--weekly", sched, args.time, wake=True)
     if not args.no_capture:
         ok &= create(CAPTURE, "--capture", ["/sc", "DAILY"], args.capture_time)
 
