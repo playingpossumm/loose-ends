@@ -206,6 +206,27 @@ decision to leave transcription out of scope.
 **It captures only.** Asking questions from your phone needs a model on the other end, which
 is the part that needs OpenClaw or an API budget — see the note in `decisions.md`.
 
+## What is automatic and what is not
+
+Worth being precise about, because it is the easiest thing to get wrong:
+
+| Step | Automatic? |
+|---|---|
+| Telegram message → `raw/inbox/` | **yes** — daily 18:00, and again before each brief |
+| Web Clipper → `raw/inbox/` | **yes**, the moment you click |
+| `raw/inbox/` → compiled pages and loops | **no** — you run `/ingest` |
+| Writing and emailing the brief | **yes**, on your schedule |
+
+Capture is automated; **compilation is not**, on purpose. `/ingest` is the one irreversible
+step — it rewrites ten to fifteen pages at once — so it shows you a plan and waits. Fire it
+off unattended and a misread source spreads before anyone notices.
+
+The safety net: the weekly brief counts what is sitting uncompiled and tells you, so nothing
+can quietly rot in the inbox. If something has been waiting more than two weeks, it says so
+directly.
+
+To compile, open Claude Code in this folder and run `/ingest` — once per source.
+
 ## Daily use
 
 | Command | When |

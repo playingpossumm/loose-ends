@@ -18,6 +18,11 @@ skimmed, then ignored. Cut the least important thing rather than adding an eleve
 3. Read `mem/goals.md` and `mem/projects.md` — a loop that serves a stated goal ranks above
    one that does not.
 4. Check `loops/dates/` for anything falling in the next 14 days.
+5. **Count `raw/inbox/` — anything with `status: uncompiled`.** Capture is automated;
+   compilation is not. Material arrives from Telegram and the clipper on its own, but it
+   only becomes pages, links and loops when someone runs `/ingest`. Uncompiled material is
+   invisible to everything else in this brief, so it has to be surfaced here or it silently
+   rots.
 
 ## Structure
 
@@ -35,6 +40,15 @@ citation back to where the loop came from.>
 
 ## Coming up
 <dates within 14 days. What the implied action is — e.g. "no calendar event exists">
+
+## Waiting to be compiled
+<N items sitting uncompiled in raw/inbox/, oldest first, with their titles and how long
+they have been waiting. Say plainly that these are invisible until /ingest runs, and give
+the command. Omit the section entirely when the inbox is empty — an empty inbox needs no
+paragraph congratulating itself.
+
+If anything has been waiting more than two weeks, say so directly: capture without
+compilation is how this system fails quietly, and it is failure condition #1.>
 
 ## Compiled this week
 <one line: N sources, N pages touched. Not a list.>
