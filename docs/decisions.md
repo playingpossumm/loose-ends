@@ -203,7 +203,7 @@ conflated two very different things:
 Most of pillar 3's value is in the first row and costs nothing. A vault reachable only when
 Claude Code is open in its own folder is a folder, not a memory layer — which means the
 current state fails pillar 3 outright, and pillars 1 and 2 partially (the memory cannot
-reach you while you work in `rag-project` or `kyarayum`).
+reach you while you work in your other projects).
 
 Rewritten this round: README spine, `docs/comparison.md` positioning.
 

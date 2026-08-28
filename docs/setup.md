@@ -75,8 +75,8 @@ yourself. Email delivery is step 5, once you know the thing is worth delivering.
 ## 4. Reach it from your other projects (recommended)
 
 Without this, the brain only exists when Claude Code is open in this folder. With it, the
-vault is available in `rag-project`, `kyarayum`, anywhere — your memory follows you instead
-of waiting in a directory.
+vault is available in every project you work in — your memory follows you instead of
+waiting in a directory.
 
 The MCP server is built and tested. Inside this folder it works already via `.mcp.json`.
 To make it available **everywhere**, register it once at user scope:
@@ -107,7 +107,8 @@ If you move the folder, re-run the command above with the new path.
 
 ## 5. Email delivery for the brief
 
-Loops and reminders go to email; WhatsApp is later, and only for capture and retrieval.
+Loops and reminders go out by email. Phone capture is Telegram's job (step 6); the two
+channels do different things on purpose.
 
 1. Copy `.env.example` to `.env` and fill it in. `.env` is gitignored — never commit it.
 2. Gmail needs an **App Password**, not your account password. Go to
