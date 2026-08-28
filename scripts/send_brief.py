@@ -27,6 +27,8 @@ import sys
 from email.message import EmailMessage
 from pathlib import Path
 
+import markdown
+
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 
@@ -82,9 +84,63 @@ def has_decisions(body: str) -> bool:
     return False
 
 
+def strip_frontmatter(text: str) -> str:
+    """Drop the YAML block. It is vault metadata; nobody wants it in an email."""
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            return text[end + 4:].lstrip("\n")
+    return text
+
+
+CSS = """
+  body { margin:0; padding:0; background:#f4f5f7; }
+  .wrap { max-width:640px; margin:0 auto; padding:28px 20px 48px;
+          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+          font-size:15px; line-height:1.6; color:#1b1f24; }
+  .card { background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:26px 28px; }
+  h1 { font-size:21px; line-height:1.25; margin:0 0 18px; letter-spacing:-.01em; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#1f6f5c;
+       margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid #e8ebee; }
+  h3 { font-size:15px; margin:18px 0 6px; }
+  p { margin:0 0 12px; }
+  ul, ol { margin:0 0 12px; padding-left:20px; }
+  li { margin-bottom:8px; }
+  li > strong:first-child { color:#0f172a; }
+  code { background:#f1f3f5; border-radius:4px; padding:1px 5px; font-size:12.5px;
+         font-family:ui-monospace,SFMono-Regular,Consolas,monospace; color:#475569; }
+  pre { background:#f8f9fa; border:1px solid #e6e9ec; border-radius:8px; padding:14px 16px;
+        overflow-x:auto; font-size:12.5px; line-height:1.55;
+        font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+  pre code { background:none; padding:0; color:inherit; }
+  blockquote { margin:0 0 14px; padding:2px 0 2px 14px; border-left:3px solid #cfd6dd; color:#4b5563; }
+  hr { border:none; border-top:1px solid #e8ebee; margin:22px 0; }
+  em { color:#5b6470; }
+  a { color:#1f6f5c; }
+  table { border-collapse:collapse; width:100%; margin:0 0 14px; font-size:14px; }
+  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid #e8ebee; vertical-align:top; }
+  th { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:#6b7480; }
+  .foot { margin-top:18px; font-size:12px; color:#8a929c; text-align:center; }
+"""
+
+
+def to_html(body: str, title: str) -> str:
+    html = markdown.markdown(
+        body, extensions=["extra", "sane_lists", "nl2br"], output_format="html"
+    )
+    return (
+        f"<!doctype html><html><head><meta charset='utf-8'>"
+        f"<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        f"<style>{CSS}</style></head><body><div class='wrap'>"
+        f"<div class='card'>{html}</div>"
+        f"<div class='foot'>{title} · second-brain</div>"
+        f"</div></body></html>"
+    )
+
+
 def build(brief: Path, to: str, sender: str) -> EmailMessage:
-    body = brief.read_text(encoding="utf-8")
-    urgent = has_decisions(body)
+    raw = strip_frontmatter(brief.read_text(encoding="utf-8"))
+    urgent = has_decisions(raw)
 
     msg = EmailMessage()
     msg["Subject"] = f"Brain — {brief.stem}" + (" · decisions waiting" if urgent else "")
@@ -99,7 +155,9 @@ def build(brief: Path, to: str, sender: str) -> EmailMessage:
     msg["X-Priority"] = "1 (Highest)"
     msg["X-MSMail-Priority"] = "High"
 
-    msg.set_content(body)
+    # Markdown as the plain-text fallback, rendered HTML as the part clients actually show.
+    msg.set_content(raw)
+    msg.add_alternative(to_html(raw, brief.stem), subtype="html")
     return msg
 
 
