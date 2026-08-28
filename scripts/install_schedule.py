@@ -3,14 +3,16 @@
 Nothing pushes you until this runs. Without it you have to remember to run /brief, which is
 the exact habit the weekly brief exists to replace.
 
-    python scripts/install_schedule.py                       # defaults: Mon 08:00 weekly, daily 18:00 capture
-    python scripts/install_schedule.py --day TUE --time 09:30
-    python scripts/install_schedule.py --weekly-only
+    python scripts/install_schedule.py                                  # weekly, Mon 08:00
+    python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00
+    python scripts/install_schedule.py --cadence daily --time 07:30
+    python scripts/install_schedule.py --no-capture                     # brief only
     python scripts/install_schedule.py --remove
 
-Tasks run whether or not Claude Code is open. They do not run while the machine is off —
-Windows fires a missed task at next login, so a laptop closed on Monday gets its brief on
-Tuesday rather than never.
+Tasks run whether or not Claude Code is open, on battery as well as mains, and the brief
+may wake a sleeping machine. What they cannot do is run on a laptop that is fully powered
+off — that occurrence is caught at next startup instead, so the brief arrives late rather
+than never.
 """
 
 from __future__ import annotations
