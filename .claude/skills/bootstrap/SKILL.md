@@ -35,6 +35,28 @@ before writing anything about a person; store nothing sensitive.
 **5. Rules** — decision rules, quality standards, boundaries. And explicitly: **what must
 you never do without asking first?** That answer becomes the top of `rules.md`.
 
+**6. How the brief should reach them.** This one is operational, not biographical, but it
+decides whether the system ever pushes at all — so ask it, do not assume.
+
+- **How often?** Weekly is the default. Fortnightly suits someone with slow-moving
+  projects; daily almost always becomes noise and gets ignored by week three.
+- **Which day and roughly what time?** A brief landing when they have no slack gets
+  archived unread. Ask when they actually review things.
+- **How should it arrive?** Email is set up. If they say "I'll just run it myself", push
+  back once — gently — because a brief you have to remember to run is the exact habit this
+  is meant to replace, and it is the most common way these systems quietly die.
+- **How hard should it push?** Some people want every open loop every week; others want
+  only what has gone stale. This sets the tone of the whole thing.
+
+Write the answers to `mem/rules.md` under a `## Brief` heading, then tell them the command
+that makes it real:
+
+```
+python scripts/install_schedule.py --day MON --time 08:00
+```
+
+Substitute their actual answers. Offer to run it for them.
+
 ## How to ask
 
 - **Push for concrete examples when an answer is vague.** "I want to get better at writing"
