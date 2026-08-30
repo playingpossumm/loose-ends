@@ -23,7 +23,7 @@ After cloning:
 ```
 python scripts/init_vault.py
 cd vault && git init && git add -A && git commit -m "empty vault"
-gh repo create my-brain --private --source=. --push
+gh repo create my-vault --private --source=. --push
 ```
 
 Keep that second repo **private**. It holds your goals, your projects, the people you work
@@ -40,8 +40,7 @@ Project skills only load when this folder is the working directory — the outer
 with `/capture`: if it does not autocomplete, you are in the wrong directory.
 
 Then run `/bootstrap`. It interviews you one question at a time and fills `mem/`. About
-twenty minutes; you can stop and resume. Until it runs, every answer the brain gives is
-generic.
+twenty minutes; you can stop and resume. Until it runs, every answer is generic.
 
 ## 2. Obsidian (optional, recommended)
 
@@ -74,7 +73,7 @@ yourself. Email delivery is step 5, once you know the thing is worth delivering.
 
 ## 4. Reach it from your other projects (recommended)
 
-Without this, the brain only exists when Claude Code is open in this folder. With it, the
+Without this, the vault is readable only when Claude Code is open in this folder. With it, the
 vault is available in every project you work in — your memory follows you instead of
 waiting in a directory.
 
@@ -85,7 +84,7 @@ To make it available **everywhere**, register it once at user scope:
 claude mcp add --scope user loose-ends -- "/ABSOLUTE/PATH/TO/loose-ends/.venv/Scripts/python.exe" "/ABSOLUTE/PATH/TO/loose-ends/mcp/server.py"
 ```
 
-Then from any project: *"search my brain for what I know about reranking"*.
+Then from any project: *"search my notes for what I know about reranking"*.
 
 Six tools, all read-mostly:
 
@@ -140,7 +139,7 @@ so you can see it in the list without opening it.
 A caveat worth knowing: Outlook, Apple Mail and Thunderbird show priority flags; **Gmail
 largely ignores them** — its importance markers are algorithmic. If you read mail in Gmail
 and want these to stand out reliably, add a filter: *from* your own address, *subject
-contains* `Brain —`, action *star it* or *apply a label*.
+contains* `Loose ends —`, action *star it* or *apply a label*.
 
 ### Make it push you — this is the step that matters
 
@@ -151,7 +150,7 @@ to replace. This is what closes that gap:
 python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00
 ```
 
-That registers two Windows tasks:
+That registers three Windows tasks:
 
 | Task | Does | Default |
 |---|---|---|
@@ -162,10 +161,10 @@ That registers two Windows tasks:
 `--due-time` moves the due check; `--no-due-check` skips it. It reads the vault directly and
 does not call a model, so it is fast and cannot fail on a network problem.
 
-Both run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
-`fortnightly`. Re-run the command any time to change it; `--remove` stops both.
+All three run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
+`fortnightly`. Re-run the command any time to change it; `--remove` stops all of them.
 
-`scripts/autopilot.py` is what they call — it drives Claude Code headlessly with
+`scripts/autopilot.py` is what the brief and capture tasks call — it drives Claude Code headlessly with
 `--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
 appends to `autopilot.log`.
 
