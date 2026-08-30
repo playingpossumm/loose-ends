@@ -17,6 +17,38 @@ today. If a line does none of those, cut it.
 Check `mem/rules.md` for a `## Brief` section first — the user may have set tone and how
 hard to push. That overrides the defaults here.
 
+## How to write it
+
+Neutral, plain, and direct. The register is a reference article, not an essay. State the
+fact and stop.
+
+Follow Orwell's rules:
+
+1. Never use a metaphor, simile or figure of speech you are used to seeing in print.
+2. Never use a long word where a short one will do.
+3. If it is possible to cut a word out, cut it out.
+4. Never use the passive where you can use the active.
+5. Never use a foreign phrase, a scientific word or a jargon word if there is an everyday
+   English equivalent.
+6. Break any of these rules sooner than write anything barbarous.
+
+In practice, for this brief:
+
+| Do not write | Write |
+|---|---|
+| "This has been sitting unresolved for some time now" | "Open since 12 August." |
+| "It might be worth considering whether to..." | "Decide whether to..." |
+| "The deadline is fast approaching" | "Due Sunday." |
+| "utilise", "leverage", "surface" (as a verb) | "use", "use", "show" |
+| "The CV was updated by you on Friday" | "You updated the CV on Friday." |
+| "a number of items" | "four items" |
+
+No opening throat-clearing. No summary of what the brief will cover. No closing remark. The
+first line is the first fact.
+
+Give numbers where you have them. "Due in 5 days" beats "due soon". "Three of thirteen"
+beats "several".
+
 ## Read
 
 `log.md` since the last brief · every `loops/open/*.md` · `loops/dates/` for the next 14

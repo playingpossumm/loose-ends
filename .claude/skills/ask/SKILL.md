@@ -9,6 +9,13 @@ Answer the question, do not hand back a list of pages. The answer is the deliver
 ranked list of five files the user then has to read themselves is a search engine, and they
 already have one.
 
+## How to write
+
+Neutral, plain, direct — a reference article, not an essay. Follow Orwell's rules: no
+familiar figures of speech, no long word where a short one works, cut every word that can
+go, active over passive, everyday English over jargon. Give numbers where you have them.
+No throat-clearing, no closing remark.
+
 ## Retrieve
 
 1. Read `index.md`. It is the catalogue, and at this vault's size it is the retrieval layer.

@@ -8,6 +8,13 @@ description: Close an open loop — produce the artifact that resolves it (a dra
 Take one open loop and remove the friction that has kept it open. Tracking a loop is worth
 little; this is where the system earns its place.
 
+## How to write
+
+Neutral, plain, direct — a reference article, not an essay. Follow Orwell's rules: no
+familiar figures of speech, no long word where a short one works, cut every word that can
+go, active over passive, everyday English over jargon. Give numbers where you have them.
+No throat-clearing, no closing remark.
+
 ## Procedure
 
 **1. Find the loop.** Named by the user, or picked from `loops/open/`. If they are referring
