@@ -123,6 +123,7 @@ due: YYYY-MM-DD                # optional
 |---|---|
 | `/capture` | put something into `raw/inbox/` with correct frontmatter |
 | `/ingest` | compile one raw source into `wiki/` + `loops/`, update `index.md`, append `log.md` |
+| `/ingest-all` | the same across the whole inbox, planned and approved as one batch |
 | `/brief` | *(step 6)* weekly brief |
 | `/ask` | *(step 7)* synthesised answer with citations and a coverage note |
 | `/lint` | *(step 8)* contradictions, staleness, orphans, citation validity |

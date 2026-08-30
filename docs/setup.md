@@ -246,7 +246,8 @@ To compile, open Claude Code in this folder and run `/ingest` — once per sourc
 | Command | When |
 |---|---|
 | `/capture` | anything worth keeping — a link, a PDF, a thought, this conversation |
-| `/ingest` | compile one waiting source. One at a time, on purpose. |
+| `/ingest` | compile one waiting source |
+| `/ingest-all` | clear the whole inbox in one pass |
 | `/ask` | any question the brain might know |
 | `/close` | deal with one open loop — get the drafted email, summary, or next action |
 | `/brief` | weekly |

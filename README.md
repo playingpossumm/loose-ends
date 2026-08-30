@@ -267,7 +267,8 @@ capture](docs/setup.md#6-telegram-capture-from-your-phone-optional) from your ph
 | | |
 |---|---|
 | `/capture` | file something — a link, a PDF, a thought, the conversation you're in |
-| `/ingest` | compile one source into pages and loops. One at a time, on purpose. |
+| `/ingest` | compile one source into pages and loops, with a plan you approve first |
+| `/ingest-all` | same, across the whole inbox — one approval for the batch |
 | `/ask` | a real answer with citations, and an explicit note on what the vault *doesn't* know |
 | `/close` | deal with one loop — get the drafted email, summary, or next action |
 | `/brief` | the weekly review |
