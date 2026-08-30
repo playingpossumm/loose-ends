@@ -1,6 +1,6 @@
 ---
 name: lint
-description: Health-check the vault — citation validity, broken links, orphan pages, contradictions, stale claims, and index drift. Reports; fixes only mechanical problems. Use when the user says "lint", "health check", "check the vault", or before a weekly brief.
+description: Health-check the vault — citation validity, broken links, orphan pages, contradictions, stale claims, and index drift. Reports; fixes only mechanical problems. Use when the user says "lint", "health check", "check the vault", or before a brief.
 ---
 
 # lint

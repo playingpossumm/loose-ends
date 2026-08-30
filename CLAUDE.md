@@ -39,7 +39,7 @@ loops/open/    the acting layer
 loops/closed/
 loops/dates/   birthdays, deadlines, recurring
 mem/           profile.md goals.md projects.md people.md rules.md
-briefs/        one file per week
+briefs/        one file per brief
 index.md       catalogue of every wiki page
 log.md         append-only, chronological
 ```
@@ -124,10 +124,12 @@ due: YYYY-MM-DD                # optional
 | `/capture` | put something into `raw/inbox/` with correct frontmatter |
 | `/ingest` | compile one raw source into `wiki/` + `loops/`, update `index.md`, append `log.md` |
 | `/ingest-all` | the same across the whole inbox, planned and approved as one batch |
-| `/brief` | *(step 6)* weekly brief |
-| `/ask` | *(step 7)* synthesised answer with citations and a coverage note |
-| `/lint` | *(step 8)* contradictions, staleness, orphans, citation validity |
-| `/unsource` | *(step 9)* remove a source and revert its influence |
+| `/ask` | synthesised answer with citations and a coverage note |
+| `/close` | produce the artifact that finishes one loop, then file the loop |
+| `/brief` | the periodic report |
+| `/lint` | contradictions, staleness, orphans, citation validity |
+| `/bootstrap` | interview the user and fill `mem/` |
+| `/unsource` | remove a source and reverse its influence |
 
 ## Answering questions
 

@@ -65,7 +65,7 @@ section, and log it. Resolution belongs to the human.
 Write each to `loops/open/<id>.md` with `status: open`, `surfaced: 0`, a citation back to
 where it came from, and `due:` if one is implied. Dated facts go to `loops/dates/`.
 
-Be conservative. A false loop costs the user trust in the weekly brief, and brief precision
+Be conservative. A false loop costs the user trust in the brief, and brief precision
 is the metric this project lives or dies by. When unsure, list it for the user rather than
 filing it.
 

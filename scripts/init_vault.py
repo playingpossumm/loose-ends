@@ -6,13 +6,14 @@ make `vault/` its own private git repo so your notes get history and a backup:
 
     python scripts/init_vault.py
     cd vault && git init && git add -A && git commit -m "empty vault"
-    gh repo create my-brain --private --source=. --push
+    gh repo create my-vault --private --source=. --push
 
 Safe to re-run — it never overwrites anything that already exists.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from datetime import date
@@ -93,6 +94,10 @@ Empty. Nothing compiled yet. Run /bootstrap to fill mem/, then /capture and /ing
 
 
 def main() -> None:
+    # Takes no options; the parser exists so --help explains the script instead of running it.
+    argparse.ArgumentParser(description=__doc__,
+                            formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
+
     made, skipped = [], []
     today = date.today().isoformat()
 
@@ -134,7 +139,7 @@ def main() -> None:
     if made:
         print("\nNext:")
         print("  1. cd vault && git init && git add -A && git commit -m 'empty vault'")
-        print("     then push it to a PRIVATE repo — this is your notes, not the system")
+        print("     then push it to a PRIVATE repo - it holds your content, not the system")
         print("  2. Open Claude Code in the repository root and run /bootstrap")
     else:
         print("\nNothing to do — vault already set up.")

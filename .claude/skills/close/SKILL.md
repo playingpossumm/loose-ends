@@ -1,6 +1,6 @@
 ---
 name: close
-description: Close an open loop — produce the artifact that resolves it (a drafted email, event details, a summary, a decision) and mark it done, killed, or someday. Use when the user says "close this", "draft that email", "help me deal with X", or picks something from a weekly brief.
+description: Close an open loop — produce the artifact that resolves it (a drafted email, event details, a summary, a decision) and mark it done, killed, or someday. Use when the user says "close this", "draft that email", "help me deal with X", or picks something from a brief.
 ---
 
 # close
