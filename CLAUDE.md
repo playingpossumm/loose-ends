@@ -23,7 +23,7 @@ something here seems wrong, say so, don't quietly do it differently.
 | Contradictions are | findings — flag, keep both | bugs — surface, let the human fix |
 | You may | write freely | **propose only, never write unasked** |
 
-Never blur these. A claim about the world goes in `wiki/`. A fact about Ardell goes in
+Never blur these. A claim about the world goes in `wiki/`. A fact about the user goes in
 `mem/`, and only with explicit confirmation.
 
 ## Layout
