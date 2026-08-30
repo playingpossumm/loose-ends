@@ -7,27 +7,167 @@ It answers two questions:
 1. **What do I know about X?** Answers cite the source they came from.
 2. **What did I say I would do and have not?** Reported on a schedule until you decide.
 
-Most systems in this category do the first. This one also does the second, and sends the
-work needed to finish each item along with the reminder.
+Most systems in this category answer the first. This one also answers the second, and sends
+the work needed to finish each item along with the report.
 
 It costs nothing to run. No API keys, no database, no server, no vector store.
 
 ---
 
-## What it tracks
+## Terms
 
-A **loop** is something you stated and did not resolve. You do not enter loops by hand. The
-system extracts them from material you captured for other reasons:
+| Term | Meaning |
+|---|---|
+| **vault** | The folder holding your content: `vault/`. A separate private git repository. |
+| **capture** | Recording something without interpreting it. Fast, and it never fails. |
+| **compile** | Reading a captured item and writing pages and loops from it. This is where the work happens, and it is the only step that cannot be undone with one keystroke. |
+| **source** | One captured item, and the page written from it. |
+| **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
+| **surfaced** | A count on each loop of how many times it has appeared in a brief without an answer. At four it moves to the top. |
+| **brief** | The periodic report. What is due, what needs deciding, and the drafted work to finish it. |
+| **close** | Producing the artifact that finishes a loop, then marking it done, dropped, or deferred. |
+| **unsource** | Removing a source and reversing every change it caused across every page. |
 
-- You said you wanted to read a paper. The file has sat unopened for six weeks.
-- You said you would send someone a document. You did not send it.
-- You recorded a birthday. No calendar entry exists.
+### The four folders
 
-Each loop is a file holding its status, a count of how often it has appeared unanswered, and
-a reference to the source it came from. It appears in every brief until you mark it done,
-killed, or deferred.
+| | Holds | Written by |
+|---|---|---|
+| `vault/raw/` | what you captured, unchanged | capture |
+| `vault/wiki/` | compiled pages: sources, entities, concepts | the compiler |
+| `vault/loops/` | open, closed, and dated items | the compiler |
+| `vault/mem/` | your profile, goals, projects, people, rules | you |
 
-## What arrives with the reminder
+`raw/` is never edited. `wiki/` can be rebuilt from `raw/` at any time. `mem/` cannot be
+rebuilt, so the compiler proposes changes to it and never writes them.
+
+---
+
+## Install
+
+```bash
+git clone https://github.com/ArdellAlfatih/loose-ends.git
+cd loose-ends
+python -m venv .venv
+.venv/Scripts/python -m pip install -r mcp/requirements.txt   # Scripts/ is bin/ on macOS and Linux
+python scripts/init_vault.py
+```
+
+Make the vault a separate private repository, so your content has history and a backup:
+
+```bash
+cd vault && git init && git add -A && git commit -m "empty vault"
+gh repo create my-vault --private --source=. --push
+cd ..
+```
+
+Open Claude Code in the project root. The commands exist only there — not in `vault/`, and
+not in your home directory. Type a forward slash to confirm they loaded.
+
+Then run `/bootstrap`. It asks one question at a time about your work, goals, current
+projects, the people involved, and the rules it must follow, and writes the answers to
+`mem/`. It takes about twenty minutes and can be stopped and resumed. Output is generic
+until it runs.
+
+## Commands
+
+| | |
+|---|---|
+| `/capture` | Record a link, file, note, or the current conversation. |
+| `/ingest` | Compile one source. Shows its plan before writing. |
+| `/ingest-all` | Compile the whole inbox, planned and approved once. |
+| `/ask` | Answer a question with citations, and state what the vault does not cover. |
+| `/close` | Produce the artifact that finishes one loop, then file the loop. |
+| `/brief` | Write the periodic report. |
+| `/lint` | Check citations, links, orphan pages, stale claims. Run monthly. |
+| `/bootstrap` | The interview that fills `mem/`. |
+| `/unsource` | Remove a source and reverse every change it caused. |
+
+## Using it
+
+```
+capture something  →  /ingest  →  /ask, or wait for the brief  →  /close
+```
+
+**Capture whenever.** Move a file into `vault/raw/inbox/`, run `/capture`, click the browser
+extension, or message the Telegram bot. All four write to the same folder.
+
+**Compile when you sit down.** `/ingest` handles one source and shows a plan first;
+`/ingest-all` handles the inbox in one pass. Captured items are searchable straight away but
+produce no loops and no links until compiled.
+
+**Ask any time.** `/ask` in the project folder, or plain language in any other project once
+the MCP server is registered.
+
+**Read the brief when it arrives**, then `/close` whatever you decide to act on.
+
+### What runs on its own
+
+| Step | Automatic |
+|---|---|
+| Telegram messages into `vault/raw/inbox/` | yes, on a daily schedule |
+| Browser clippings into `vault/raw/inbox/` | yes, when you click |
+| Compiling captured items | **no** — you run `/ingest` |
+| Writing and emailing the brief | yes, on your schedule |
+
+Compilation stays manual because it writes to ten or fifteen pages at once. It shows a plan
+and waits. The brief counts anything left uncompiled and reports it, so nothing sits unseen.
+
+Scheduling uses Windows Task Scheduler:
+
+```
+python scripts/install_schedule.py --cadence weekly --day SAT --time 08:00
+```
+
+Tasks run on battery, survive being unplugged, and can wake a sleeping machine. A machine
+that is fully off runs the task at next startup, so the brief arrives late rather than not
+at all.
+
+## Capture methods
+
+| Method | Use | Setup |
+|---|---|---|
+| Move a file into `vault/raw/inbox/` | anything on the machine | none |
+| `/capture` | a link, a note, the current conversation | none |
+| Obsidian Web Clipper | articles from a browser | 15 minutes |
+| Telegram | anything, from a phone | 5 minutes |
+| `brain_capture` over MCP | from any other project | one command |
+
+### Telegram without a server
+
+Messaging an assistant from a phone normally requires a server running constantly, which is
+the recurring cost most comparable systems assume.
+
+Telegram holds bot messages for 24 hours, so nothing needs to be running when you send:
+
+```
+Monday, away from the machine  →  send the bot three links and a note
+Tuesday, at the machine        →  python scripts/telegram_capture.py --once
+                                  four files appear in vault/raw/inbox/
+                               →  /ingest-all
+```
+
+It handles text, links, forwarded messages, images and PDFs. Forwarded messages record the
+original sender, so a claim relayed from someone else is not attributed to you. Only your own
+chat identifier is accepted, so nobody who finds the bot can write to the vault.
+
+This provides capture, not conversation. The bot does not reply. Answering requires a model
+running constantly, which is the one part of this design that would cost money.
+
+## Reading it from other projects
+
+Without the MCP server the vault is readable only when its folder is open. Registering it
+once lets any Claude Code session read the vault from any project.
+
+| Available anywhere | Only in the project folder |
+|---|---|
+| search, read, list open loops, capture | `/ingest`, `/brief`, `/close`, `/lint`, `/unsource`, `/bootstrap` |
+
+Reading is safe from any directory. Compiling and deciding stay where the vault is visible.
+Setup is one command, in [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
+
+---
+
+## What arrives with a reminder
 
 After the fourth unanswered appearance, a loop moves to the top of the brief with the work
 already drafted:
@@ -39,51 +179,11 @@ already drafted:
 | An unread document | a summary, so you can judge it without opening the file |
 | An undecided question | the options, and what your notes record about each |
 
-The system drafts. It does not send. No code path exists that could send a message to a
-third party, and the one script that sends mail takes no recipient argument — the address is
-fixed in configuration, and passing another one is a syntax error.
+The system drafts. It does not send. The one script that sends mail takes no recipient
+argument: the address is fixed in configuration, and passing another one is a syntax error.
+No code path exists that could send a message to a third party.
 
----
-
-## Capture
-
-Everything captured lands in one folder, `vault/raw/inbox/`. Adding a new way to capture
-does not change anything downstream.
-
-| Method | Use | Setup |
-|---|---|---|
-| Move a file into `vault/raw/inbox/` | anything on the machine | none |
-| `/capture` in Claude Code | a link, a note, the current conversation | none |
-| Obsidian Web Clipper | articles and documents from a browser | 15 minutes |
-| Telegram | anything, from a phone | 5 minutes |
-| `brain_capture` over MCP | from any other project | one command |
-
-### Telegram capture without a server
-
-Sending to a personal assistant from a phone usually requires a server that runs constantly.
-That is the recurring cost most comparable systems assume.
-
-It is avoidable. Telegram holds messages for a bot for 24 hours, so nothing needs to be
-running when you send:
-
-```
-Monday, away from the machine  →  send the bot three links and a note
-Tuesday, at the machine        →  python scripts/telegram_capture.py --once
-                                  four files appear in vault/raw/inbox/
-                               →  /ingest-all
-```
-
-The script handles text, links, forwarded messages, images and PDFs. Forwarded messages
-record who originally sent them. Only your own chat identifier is accepted, so nobody who
-finds the bot can write to the vault.
-
-This provides capture, not conversation. The bot does not answer questions. Answering
-requires a model running constantly, which is the one part of this design that would cost
-money, so it is left out.
-
----
-
-## Cost
+## What it costs
 
 | Component | Why it is free |
 |---|---|
@@ -96,42 +196,15 @@ money, so it is left out.
 | Reading the vault | Obsidian, which is free and optional |
 
 Comparable systems assume a server at $7 to $24 a month, an API budget of roughly $15 to $40
-a month at moderate volume, or a hosted vector database. None of that applies here.
+a month at moderate volume, or a hosted vector database.
 
 One capability is omitted because it would cost money: asking questions from a phone while
 the machine is off. Capture from a phone works and is free. Answering does not.
 
----
-
-## Properties
-
-**The files are yours.** Markdown in a git repository. Not a database, not an account, not a
-proprietary format. Any text editor can read them.
-
-**No dependency on one model.** The vault is files and a schema. A different model can read
-it. Nothing here requires Claude except convenience.
-
-**Claims are checkable.** Every claim cites the source it came from, so you can verify it
-rather than trust it.
-
-**Compilation reverses.** `/unsource` removes a source and every change it caused, across
-each page it touched. Compiling one source writes to ten or fifteen pages; the published
-descriptions of this pattern state the problem and offer no remedy. `git revert` does not
-solve it either, because later correct edits sit on top of the incorrect ones.
-
-**No filing system to maintain.** No folder taxonomy. Pages exist because a source created
-them, and structure comes from citations. Maintenance cost is what ends most personal wikis.
-
-**Private by default.** Files stay on the machine, and the vault is a separate private
-repository. Content passes through the model when you ask it to read something, as in any
-conversation, but the store itself is local.
-
----
-
-## Design
+## How it works
 
 ```
-capture → raw/ → compile ─┬→ wiki/  → ask     "what do I know about X"
+capture → raw/ → compile ─┬→ wiki/  → ask
                           │
                           └→ loops/ → brief → close
 ```
@@ -145,9 +218,9 @@ capture → raw/ → compile ─┬→ wiki/  → ask     "what do I know about 
 | A contradiction is | a finding: keep both, flag it | an error: report it, you fix it |
 | The compiler may | write freely | propose only |
 
-The distinction matters. Two articles that disagree is useful information and both are kept.
-A stated goal that conflicts with a stated commitment is an error and is reported for you to
-resolve. Systems that treat these the same produce vague output.
+Two articles that disagree is useful information, and both are kept. A stated goal that
+conflicts with a stated commitment is an error and is reported for you to resolve. Systems
+that treat these the same produce vague output.
 
 ### Layout
 
@@ -158,88 +231,40 @@ loose-ends/              the system. shareable.
 ├─ CLAUDE.md             the schema the model follows
 ├─ .env                  credentials. ignored by git.
 └─ vault/                content. ignored here; a separate private repository.
-   ├─ raw/               what you captured. never edited.
-   ├─ wiki/              sources, entities, concepts, syntheses
-   ├─ loops/             open, closed, dates
-   ├─ mem/               profile, goals, projects, people, rules
-   ├─ briefs/            one file per brief
+   ├─ raw/ wiki/ loops/ mem/ briefs/
    └─ index.md  log.md   the catalogue, and a record of what happened
 ```
 
-Open the outer folder in Claude Code. Everything the commands write goes into `vault/`.
 Separating the two allows the system to be public while the content stays private.
-Versioning the vault separately means each compilation is a commit you can inspect or undo.
-
-### The MCP server
-
-Without it the vault is readable only when that one folder is open. The server lets any
-Claude Code session read the vault from any project.
-
-| Available anywhere | Only in the project folder |
-|---|---|
-| search, read, list open loops, capture | `/ingest`, `/brief`, `/close`, `/lint`, `/unsource`, `/bootstrap` |
-
-Reading is safe from anywhere. Compiling writes to many pages at once and cannot be undone
-with a keystroke, so it stays where the vault is visible.
+Versioning the vault on its own means each compilation is a commit you can inspect or undo.
 
 ### Search
 
 At a few hundred pages an index file and `grep` are faster, cheaper and easier to inspect
 than a vector store. Search sits behind one interface, so replacing it later is a
-substitution rather than a rewrite. Vector search becomes worthwhile somewhere above 5,000
+substitution rather than a rewrite. Vector search becomes worthwhile above roughly 5,000
 pages.
 
----
+## Properties
 
-## Installing
+**The files are yours.** Markdown in a git repository. Any text editor can read them.
 
-```bash
-git clone https://github.com/ArdellAlfatih/loose-ends.git
-cd loose-ends
-python -m venv .venv
-.venv/Scripts/python -m pip install -r mcp/requirements.txt   # Scripts/ is bin/ on macOS and Linux
-python scripts/init_vault.py
-```
+**No dependency on one model.** The vault is files and a schema. Nothing here requires Claude
+except convenience.
 
-Make the vault a separate private repository, so the content has history and a backup:
+**Claims are checkable.** Every claim cites its source, so you can verify it rather than
+trust it.
 
-```bash
-cd vault && git init && git add -A && git commit -m "empty vault"
-gh repo create my-vault --private --source=. --push
-```
+**Compilation reverses.** `/unsource` removes a source and every change it caused. Compiling
+one source writes to ten or fifteen pages; published descriptions of this pattern state the
+problem and offer no remedy. `git revert` does not solve it either, because later correct
+edits sit on top of the incorrect ones.
 
-Open Claude Code in the project root — the commands exist only there — and run:
+**No filing system to maintain.** No folder taxonomy. Pages exist because a source created
+them, and structure comes from citations.
 
-```
-/bootstrap
-```
-
-It asks one question at a time and writes the answers to `mem/`: your work, goals, current
-projects, the people involved, and the rules it must follow. It takes about twenty minutes
-and can be stopped and resumed. Output is generic until it runs.
-
-Then `/capture` something, `/ingest` it, and `/ask` a question.
-
-Optional, and independent of each other: [Obsidian and the Web
-Clipper](docs/setup.md#2-obsidian-optional-recommended), the [MCP
-server](docs/setup.md#4-reach-it-from-your-other-projects-recommended), [email
-delivery](docs/setup.md#5-email-delivery-for-the-brief), and [Telegram
-capture](docs/setup.md#6-telegram-capture-from-your-phone-optional). Full instructions in
-[`docs/walkthrough.md`](docs/walkthrough.md).
-
-## Commands
-
-| | |
-|---|---|
-| `/capture` | file a link, a document, a note, or the current conversation |
-| `/ingest` | compile one source into pages and loops, after showing a plan |
-| `/ingest-all` | compile the whole inbox, planned and approved once |
-| `/ask` | answer a question with citations, and state what the vault does not cover |
-| `/close` | produce the artifact that finishes one loop, then file it |
-| `/brief` | the periodic report |
-| `/lint` | check citations, links, orphans and stale pages |
-| `/bootstrap` | the interview that fills `mem/` |
-| `/unsource` | remove a source and reverse everything it caused |
+**Private by default.** Files stay on the machine. Content passes through the model when you
+ask it to read something, as in any conversation, but the store is local.
 
 ## Not included
 
@@ -262,10 +287,15 @@ reporting. Below about 30 per cent the design is wrong. Two further conditions e
 project: nothing entering `raw/` for three consecutive weeks, which means capture is too
 inconvenient; or finding yourself editing the wiki by hand, which means the compiler failed.
 
-A comparison with GBrain, llm-wiki and similar systems, including where they are better, is
-in [`docs/comparison.md`](docs/comparison.md). The design decisions and how they were reached
-are in [`docs/decisions.md`](docs/decisions.md), and the questions behind them in
-[`docs/architecture-qa.md`](docs/architecture-qa.md).
+## Further reading
+
+| | |
+|---|---|
+| [`docs/walkthrough.md`](docs/walkthrough.md) | Full setup, with a worked example of a month of use |
+| [`docs/setup.md`](docs/setup.md) | Obsidian, MCP, email, Telegram, scheduling |
+| [`docs/comparison.md`](docs/comparison.md) | Against GBrain, llm-wiki and others, including where they are better |
+| [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
+| [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |
 
 ## License
 
