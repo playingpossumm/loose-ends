@@ -22,6 +22,16 @@ only. Reminding forever is the same failure by a slower route.
 Registered by `install_schedule.py` alongside the other tasks. `--due-time` changes when it
 runs; `--no-due-check` skips it.
 
+### Changed — overdue items are forced to a decision
+
+An item more than 14 days past its date now appears at the top of the brief with three
+options and nothing else: drop it, set a new date, or do it now. The daily due check stops
+reminding at 14 days so the brief can take over.
+
+`/close` asks which of the three before drafting anything, and records the reason when
+something is dropped. An item nobody has acted on for three weeks is either dead or
+mis-dated; both are fine answers, and leaving it open is not.
+
 ### Changed — brief format and register
 
 The brief reported on the system's own activity. It now reports on your work.

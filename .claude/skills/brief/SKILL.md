@@ -63,9 +63,19 @@ Ordered by urgency, not by category. Nearest deadline first, always.
 # <date>
 
 ## Now
-<Anything due within 7 days, or any loop at surfaced >= 4. For each: one line saying what
-and when — then the artifact that closes it, in full, below the fold. Skip the section if
-genuinely nothing is due.>
+<Ordered: overdue first, then due within 7 days, then any loop at surfaced >= 4. For each:
+one line saying what and when — then the artifact that closes it, in full, below the fold.
+Skip the section if genuinely nothing is due.
+
+An item **more than 14 days past its date** gets a forced decision instead of another
+reminder. The daily due check stops nagging at 14 days so this can take over. Say how long
+it has been, then give three options and nothing else:
+
+  Foundation go-to-market planning — due 31 Aug, 23 days ago. No progress recorded.
+    Drop it · set a new date · or do the 45 minutes now (agenda below)
+
+Do not soften this, and do not let it slide into `Still open`. An item nobody has acted on
+for three weeks is either dead or mis-dated. Both are fine answers. Leaving it open is not.>
 
 ## Soon
 <Dates and deadlines, 8-14 days out. One line each. What it is, when, and the one thing

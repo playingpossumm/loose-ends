@@ -47,6 +47,14 @@ delay" is a failure; the email itself is the deliverable.
 - **someday** — stays open, `status: someday`, stops appearing weekly
 - **still open** — leave it, reset `surfaced: 0` since it has now been acted on
 
+**5b. When the item is long overdue.** If the brief escalated this because it is more than
+14 days past its date, do not produce a large artifact by default. Ask which of the three it
+is — drop, re-date, or do it now — and only build the artifact for the third. Writing a
+detailed plan for something the user is about to drop wastes both of your time.
+
+Record the reason when dropping. "Dropped 22 Sep: the deadline passed and the project moved
+on" is worth keeping; a bare `status: killed` is not.
+
 **6. File the artifact** if it is worth keeping — a summary belongs in `wiki/synthesis/`, a
 sent message does not. Ask if unsure.
 
