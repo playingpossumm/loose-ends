@@ -18,6 +18,7 @@ than never.
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -86,8 +87,11 @@ def main() -> None:
     ap.add_argument("--cadence", default="weekly",
                     choices=["daily", "weekly", "fortnightly"],
                     help="how often the brief writes and sends itself")
-    ap.add_argument("--day", default="MON", choices=DAYS,
-                    help="which day (ignored when --cadence daily)")
+    ap.add_argument("--day", "--days", dest="day", default="MON", metavar="DAY[,DAY...]",
+                    help="which day, or a comma-separated list for several deliveries a "
+                         "week, e.g. SAT,MON (ignored when --cadence daily). schtasks "
+                         "takes a day list on one task, so this stays a single task "
+                         "rather than one per day.")
     ap.add_argument("--time", default="08:00", help="what time, HH:MM")
     ap.add_argument("--capture-time", default="18:00", help="daily Telegram drain, HH:MM")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
@@ -103,17 +107,31 @@ def main() -> None:
     if not PY.is_file():
         sys.exit(f"No venv python at {PY}. Create it first — see README.")
 
+    # Accept "SAT,MON" / "sat mon" / "SAT, MON". Deduplicate but keep the order given, so
+    # the confirmation line reads back the way it was typed.
+    days: list[str] = []
+    for raw in re.split(r"[,\s]+", args.day.strip().upper()):
+        if not raw:
+            continue
+        if raw not in DAYS:
+            sys.exit(f"Not a day: {raw}. Use one or more of {', '.join(DAYS)}.")
+        if raw not in days:
+            days.append(raw)
+    if not days:
+        sys.exit("No day given.")
+    daylist = ",".join(days)
+
     # Windows has no fortnightly; WEEKLY with /mo 2 means every other week.
     sched = {
         "daily":       ["/sc", "DAILY"],
-        "weekly":      ["/sc", "WEEKLY", "/d", args.day],
-        "fortnightly": ["/sc", "WEEKLY", "/mo", "2", "/d", args.day],
+        "weekly":      ["/sc", "WEEKLY", "/d", daylist],
+        "fortnightly": ["/sc", "WEEKLY", "/mo", "2", "/d", daylist],
     }[args.cadence]
 
     when = {
         "daily":       f"every day at {args.time}",
-        "weekly":      f"every {args.day} at {args.time}",
-        "fortnightly": f"every other {args.day} at {args.time}",
+        "weekly":      f"every {' and '.join(days)} at {args.time}",
+        "fortnightly": f"every other week on {' and '.join(days)} at {args.time}",
     }[args.cadence]
 
     print("Registering scheduled tasks:")
@@ -126,6 +144,7 @@ def main() -> None:
         print("\nChange your mind — just re-run with different flags:")
         print("  python scripts/install_schedule.py --cadence daily --time 07:30")
         print("  python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00")
+        print("  python scripts/install_schedule.py --day SAT,MON --time 07:00")
         print("\nRun it now:  schtasks /run /tn SecondBrain-WeeklyBrief")
         print("Stop it:     python scripts/install_schedule.py --remove")
     else:
