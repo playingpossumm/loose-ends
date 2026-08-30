@@ -1,16 +1,28 @@
 # loose-ends
 
-A personal knowledge base that records what you read and tracks what you said you would do.
+A personal knowledge base that records what you read and tracks what you said you would do
+and have not done.
 
-It answers two questions:
+You capture things: articles, documents, notes, messages to yourself. It compiles them into
+linked pages you can search, and extracts anything you stated but did not finish.
 
-1. **What do I know about X?** Answers cite the source they came from.
-2. **What did I say I would do and have not?** Reported on a schedule until you decide.
+```
+"I want to read this paper."     The file has sat unopened for six weeks.
+"I'll send them the document."   You did not.
+A birthday went in.              No calendar entry exists.
+```
 
-Most systems in this category answer the first. This one also answers the second, and sends
-the work needed to finish each item along with the report.
+Those are **loops**. They appear in a report on a schedule until you decide what to do with
+them. After the fourth unanswered appearance the report includes the work needed to finish
+them: the drafted message, a summary of the unread document, the calendar entry to paste.
 
-It costs nothing to run. No API keys, no database, no server, no vector store.
+Two things it does, then:
+
+1. **Answers questions about what you have read**, citing the source of every claim.
+2. **Reports what you have not finished**, with the work to finish it attached.
+
+**What you need:** Claude Code, and a machine you use most days. Nothing else — no API keys,
+no database, no server, no vector store, and no monthly cost.
 
 ---
 
@@ -249,8 +261,12 @@ pages.
 
 **The files are yours.** Markdown in a git repository. Any text editor can read them.
 
-**No dependency on one model.** The vault is files and a schema. Nothing here requires Claude
-except convenience.
+**Portable, with some work.** The vault is markdown and the scripts are plain Python, so
+neither needs Claude. The MCP server speaks a standard protocol and works with any client
+that supports it. The nine commands are the part written for Claude Code, and they are prose
+instruction files rather than code — moving to another agent means renaming `CLAUDE.md` to
+whatever that agent reads and translating those nine files. Your content is never the thing
+that has to move.
 
 **Claims are checkable.** Every claim cites its source, so you can verify it rather than
 trust it.
