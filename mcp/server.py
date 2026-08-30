@@ -1,4 +1,4 @@
-"""second-brain MCP server.
+"""loose-ends MCP server.
 
 Exposes the vault to any agent, in any project, on this machine. Data access only —
 searching, reading, capturing. Synthesis is the calling agent's job, which is what keeps
@@ -24,10 +24,10 @@ SEARCH_DIRS = ("wiki", "loops", "mem", "briefs", "raw")
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__", ".claude"}
 
 server = MCPServer(
-    name="second-brain",
+    name="loose-ends",
     version="1.0.0",
     instructions=(
-        "Personal knowledge vault. Call brain_index first to see what exists, then "
+        "Personal knowledge vault (loose-ends). Call brain_index first to see what exists, then "
         "brain_search to find pages and brain_read to read them. Cite every claim by its "
         "page path. Always tell the user what the vault does NOT cover — that coverage "
         "note is part of a correct answer here. Use brain_capture to file something new; "

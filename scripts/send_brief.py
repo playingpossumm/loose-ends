@@ -133,7 +133,7 @@ def to_html(body: str, title: str) -> str:
         f"<meta name='viewport' content='width=device-width,initial-scale=1'>"
         f"<style>{CSS}</style></head><body><div class='wrap'>"
         f"<div class='card'>{html}</div>"
-        f"<div class='foot'>{title} · second-brain</div>"
+        f"<div class='foot'>{title} · loose-ends</div>"
         f"</div></body></html>"
     )
 
@@ -143,7 +143,7 @@ def build(brief: Path, to: str, sender: str) -> EmailMessage:
     urgent = has_decisions(raw)
 
     msg = EmailMessage()
-    msg["Subject"] = f"Brain — {brief.stem}" + (" · decisions waiting" if urgent else "")
+    msg["Subject"] = f"Loose ends — {brief.stem}" + (" · decisions waiting" if urgent else "")
     msg["From"] = sender
     msg["To"] = to  # the only assignment to this header in the codebase
 

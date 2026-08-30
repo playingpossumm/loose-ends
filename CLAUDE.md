@@ -1,4 +1,4 @@
-# second-brain — vault schema
+# loose-ends — vault schema
 
 This file is the contract. It tells you how this vault is structured and how to maintain it.
 Read it before touching anything. Karpathy's llm-wiki write-up calls this the key

@@ -142,5 +142,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     if not ROOT.joinpath("CLAUDE.md").is_file():
-        sys.exit(f"Run this from the second-brain repo. Expected CLAUDE.md at {ROOT}")
+        sys.exit(f"Run this from the loose-ends repo. Expected CLAUDE.md at {ROOT}")
     main()

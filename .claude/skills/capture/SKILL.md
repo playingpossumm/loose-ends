@@ -1,6 +1,6 @@
 ---
 name: capture
-description: File something into the second-brain inbox — a link, a PDF, an image, a thought, or the current Claude Code session. Use when the user says "capture this", "file this", "save this to my brain", or wants to keep something from the conversation. Does not compile; that is /ingest.
+description: File something into the vault inbox — a link, a PDF, an image, a thought, or the current Claude Code session. Use when the user says "capture this", "file this", "save this to my brain", or wants to keep something from the conversation. Does not compile; that is /ingest.
 ---
 
 # capture

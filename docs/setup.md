@@ -7,7 +7,7 @@ shareable. Your **content** lives in `vault/`, which this repo ignores entirely 
 its own separate private repository.
 
 ```
-second-brain/            the system. shareable.
+loose-ends/            the system. shareable.
 ├─ .claude/skills/  mcp/  scripts/  docs/
 ├─ CLAUDE.md  README.md
 ├─ .env                  your credentials. gitignored. never leaves this machine.
@@ -82,7 +82,7 @@ The MCP server is built and tested. Inside this folder it works already via `.mc
 To make it available **everywhere**, register it once at user scope:
 
 ```
-claude mcp add --scope user second-brain -- "/ABSOLUTE/PATH/TO/second-brain/.venv/Scripts/python.exe" "/ABSOLUTE/PATH/TO/second-brain/mcp/server.py"
+claude mcp add --scope user loose-ends -- "/ABSOLUTE/PATH/TO/loose-ends/.venv/Scripts/python.exe" "/ABSOLUTE/PATH/TO/loose-ends/mcp/server.py"
 ```
 
 Then from any project: *"search my brain for what I know about reranking"*.
