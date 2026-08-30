@@ -22,7 +22,7 @@ your own machine.
 ### 1. Install
 
 ```bash
-git clone https://github.com/ArdellAlfatih/loose-ends.git
+git clone https://github.com/playingpossumm/loose-ends.git
 cd loose-ends
 python -m venv .venv
 .venv/Scripts/python -m pip install -r mcp/requirements.txt   # Scripts/ is bin/ on macOS and Linux
