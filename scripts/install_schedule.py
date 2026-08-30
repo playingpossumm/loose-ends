@@ -26,9 +26,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
 AUTOPILOT = ROOT / "scripts" / "autopilot.py"
+DUE_CHECK = ROOT / "scripts" / "due_check.py"
 
 WEEKLY = "SecondBrain-WeeklyBrief"
 CAPTURE = "SecondBrain-Capture"
+DUE = "SecondBrain-DueCheck"
 DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 
@@ -69,9 +71,11 @@ def harden(name: str, wake: bool = False) -> None:
         print(f"    warning: could not adjust settings — {(r.stderr or '').strip()[:200]}")
 
 
-def create(name: str, mode: str, sched: list[str], when: str, wake: bool = False) -> bool:
+def create(name: str, mode: str, sched: list[str], when: str, wake: bool = False,
+           script: str | None = None) -> bool:
     remove(name)
-    cmd = f'"{PY}" "{AUTOPILOT}" {mode}'
+    target = script or str(AUTOPILOT)
+    cmd = f'"{PY}" "{target}" {mode}'.rstrip()
     code, out = schtasks(["/create", "/tn", name, "/tr", cmd,
                           *sched, "/st", when, "/f"])
     print(f"  {'created' if code == 0 else 'FAILED'}: {name} — {when}")
@@ -94,6 +98,10 @@ def main() -> None:
                          "rather than one per day.")
     ap.add_argument("--time", default="08:00", help="what time, HH:MM")
     ap.add_argument("--capture-time", default="18:00", help="daily Telegram drain, HH:MM")
+    ap.add_argument("--due-time", default="07:30",
+                    help="daily due-date check, HH:MM. Sends nothing unless something is "
+                         "overdue, due today, or due tomorrow.")
+    ap.add_argument("--no-due-check", action="store_true", help="skip the daily due-date task")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
     ap.add_argument("--remove", action="store_true", help="remove both tasks")
     args = ap.parse_args()
@@ -102,6 +110,7 @@ def main() -> None:
         print("Removing scheduled tasks:")
         remove(WEEKLY)
         remove(CAPTURE)
+        remove(DUE)
         return
 
     if not PY.is_file():
@@ -138,6 +147,8 @@ def main() -> None:
     ok = create(WEEKLY, "--weekly", sched, args.time, wake=True)
     if not args.no_capture:
         ok &= create(CAPTURE, "--capture", ["/sc", "DAILY"], args.capture_time)
+    if not args.no_due_check:
+        ok &= create(DUE, "", ["/sc", "DAILY"], args.due_time, script=str(DUE_CHECK))
 
     if ok:
         print(f"\nThe brief now writes and emails itself {when}.")

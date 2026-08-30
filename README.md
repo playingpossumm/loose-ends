@@ -94,6 +94,8 @@ until it runs.
 | `/bootstrap` | The interview that fills `mem/`. |
 | `/unsource` | Remove a source and reverse every change it caused. |
 
+Recent changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Using it
 
 ```
@@ -120,6 +122,7 @@ the MCP server is registered.
 | Browser clippings into `vault/raw/inbox/` | yes, when you click |
 | Compiling captured items | **no** — you run `/ingest` |
 | Writing and emailing the brief | yes, on your schedule |
+| Reminding you on the day something is due | yes, daily — silent unless something is due |
 
 Compilation stays manual because it writes to ten or fifteen pages at once. It shows a plan
 and waits. The brief counts anything left uncompiled and reports it, so nothing sits unseen.
@@ -130,9 +133,22 @@ Scheduling uses Windows Task Scheduler:
 python scripts/install_schedule.py --cadence weekly --day SAT --time 08:00
 ```
 
+That registers three tasks: the brief on your chosen days, a daily capture from Telegram,
+and a daily due-date check.
+
 Tasks run on battery, survive being unplugged, and can wake a sleeping machine. A machine
 that is fully off runs the task at next startup, so the brief arrives late rather than not
 at all.
+
+### Due dates
+
+The brief reports what is coming, but a deadline needs saying on the day. A daily check
+emails you when something is **overdue, due today, or due tomorrow**, and sends nothing
+otherwise.
+
+Silence is deliberate. A daily message that usually says "nothing due" teaches you to ignore
+the channel. An overdue item stops sending daily reminders after 14 days and appears in the
+brief only.
 
 ## Capture methods
 

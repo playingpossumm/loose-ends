@@ -157,6 +157,10 @@ That registers two Windows tasks:
 |---|---|---|
 | `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen day and time |
 | `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
+| `SecondBrain-DueCheck` | emails when something is overdue, due today or due tomorrow; silent otherwise | daily, 07:30 |
+
+`--due-time` moves the due check; `--no-due-check` skips it. It reads the vault directly and
+does not call a model, so it is fast and cannot fail on a network problem.
 
 Both run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
 `fortnightly`. Re-run the command any time to change it; `--remove` stops both.
