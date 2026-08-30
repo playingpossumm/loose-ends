@@ -1,106 +1,112 @@
 ---
 name: brief
-description: Generate the weekly brief — what compiled, what contradicted, what went stale, and which open loops need a decision now. Use when the user says "brief", "weekly review", "what changed", or on the weekly schedule.
+description: Write the periodic brief — what needs deciding, what is due, and the work already started so it can be decided quickly. Use when the user says "brief", "weekly review", "what changed", or on the schedule.
 ---
 
 # brief
 
-The weekly brief is the product of this system. Everything else is substrate. If the brief
-stops being read, the project has failed — so the constraint below is not stylistic.
+The brief is the product of this system. Everything else is substrate.
 
-**Maximum ten lines of substance.** Not ten paragraphs. A brief that grows every week gets
-skimmed, then ignored. Cut the least important thing rather than adding an eleventh line.
+**It reports on the user's life, not on the vault's activity.** That is the whole rule.
+Nobody needs to be told how many sources compiled or how many pages were touched — that is
+the system talking about itself, and it is why briefs get skimmed and then ignored.
 
-## Build it
+Every line must carry a decision, a deadline, or a fact that changes what the user does
+today. If a line does none of those, cut it.
 
-1. Read `log.md` since the last brief in `briefs/`.
-2. Read every `loops/open/*.md`.
-3. Read `mem/goals.md` and `mem/projects.md` — a loop that serves a stated goal ranks above
-   one that does not.
-4. Check `loops/dates/` for anything falling in the next 14 days.
-5. **Count `raw/inbox/` — anything with `status: uncompiled`.** Capture is automated;
-   compilation is not. Material arrives from Telegram and the clipper on its own, but it
-   only becomes pages, links and loops when someone runs `/ingest`. Uncompiled material is
-   invisible to everything else in this brief, so it has to be surfaced here or it silently
-   rots.
+Check `mem/rules.md` for a `## Brief` section first — the user may have set tone and how
+hard to push. That overrides the defaults here.
+
+## Read
+
+`log.md` since the last brief · every `loops/open/*.md` · `loops/dates/` for the next 14
+days · `mem/goals.md` and `mem/projects.md` for what actually matters · a count of
+`raw/inbox/` items still `status: uncompiled`.
 
 ## Structure
 
+Ordered by urgency, not by category. Nearest deadline first, always.
+
 ```markdown
-# Week of YYYY-MM-DD
+# <date>
 
-## Decide now
-<loops with surfaced >= 4. For each: what it was, where it came from, the three
-options — kill it, schedule it, demote to someday — AND the artifact that closes it,
-written out in full. See "arrive with the work started" below. Empty section if none.>
+## Now
+<Anything due within 7 days, or any loop at surfaced >= 4. For each: one line saying what
+and when — then the artifact that closes it, in full, below the fold. Skip the section if
+genuinely nothing is due.>
 
-## Open loops
-<the rest, ranked by relevance to current goals and projects. One line each, with a
-citation back to where the loop came from.>
+## Soon
+<Dates and deadlines, 8-14 days out. One line each. What it is, when, and the one thing
+that is missing — "no calendar event exists", "no agenda written yet".>
 
-## Coming up
-<dates within 14 days. What the implied action is — e.g. "no calendar event exists">
+## Still open
+<Everything else, one line each, ranked against stated goals. Name and why it matters. No
+sub-bullets, no commentary about how many times it has surfaced.>
 
-## Waiting to be compiled
-<N items sitting uncompiled in raw/inbox/, oldest first, with their titles and how long
-they have been waiting. Say plainly that these are invisible until /ingest runs, and give
-the command. Omit the section entirely when the inbox is empty — an empty inbox needs no
-paragraph congratulating itself.
+## Worth knowing
+<At most three lines. Only gaps that block a decision above, or something that changed
+underneath the user — a stale project date, a contradiction between sources. Omit the
+section entirely if there is nothing.>
 
-If anything has been waiting more than two weeks, say so directly: capture without
-compilation is how this system fails quietly, and it is failure condition #1.>
+---
 
-## Compiled this week
-<one line: N sources, N pages touched. Not a list.>
-
-## Flagged
-<contradictions found, and anything that went stale. One line each. Omit if empty.>
-
-## What the brain doesn't know
-<coverage gaps: topics with thin sourcing, entities mentioned but never compiled,
-questions asked this week that the vault couldn't answer.>
+## <artifact for each item under Now>
 ```
+
+## Length
+
+**The summary — everything above the divider — fits on a phone screen.** Roughly 15 lines.
+If it does not fit, the ranking is wrong: cut from the bottom, never from `Now`.
+
+**Artifacts below the divider are uncapped.** A three-line summary and one genuinely useful
+draft is the brief working correctly. Length below the fold is earned; length above it is
+noise.
+
+## Never include
+
+These all appeared in early briefs and all made it worse:
+
+- **Vault statistics.** "5 sources, 19 pages touched, 3 loops killed." Zero action value.
+- **Meta-commentary about the system's own reasoning.** "Corrected in the compiler's rules
+  for future ingests." "Highest `surfaced` is 1, so nothing has been ignored yet." The user
+  does not need the mechanism narrated.
+- **Sections that exist to say they are empty.** No `*(none)*`. Omit the heading.
+- **Restating what the user just told you.** If they answered six loops yesterday, do not
+  report that back as news.
+- **File paths in the summary.** They belong in the artifact, if anywhere. A path in a nudge
+  is clutter.
+- **Hedging about your own confidence.** State it or leave it out.
+
+## Uncompiled inbox
+
+Capture is automated; compilation is not, so material can pile up unseen.
+
+**Say nothing when the inbox is small and fresh.** Mention it only when it is actually a
+problem — more than five items, or anything waiting more than two weeks — and then in one
+line under `Worth knowing`:
+
+> 7 things captured but not compiled, oldest 16 days. Run `/ingest-all`.
+
+That is failure condition #1 and worth flagging when real. A daily nag about two items from
+yesterday is exactly the noise that gets briefs ignored.
 
 ## Then
 
-- Increment `surfaced:` on every open loop that appeared, **except** those the user
-  acknowledged or acted on since the last brief.
+- Increment `surfaced:` on every loop that appeared, **except** ones the user acted on or
+  answered since the last brief.
 - Write to `briefs/YYYY-MM-DD.md`.
-- Append to `log.md`: `## [YYYY-MM-DD] brief | week of YYYY-MM-DD`.
-
-## Arrive with the work started
-
-A loop the user has ignored four times does not need a fifth reminder. It needs the friction
-removed. For everything in **Decide now**, produce the artifact that would close it — in
-full, inline, ready to use:
-
-| Loop | Produce |
-|---|---|
-| owes someone an email or message | the **drafted message**, in their voice, with vault context already in it |
-| a date or deadline | the event details ready to paste, and the fact that nothing exists yet |
-| something unread | a short summary from the source, so they can decide whether they still care |
-| an undecided decision | the options, with what the vault knows about each |
-| anything else | the smallest concrete next action, written out, not described |
-
-Draw the voice from `mem/profile.md` and past material in `raw/`. Draw the facts from the
-vault and cite them. If you lack what you need to draft well, say what is missing rather
-than inventing details — a wrong draft costs more than no draft.
-
-**Drafts only. Never send anything, never write a calendar.** Produce the artifact and stop.
-If a draft needs a fact you do not have, leave a clearly marked `[gap: ...]` rather than
-guessing.
-
-Keep the ten-line cap for the brief's *summary* sections. Drafts sit below it and do not
-count — a brief that is three lines of nudge and one good email draft is working correctly.
+- Append to `log.md`: `## [YYYY-MM-DD] brief | <date>`.
 
 ## Rules
 
-- **Rank by the user's actual goals**, not by recency. A loop touching a stated goal beats
-  three fresher trivial ones.
-- **Every loop carries its provenance.** "You said this in the PDF you filed on 3 August"
-  is the line that makes a nudge land instead of feeling arbitrary.
-- **Calendar items are advice, never actions.** Say the event does not exist. Do not create
-  it.
-- **The coverage note is mandatory**, even when it is "nothing obvious missing."
-- **Never invent a loop to fill the brief.** A short brief is a good brief. Precision is the
-  metric this project is judged on — one bad nudge costs more than five missing ones.
+- **Rank against stated goals, not recency.** A loop touching a real goal beats three
+  fresher trivial ones.
+- **Nearest deadline leads.** Always.
+- **Every item under `Now` arrives with its artifact** — the drafted email, the agenda, the
+  summary, the options. A nudge without the work started is just a reminder, and reminders
+  are what failed before this existed.
+- **Calendar items are advice.** Say the event does not exist. Never create it.
+- **Never invent an item to fill a section.** A short brief is a good brief. Precision is the
+  metric this project is judged on: one bad nudge costs more than five missing ones.
+- **Mark real gaps `[gap: ...]`** inside artifacts rather than guessing. A confident wrong
+  draft is worse than an honestly incomplete one.
