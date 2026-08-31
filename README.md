@@ -138,9 +138,11 @@ attempt the next morning, a daily capture from Telegram, and a daily due-date ch
 
 The brief runs in the evening because a morning task on a sleeping laptop depends on Windows
 wake timers, which Windows disables on battery. In the evening the machine is already awake.
-The morning task is a catch-up: it checks whether a brief went out in the last 18 hours and
-does nothing if one did, so a normal week produces one email and a failed evening still
-gets delivered.
+The morning task covers both failure and freshness. If the evening run failed it does the
+full pass and sends. If the evening succeeded it drains Telegram and resends only when
+something that arrived overnight changes what you would do — a new deadline, something now
+due, a loop now resolved. Otherwise it sends nothing, so a normal week still produces one
+email.
 
 Tasks run on battery, survive being unplugged, and can wake a sleeping machine. A machine
 that is fully off runs the task at next startup, so the brief arrives late rather than not

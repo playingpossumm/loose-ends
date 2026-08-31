@@ -36,6 +36,19 @@ STATE = ROOT / ".last-brief"
 # brief twice costs attention, which is the scarce thing.
 CATCHUP_WINDOW_HOURS = 18
 
+UPDATE_PROMPT = (
+    "Run the /brief skill in update mode. A brief already exists in briefs/ for this "
+    "period and was sent last night. Material has arrived since. Read the latest brief, "
+    "read what is new, and decide whether the new material changes anything a reader would "
+    "act on differently — a new deadline, something now due, a loop that is now resolved.\n\n"
+    "If it does not, reply with the single word NOCHANGE and write nothing. Captured items "
+    "sitting uncompiled are not by themselves a reason to resend; the existing brief already "
+    "counts them.\n\n"
+    "If it does, revise that same brief file in place, add one line at the top saying what "
+    "changed since last night, and follow the skill otherwise. Do not ask me anything; I am "
+    "not at the keyboard."
+)
+
 BRIEF_PROMPT = (
     "Run the /brief skill. Write the weekly brief to briefs/ in the vault, following the "
     "skill exactly — including the decide-now section with closing artifacts, and the "
@@ -190,6 +203,52 @@ def capture() -> bool:
                "telegram capture", timeout=180, retries=2)
 
 
+def inbox_count() -> int:
+    return len(list((VAULT / "raw" / "inbox").glob("*.md")))
+
+
+def refresh(last: datetime) -> bool:
+    """Morning pass when last night's brief was delivered.
+
+    Drains Telegram, then updates and resends the brief only if the new material changes
+    what a reader would do. The model makes that call — it is the same judgement the brief
+    already makes about what is worth reporting. Anything else means a second email most
+    mornings, which is how the channel stops being read.
+    """
+    before = inbox_count()
+    capture()
+    arrived = inbox_count() - before
+    if arrived <= 0:
+        log(f"refresh: brief sent {last:%H:%M}, nothing new since — done")
+        return True
+
+    log(f"refresh: {arrived} item(s) arrived overnight, checking whether they change the brief")
+    claude = find_claude()
+    if not claude:
+        log("refresh: FAILED — could not find the Claude Code binary")
+        return False
+
+    r = subprocess.run([str(claude), "-p", UPDATE_PROMPT,
+                        "--permission-mode", "acceptEdits", "--output-format", "text"],
+                       cwd=ROOT, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=900)
+    out = (r.stdout or "").strip()
+    for line in out.splitlines()[-4:]:
+        log(f"  {line}")
+    if r.returncode != 0:
+        log(f"refresh: FAILED (exit {r.returncode}) {(r.stderr or '').strip()[:300]}")
+        return False
+    if "NOCHANGE" in out.upper():
+        log("refresh: nothing that changes what you would do — not resending")
+        return True
+
+    if run([str(PY), str(ROOT / "scripts" / "send_brief.py")], "email update", timeout=180,
+           retries=2):
+        mark_brief_sent()
+        return True
+    return False
+
+
 def weekly() -> bool:
     capture()  # fold in anything sent from the phone before writing the brief
 
@@ -241,10 +300,12 @@ def main() -> None:
     if args.weekly_catchup:
         last = last_brief_sent()
         if last and (datetime.now() - last).total_seconds() < CATCHUP_WINDOW_HOURS * 3600:
-            log(f"catch-up: a brief went out at {last:%Y-%m-%d %H:%M} — nothing to do")
-            log("done: ok")
-            sys.exit(0)
-        log("catch-up: no recent brief, running the full pass")
+            ok = refresh(last)
+            log(f"done: {'ok' if ok else 'FAILED'}")
+            if not ok:
+                report_failure("brief refresh")
+            sys.exit(0 if ok else 1)
+        log("catch-up: no brief went out last night, running the full pass")
 
     stage = "capture" if args.capture else "brief"
     ok = capture() if args.capture else weekly()

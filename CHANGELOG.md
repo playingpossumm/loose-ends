@@ -5,17 +5,26 @@ and in [`docs/decisions.md`](docs/decisions.md).
 
 ## 2026-08-31
 
-### Added — a second attempt the next morning
+### Added — a second run the next morning
 
-The evening run can still fail. Since running the system costs nothing, it now runs twice:
-once at 19:00 the evening before, and again at 08:00 the next morning.
+Running the system costs nothing, so the brief is attempted twice: 19:00 the evening before,
+and 08:00 the next morning. What the morning run does depends on what happened overnight.
 
-The morning run is a **catch-up**. It checks whether a brief was delivered in the last 18
-hours and exits immediately if one was. Running twice costs nothing; sending the same brief
-twice costs attention, which is the scarce thing.
+**If last night failed** — dead network, laptop shut early, expired login — it runs the full
+pass and sends. That is the safety net.
 
-So the morning run does nothing on a normal week, and silently covers the evening having
-failed — a dead network, a laptop shut early, an expired login.
+**If last night succeeded**, it drains Telegram and then asks whether anything that arrived
+overnight changes what you would actually do: a new deadline, something now due, a loop now
+resolved. If not, it sends nothing. If so, it revises last night's brief in place, notes at
+the top what changed, and sends the update.
+
+The judgement is the model's, and it is the same one the brief already makes about what is
+worth reporting. A fixed rule would mean a second email most mornings, since captured items
+arrive most evenings — and that is how a channel stops being read. Items sitting uncompiled
+are explicitly not a reason to resend; the existing brief already counts them.
+
+This also recovers what the evening schedule gave up: a brief written at 19:00 cannot include
+anything captured overnight, and now the morning pass folds it in when it matters.
 
 `--catchup-time` moves it; `--no-catchup` skips it.
 
