@@ -177,19 +177,24 @@ def report_failure(stage: str) -> None:
             log("report: skipped, mail is not configured")
             return
 
-        tail = "\n".join(LOG.read_text(encoding="utf-8").splitlines()[-25:])
+        # Deliberately short. This email exists to say one thing — the run happened and
+        # broke, so waiting will not fix it — and the log is on disk for anyone who wants
+        # detail. It used to carry 25 lines of log tail, which made a failure look like
+        # something to read rather than something to act on.
+        expired = "oauth" in LOG.read_text(encoding="utf-8")[-4000:].lower()
+        fix = ("Run `claude` once and sign in again; the login expired."
+               if expired else f"Run: .venv\\Scripts\\python.exe scripts\\autopilot.py --{stage.split()[0]}")
+
         msg = EmailMessage()
         msg["Subject"] = f"Loose ends — {stage} did not run"
         msg["From"] = env["BRAIN_SMTP_USER"]
         msg["To"] = env["BRAIN_EMAIL_TO"]
         msg["Importance"] = "High"
         msg.set_content(
-            f"The scheduled {stage} failed at {datetime.now():%Y-%m-%d %H:%M}.\n\n"
-            f"Nothing was sent. The last 25 log lines:\n\n{tail}\n\n"
-            f"To retry by hand:\n"
-            f"  cd {ROOT}\n"
-            f"  .venv\\Scripts\\python.exe scripts\\autopilot.py --weekly\n\n"
-            f"If the log mentions OAuth, run `claude` once interactively to sign in again.\n"
+            f"The {stage} ran at {datetime.now():%H:%M} and failed, so the next scheduled "
+            f"run will fail the same way until this is dealt with.\n\n"
+            f"{fix}\n\n"
+            f"Detail: {LOG}\n"
         )
         with smtplib.SMTP(env["BRAIN_SMTP_HOST"],
                           int(env.get("BRAIN_SMTP_PORT", "587")), timeout=30) as s:

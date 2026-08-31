@@ -138,10 +138,18 @@ def clean_title(raw: str) -> str:
     return title
 
 
-# How long an overdue item keeps sending daily reminders. After this it appears in the brief
-# only. Reminding every day forever is how a channel becomes noise, and a channel you ignore
-# is worse than one that never existed.
-OVERDUE_NAG_DAYS = 14
+# Days past the due date on which an overdue item nudges. Not every day between.
+#
+# It was every day up to 14 until 31 August, which looked reasonable per item and was
+# catastrophic in aggregate: overdue items accumulate, so projecting the vault forward gave
+# a nudge every single day for thirty days running, eight items deep by the second week.
+# That is the failure the silence was supposed to prevent — a channel that always has
+# something in it is a channel you stop opening.
+#
+# Four reminders spread over two weeks keep the escalation and drop the noise. Between them
+# the item is still in the brief, which is where a two-week-old commitment belongs.
+OVERDUE_STEPS = (1, 3, 7, 14)
+OVERDUE_NAG_DAYS = max(OVERDUE_STEPS)
 
 
 def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]]:
@@ -150,10 +158,9 @@ def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]
     Nothing further out: the brief covers that.
     """
     items = [i for i in items if i["window"] == window]
-    overdue = [
-        i for i in items
-        if i["due"] < today and (today - i["due"]).days <= OVERDUE_NAG_DAYS
-    ]
+    overdue = [i for i in items if (today - i["due"]).days in OVERDUE_STEPS]
+    for i in overdue:
+        i["final"] = (today - i["due"]).days == OVERDUE_NAG_DAYS
     return {
         "Overdue": sorted(overdue, key=lambda i: i["due"]),
         "Due today": [i for i in items if i["due"] == today],
@@ -180,18 +187,28 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
             overdue_by = (today - i["due"]).days
             stamp = (f"{when} ({overdue_by} day{'s' if overdue_by != 1 else ''} ago)"
                      if overdue_by > 0 else when)
-            text += [f"  {i['title']} {chr(8212)} {stamp}"]
+            last = " " + chr(8212) + " last reminder" if i.get("final") else ""
+            text += [f"  {i['title']} {chr(8212)} {stamp}{last}"]
             if i["body"]:
                 text.append(f"    {i['body']}")
             if i["link"]:
                 text.append(f"    {i['link']}")
             text.append("")
             head = (f"<a href='{i['link']}'>{i['title']}</a>" if i["link"] else i["title"])
+            when_html = (f"{stamp} <strong>{chr(8212)} last reminder</strong>"
+                         if i.get("final") else stamp)
             html.append(
-                f"<h3>{head}</h3><p><span class='when'>{stamp}</span>"
+                f"<h3>{head}</h3><p><span class='when'>{when_html}</span>"
                 + (f"<br>{i['body']}" if i["body"] else "") + "</p>"
             )
         text.append("")
+
+    if any(i.get("final") for v in groups.values() for i in v):
+        note = (f"Marked last reminder: {OVERDUE_NAG_DAYS} days overdue, so this is the "
+                f"final nudge. It moves to the brief now, which will ask you to drop it, "
+                f"set a new date, or do it.")
+        text += [note, ""]
+        html.append(f"<p><em>{note}</em></p>")
 
     text.append("Run /close in the project folder to finish one of these.")
     html.append("<p class='foot'>Run <code>/close</code> in the project folder to finish one.</p>")
