@@ -141,8 +141,11 @@ def run(cmd: list[str], label: str, timeout: int = 900, retries: int = 0) -> boo
             time.sleep(30)
         log(f"{label}: starting")
         try:
+            # PYTHONIOENCODING because a child printing an em-dash to a captured pipe
+            # otherwise uses the Windows console codepage, and the log fills with U+FFFD.
             r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
-                               encoding="utf-8", errors="replace", timeout=timeout)
+                               encoding="utf-8", errors="replace", timeout=timeout,
+                               env={**os.environ, "PYTHONIOENCODING": "utf-8"})
         except subprocess.TimeoutExpired:
             log(f"{label}: TIMED OUT after {timeout}s")
             continue

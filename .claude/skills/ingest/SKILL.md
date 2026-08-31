@@ -65,7 +65,11 @@ section, and log it. Resolution belongs to the human.
 Write each to `loops/open/<id>.md` with `status: open`, `surfaced: 0`, a citation back to
 where it came from, and `due:` if one is implied. Dated facts go to `loops/dates/`.
 
-Every loop also needs `summary:`, a single sentence addressed to the user that stands alone
+Every loop also needs `title:`, the name of the thing in title case, which is what the brief
+and the nudge print. The `# ` heading may describe the loop; the title names it. "Foundation
+— start go-to-market planning (Monday)" is a heading, "Foundation GTM Planning" is a title.
+
+And `summary:`, a single sentence addressed to the user that stands alone
 in an email. The nudge prints it verbatim and prints nothing without it. Do not describe the
 loop ("the user wants to read this"); say the thing itself ("Richard Cook, 18 principles,
 about 20 minutes. Unread."). The frontmatter contract in `CLAUDE.md` has the full rule.

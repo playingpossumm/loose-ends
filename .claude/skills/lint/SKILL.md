@@ -40,7 +40,7 @@ field is what makes `/unsource` possible.
 
 **8. Loop hygiene**
 Open loops with no citation; loops open past their `due:`; loops with `surfaced:` ≥ 4 not
-yet escalated; anything in `loops/open/` that reads as already done. Also loops missing
+yet escalated; anything in `loops/open/` that reads as already done. Also loops missing `title:` or
 `summary:`, or whose `summary:` narrates the user in the third person — the nudge email is
 built from that line alone and silently sends nothing without it.
 

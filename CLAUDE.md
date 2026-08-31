@@ -93,11 +93,23 @@ confidence: fact | assumption
 
 ```yaml
 status: open | done | killed | someday
+title: <the name of the thing, title case — not a description of it>
 summary: <one sentence, addressed to the user, that stands alone in an email>
 surfaced: <count of times it has appeared in a brief unacknowledged>
 due: YYYY-MM-DD                # optional
 nudge: morning | evening       # optional; overrides the default split
 ```
+
+**`title:` is required on every loop.** The `# ` heading may describe the loop; the field
+must name the thing, in title case, as a subject line would carry it. A single generic word
+is not a title: if the loop is about a sheet, a website or an interview, say which one.
+
+| Heading | `title:` |
+|---|---|
+| Foundation — start go-to-market planning (Monday) | Foundation GTM Planning |
+| RAG finished — Tuesday 1 September | RAG Project |
+| Trip — 4 to 6 September 2026 | September Trip |
+| Check masters, and what documents need preparing | Masters Applications |
 
 **`summary:` is required on every loop.** The nudge email prints it verbatim and prints
 nothing when it is absent. It cannot be assembled from the page body: that body cites its

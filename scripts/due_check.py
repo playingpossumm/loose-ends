@@ -42,7 +42,11 @@ def read_dated() -> list[dict]:
             status = re.search(r"^status:\s*(\w+)", text, re.M)
             if not due or (status and status.group(1) != "open"):
                 continue
-            title = clean_title(next(
+            # The `title:` field if the compiler wrote one, since a loop heading is a
+            # description ("Foundation — start go-to-market planning (Monday)") and a
+            # subject line needs a name. clean_title salvages the heading otherwise.
+            m = TITLE.search(text)
+            title = m.group(1).strip() if m else clean_title(next(
                 (l.lstrip("# ").strip() for l in text.splitlines() if l.startswith("# ")),
                 p.stem,
             ))
@@ -57,6 +61,7 @@ def read_dated() -> list[dict]:
     return out
 
 
+TITLE = re.compile(r"^title:\s*(.+)$", re.M)
 SUMMARY = re.compile(r"^summary:\s*(.+)$", re.M)
 NUDGE = re.compile(r"^nudge:\s*(morning|evening)\s*$", re.M | re.I)
 LINK = re.compile(r"<(https?://[^>]+)>|\[[^\]]*\]\((https?://[^)]+)\)|(?<![(<])(https?://\S+)")
