@@ -1,6 +1,6 @@
 ---
 name: brief
-description: Write the periodic brief — what to do today, what is coming this week, and things captured and forgotten. Use when the user says "brief", "weekly review", "what changed", or on the schedule.
+description: Write the periodic brief — what to do this week, what is coming in the next two to three weeks, and things captured and forgotten. Use when the user says "brief", "weekly review", "what changed", or on the schedule.
 ---
 
 # brief
@@ -50,14 +50,23 @@ month, four-digit year. Nothing else on the line.
 
 ## Opening
 
-Two or three sentences under the title, before the first section. **Name things.** Every
-sentence must contain a real item and a real date, or it is not worth writing.
+Two or three sentences under the title, before the first section. Name real items and real
+dates; a sentence containing neither is not worth writing.
+
+It should give a reason to start, and that comes from stating what the week turns on and what
+finishing it produces — never from encouragement. Lead with the item that matters most, say
+what it unlocks or what it blocks, and let the stakes carry it.
 
 ```
-The RAG project is due tomorrow at 75%, and Kyara is waiting on the GTM plan today. Sunday
-takes the CV, the portfolio and the personal website at once, with the Jakarta trip
-occupying Friday to Sunday before it.
+The RAG project is at 75% and one day of technical work finishes it, which clears the rest
+of the week for the CV and portfolio due Sunday. Kyara is waiting on the GTM plan today, and
+Q4 starts in a month with nothing written down. The Jakarta trip takes Friday to Sunday.
 ```
+
+Do not encourage, congratulate or exhort. No "you've got this", no "a strong week ahead", no
+exclamation marks, and no adjectives rating the work as big, important or exciting. A week
+described accurately is motivating on its own; a week described enthusiastically is not
+believed, and after three of them the paragraph gets skipped.
 
 Do not write a sentence whose subject is the report — no "this brief covers", "here is what
 is coming up", "as of today". Do not do arithmetic on the reader's behalf: "six working
@@ -135,7 +144,7 @@ Spell out only where a digit starts a sentence.
 <Opening paragraph. Two or three sentences, each naming a real item and a real date.>
 
 ## Now
-<Only what is to be done today, or worked on continuously today. Nothing else.
+<This week. Anything due or worked on between today and Sunday, earliest date first.
 
 ### Foundation GTM Planning — today
 
@@ -145,18 +154,27 @@ Sit down with Kyara and write it down. Q4 starts in one month.
 
 At 75%. Remaining technical work, plus the UI.
 
-State what it is and when. Not how to do it.>
+### Masters Applications — Thursday 3 September
 
-## Soon
-<This week. Early next week only when it needs preparing for now. Nothing further out.
+Find the closing date. No programme or school recorded yet.
 
 ### Jakarta Trip — Friday 4 to Sunday 6 September
 
 Pack Wednesday.
 
-### Masters Applications — Thursday 3 September
+State what it is and when. Not how to do it.>
 
-Find the closing date. No programme or school recorded yet.>
+## Soon
+<The next two to three weeks. Far enough out that nothing is done about it today, close
+enough that it constrains this week.
+
+### AI Projects — 11 September
+
+Pulled forward from mid-to-late September.
+
+### September Purchases — mid-September
+
+Monitor first, then one boardgame. Which boardgame is undecided.>
 
 ## Don't forget
 <Things captured and not returned to. These are what the user would otherwise lose, which is
@@ -220,8 +238,8 @@ in `Soon`, or `Soon` is holding things that belong nowhere.
 
 ## Rules
 
-- **`Now` means today.** Not this week, not soon. If it cannot be started today, it is not
-  in `Now`.
+- **`Now` means this week.** The brief is weekly, so a section covering one day would be
+  empty most weeks and would leave the rest of the week unreported.
 - **Rank against stated goals**, then by deadline.
 - **Never invent an item to fill a section.** Omit the section.
 - **Never write a calendar entry.** Do not mention that one is missing either.
