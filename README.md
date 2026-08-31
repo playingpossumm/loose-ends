@@ -86,14 +86,11 @@ anything older than two weeks.
 
 ### Automation
 
-| Step | Automatic |
-|---|---|
-| Telegram messages into `vault/raw/inbox/` | yes, daily |
-| Browser clippings into `vault/raw/inbox/` | yes, on click |
-| Compiling captured items | **no** — you run `/ingest` |
-| Writing and emailing the brief | yes, on your schedule |
-| Retrying a failed run the next morning | yes |
-| Reminding you on the day something is due | yes, daily, silent unless something is due |
+Four things run without you. Telegram messages are drained into `vault/raw/inbox/` once a
+day, browser clippings land there the moment you click, the brief is written and emailed on
+your schedule with a retry the following morning, and a due-date check runs every morning
+and stays silent unless something is due. Compiling is the single exception, for the reason
+given above.
 
 Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you intend
 to read the brief:
@@ -111,14 +108,17 @@ A scheduled job that quietly stops running is worse than no job at all, because 
 signal that it failed is an absence you have to notice. Six behaviours stand between a
 scheduled brief and a missed one, each covering a way the one before it fails.
 
-| Behaviour | Failure it covers |
-|---|---|
-| Runs at 19:00, the evening before you read it | A morning task has to wake a sleeping laptop, which needs Windows wake timers. Windows disables those on battery. |
-| Overrides three Windows task defaults | Tasks otherwise refuse to start on battery, abort when unplugged, and skip a missed run permanently. |
-| Waits up to ten minutes for a network | Waking a machine starts the task before Wi-Fi has associated. |
-| Stops rather than half-running | Every stage needs a connection, and so does the failure email. Continuing produces only misleading errors. |
-| Retries each stage | Twice for capture and mail, once for the brief. Covers a transient refusal. |
-| Repeats the full pass the next morning | Any reason at all that the evening run did not complete. |
+- **19:00, the evening before you read it.** A morning task has to wake a sleeping laptop,
+  which needs Windows wake timers, and Windows disables those on battery.
+- **Three Windows task defaults overridden.** Tasks otherwise refuse to start on battery,
+  abort when unplugged, and skip a missed run permanently.
+- **Up to ten minutes waiting for a network.** Waking a machine starts the task before Wi-Fi
+  has associated.
+- **A stop rather than a half-run.** Every stage needs a connection and so does the failure
+  email, so continuing would produce nothing but misleading errors.
+- **A retry on each stage**, twice for capture and mail and once for the brief.
+- **The full pass again the next morning**, for any reason at all that the evening run did
+  not complete.
 
 If all six fail, the system emails you what broke, the last 25 lines of the log, the command
 to run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not
@@ -180,15 +180,13 @@ model running continuously, which is the one part of this design that would cost
 ## MCP server
 
 Without the MCP server the vault is readable only when its folder is open in Claude Code.
-Registering it once makes the vault readable from any project on the machine.
+Registering it once makes searching, reading, listing open loops and capturing available from
+any project on the machine, while the commands that write stay in the project folder:
+`/ingest`, `/brief`, `/close`, `/lint`, `/unsource` and `/bootstrap`.
 
-| Available anywhere | Only in the project folder |
-|---|---|
-| search, read, list open loops, capture | `/ingest`, `/brief`, `/close`, `/lint`, `/unsource`, `/bootstrap` |
-
-Reading is safe from any directory, so it is exposed everywhere. Compiling and deciding stay
-where the vault is visible and where a plan can be reviewed before it is applied. Setup is a
-single command, documented in
+The division follows from risk rather than convenience. Reading is safe from any directory,
+so it is exposed everywhere; compiling and deciding stay where the vault is visible and where
+a plan can be reviewed before it is applied. Setup is a single command, documented in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
 ## Escalation
@@ -199,12 +197,13 @@ been ignored three times is unlikely to succeed on the fourth attempt in the sam
 the fourth appearance the loop is promoted to the head of the brief and its closing artifact
 is generated alongside it.
 
-| Loop | What arrives with it |
-|---|---|
-| You owe someone a message | the message, written from facts the vault already holds |
-| A deadline or a birthday | the calendar entry, ready to paste |
-| An unread document | a summary close enough to judge it without opening the file |
-| An undecided question | the options, and what your notes record about each |
+- If you owe someone a message, it arrives written, drawing on facts the vault already holds
+  about them and about what you promised.
+- If you recorded a deadline or a birthday, it arrives as a calendar entry, ready to paste.
+- If you saved a document and never opened it, it arrives summarised closely enough to judge
+  without opening the file.
+- If you left a question undecided, it arrives with the options, and with what your notes
+  record about each of them.
 
 The premise throughout is that what prevents a loop from closing is rarely forgetting, and
 usually the cost of starting.
@@ -216,15 +215,11 @@ reaches a third party.
 
 ## Cost
 
-| Component | Why it is free |
-|---|---|
-| Compiling and answering | Runs on an existing Claude Code subscription |
-| Storage | Markdown files on disk |
-| Search | An index file and `grep` |
-| Phone capture | Telegram's bot API |
-| The brief | Sent through your own email account |
-| Access from other projects | A local MCP server, started when needed |
-| Reading the vault | Obsidian, which is free and optional |
+Nothing in the system carries a recurring charge. Compiling and answering run on a Claude
+Code subscription you already hold. Storage is markdown files on disk and search is an index
+file and `grep`, so neither is a service. Phone capture uses Telegram's bot API, the brief
+goes out through your own email account, the MCP server is local and starts only when
+something asks for it, and Obsidian, which is optional, is free.
 
 Comparable systems assume a server at $7 to $24 a month, an API budget of roughly $15 to $40
 a month at moderate volume, or a hosted vector database.
@@ -318,14 +313,13 @@ that has to move.
 
 Several things are absent deliberately:
 
-| Absent | Reason |
-|---|---|
-| Task entry | You never type a task. Loops come from material captured for other reasons. A system that requires task entry is a task manager. |
-| Vector store or graph database | Justified above 100,000 pages, not hundreds. |
-| A web interface | Claude Code operates it. Obsidian reads it. |
-| A continuously running process | A weekly schedule does not need one. |
-| Sending messages | The system drafts. You send. |
-| Writing to a calendar | The brief produces the entry. You create it. |
+- **Task entry.** You never type a task. Loops come from material captured for other reasons,
+  and a system that requires task entry is a task manager.
+- **A vector store or graph database.** Justified above 100,000 pages, not hundreds.
+- **A web interface.** Claude Code operates it and Obsidian reads it.
+- **A continuously running process.** A weekly schedule does not need one.
+- **Sending messages, and writing to a calendar.** The system drafts and produces the entry.
+  You send it and you create it.
 
 ## Status
 
