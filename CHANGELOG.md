@@ -5,6 +5,33 @@ and in [`docs/decisions.md`](docs/decisions.md).
 
 ## 2026-08-31
 
+### Changed — brief rewritten after first real use
+
+Read against actual output, three faults were clear.
+
+**Sentences broke mid-clause.** The markdown converter had `nl2br` enabled, which turns every
+newline in the source into a line break. The source is hard-wrapped at 90 characters, so
+every wrap became a visible break in the email. Removed.
+
+**The title was a filename.** It is now `Morning Brief — Monday, 31 August 2026`, or
+`Weekend Brief` at the weekend, and the email subject is taken from that heading rather than
+the file stem.
+
+**Two sections carried no information.** `Still open` and `Worth knowing` are gone, along
+with every line of the form "the vault has no record", "no calendar event exists", "nothing
+added since". Absence is not an action.
+
+`Now` now means **today**: what is to be done today, or worked on continuously today.
+Nothing further out. `Soon` covers this week, and early next week only when it needs
+preparing for now.
+
+**Don't forget** replaces the two that were cut. It resurfaces things captured and not
+returned to — an article dumped and unread, a note about something to look into. Those are
+the items that would otherwise be lost, which is what the system is for.
+
+The brief also no longer explains the user's own work back to them. It states what and when,
+not how.
+
 ### Added — capture refuses credentials
 
 A bank password was sent to the vault and written to disk. The compiler refused to compile
