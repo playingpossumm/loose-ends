@@ -93,9 +93,28 @@ confidence: fact | assumption
 
 ```yaml
 status: open | done | killed | someday
+summary: <one sentence, addressed to the user, that stands alone in an email>
 surfaced: <count of times it has appeared in a brief unacknowledged>
 due: YYYY-MM-DD                # optional
+nudge: morning | evening       # optional; overrides the default split
 ```
+
+**`summary:` is required on every loop.** The nudge email prints it verbatim and prints
+nothing when it is absent. It cannot be assembled from the page body: that body cites its
+sources by path, argues its own ranking, and refers to the user in the third person, all of
+which is correct in the vault and wrong in an email. Write one sentence, in the second
+person, that means something to someone who has not opened the vault.
+
+| Wrong | Right |
+|---|---|
+| His own date, stated 2026-08-31 | At 75%. Remaining technical work, plus the UI. |
+| See `wiki/sources/2026-08-30-masters.md` | Find the closing date, and which documents an application needs. |
+| The user wants to read this | Richard Cook, 18 principles, about 20 minutes. Unread. |
+
+**`nudge:` is optional.** Without it, an item due tomorrow is nudged at 19:30 and everything
+else at 07:00. Set it when the nature of the item disagrees with its date: reading is an
+evening act whatever the deadline, and anything needing an office to be open is a morning
+one.
 
 ## Non-negotiable rules
 

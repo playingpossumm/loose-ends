@@ -65,6 +65,15 @@ section, and log it. Resolution belongs to the human.
 Write each to `loops/open/<id>.md` with `status: open`, `surfaced: 0`, a citation back to
 where it came from, and `due:` if one is implied. Dated facts go to `loops/dates/`.
 
+Every loop also needs `summary:`, a single sentence addressed to the user that stands alone
+in an email. The nudge prints it verbatim and prints nothing without it. Do not describe the
+loop ("the user wants to read this"); say the thing itself ("Richard Cook, 18 principles,
+about 20 minutes. Unread."). The frontmatter contract in `CLAUDE.md` has the full rule.
+
+Add `nudge: morning` or `nudge: evening` only when the nature of the item disagrees with its
+date. Reading is an evening act whatever the deadline; anything needing an office to be open
+is a morning one.
+
 Be conservative. A false loop costs the user trust in the brief, and brief precision
 is the metric this project lives or dies by. When unsure, list it for the user rather than
 filing it.
