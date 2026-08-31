@@ -150,6 +150,33 @@ Tasks run on battery, survive being unplugged, and can wake a sleeping machine. 
 that is fully off runs the task at next startup, so the brief arrives late rather than not
 at all.
 
+### How delivery is ensured
+
+A scheduled job that quietly does not run is worse than no job, because you stop checking.
+Six layers stand between a scheduled brief and a missed one, each covering a way the
+previous one fails.
+
+| | Failure it covers |
+|---|---|
+| **1. Run in the evening** | A morning task on a sleeping laptop needs Windows wake timers, and Windows disables those on battery. In the evening the machine is already awake. |
+| **2. Wait for the network** | A task that wakes the machine starts before Wi-Fi associates. The run waits up to ten minutes rather than failing on a cold start. |
+| **3. Stop rather than half-run** | If the network never arrives it exits without attempting. Every stage needs one, and so does the failure email, so continuing only produces misleading errors. |
+| **4. Retry each stage** | Capture and mail retry twice, the brief once, thirty seconds apart. Covers a transient refusal. |
+| **5. Second attempt next morning** | If the evening failed for any reason, the morning run does the full pass and sends. |
+| **6. Report the failure** | If it still fails, you get an email: what broke, the last 25 log lines, the command to retry, and what to check. |
+
+Windows' own defaults work against all of this, so the installer overrides three of them:
+tasks may start on battery, survive being unplugged mid-run, and a missed occurrence runs at
+the next opportunity instead of being skipped permanently.
+
+The morning run is also how the evening schedule keeps its cost down. A brief written at
+19:00 cannot include anything captured overnight, so the morning pass drains Telegram and
+resends **only if** what arrived changes what you would do. Otherwise it sends nothing, and
+a normal week produces one email.
+
+Every attempt appends to `autopilot.log`, so a failure leaves a record whether or not the
+email got out.
+
 ### Due dates
 
 The brief reports what is coming, but a deadline needs saying on the day. A daily check

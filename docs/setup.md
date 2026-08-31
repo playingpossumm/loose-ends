@@ -164,6 +164,25 @@ That registers four Windows tasks:
 | `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
 | `SecondBrain-DueCheck` | emails when something is overdue, due today or due tomorrow; silent otherwise | daily, 19:30 |
 
+### Why a scheduled brief still arrives
+
+Six layers, each covering a way the previous one fails:
+
+| | Covers |
+|---|---|
+| runs in the evening | a sleeping laptop, where Windows disables wake timers on battery |
+| waits up to 10 min for the network | a task that wakes the machine before Wi-Fi associates |
+| stops rather than half-running | no network means no work and no way to report it |
+| retries each stage | a transient refusal |
+| second attempt next morning | the evening having failed for any reason |
+| emails the failure | everything else, with the log tail and what to check |
+
+The installer also overrides three Windows defaults that work against this: tasks may start
+on battery, survive being unplugged, and run a missed occurrence at the next opportunity
+rather than skipping it permanently.
+
+Every attempt appends to `autopilot.log`.
+
 ### The morning run
 
 It does one of three things:

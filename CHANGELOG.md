@@ -23,6 +23,31 @@ messages, including the one that got through and the near misses that must not t
 The vault records that a refusal happened without recording what was refused. That audit
 trail is kept on purpose.
 
+### Changed — delivery is now guaranteed in layers
+
+The 31 August brief was lost and nothing said so. The absence was the only signal, which is
+the same weakness as a brief you have to remember to run.
+
+Six layers now stand between a scheduled brief and a missed one, each covering a way the
+previous one fails:
+
+1. **Run in the evening**, while the machine is awake, rather than in the morning when it
+   may be asleep and Windows has disabled wake timers on battery.
+2. **Wait up to ten minutes for the network**, because a task that wakes the machine starts
+   before Wi-Fi associates.
+3. **Stop rather than half-run** if the network never arrives. Every stage needs one, and so
+   does the failure email.
+4. **Retry each stage** — twice for capture and mail, once for the brief.
+5. **A second attempt the next morning** if the evening failed for any reason.
+6. **Report the failure by email** if it still fails, with the log tail and what to check.
+
+Windows' defaults work against all of it, so the installer now overrides three: tasks may
+start on battery, survive being unplugged, and run a missed occurrence at the next
+opportunity rather than skipping it permanently. The task time limit went from one hour to
+two to accommodate the network wait.
+
+The same applies to the due-date reminder, which runs daily on the same schedule.
+
 ### Added — a second run the next morning
 
 Running the system costs nothing, so the brief is attempted twice: 19:00 the evening before,
