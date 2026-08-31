@@ -255,7 +255,33 @@ Each is independent. Instructions in [`setup.md`](setup.md).
 | **MCP server** | The vault becomes readable from every project, not only this folder. |
 | **Email delivery** | The brief is sent rather than left in a file. |
 | **Telegram capture** | Send from a phone. Nothing runs while you send. |
-| **Scheduling** | The brief writes and sends itself. |
+| **Scheduling** | The brief writes and sends itself; deadlines get a reminder on the day. |
+
+### What the schedule does
+
+```
+python scripts/install_schedule.py --day FRI,SUN --time 19:00
+```
+
+Give it the evening **before** the morning you read the brief. A morning task on a sleeping
+laptop depends on Windows wake timers, which Windows disables on battery; the run then waits
+until you next open the machine. In the evening it is already awake.
+
+Four tasks:
+
+| When | What |
+|---|---|
+| 18:00 daily | drain Telegram into the inbox |
+| 19:00, your days | write the brief and email it |
+| 08:00, the next morning | recover a failed run, or fold in overnight material that changes something |
+| 19:30 daily | email if something is overdue, due today, or due tomorrow — silent otherwise |
+
+The morning run sends nothing on a normal week. It exists for the evening having failed, and
+for material arriving overnight that changes what you would do.
+
+The due check is separate from the brief because a deadline needs saying on the day. It goes
+quiet once an item is more than 14 days overdue, and the brief takes over then with a forced
+decision: drop it, set a new date, or do it now.
 
 ### How Telegram capture works
 

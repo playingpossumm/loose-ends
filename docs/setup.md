@@ -147,16 +147,38 @@ Everything above still requires you to *remember*, which is the exact habit the 
 to replace. This is what closes that gap:
 
 ```
-python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00
+python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That registers three Windows tasks:
+**Give it the evening before the morning you read the brief.** A morning task on a sleeping
+laptop depends on Windows wake timers, which Windows disables on battery — the run then
+waits until you next open the machine, possibly hours after it was useful. In the evening the
+machine is already awake and online.
+
+That registers four Windows tasks:
 
 | Task | Does | Default |
 |---|---|---|
-| `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen day and time |
+| `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen days, 19:00 |
+| `SecondBrain-BriefCatchup` | the next morning: recovers a failed run, or folds in overnight material that changes something | the following mornings, 08:00 |
 | `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
-| `SecondBrain-DueCheck` | emails when something is overdue, due today or due tomorrow; silent otherwise | daily, 07:30 |
+| `SecondBrain-DueCheck` | emails when something is overdue, due today or due tomorrow; silent otherwise | daily, 19:30 |
+
+### The morning run
+
+It does one of three things:
+
+| Last night | Behaviour |
+|---|---|
+| failed | full pass, sends. The safety net. |
+| succeeded, nothing arrived overnight | drains Telegram, sends nothing |
+| succeeded, something arrived | asks whether it changes what you would do, and revises and resends only if it does |
+
+A fixed "resend if anything is new" rule would mean a second email most mornings, since
+material arrives most evenings. Items sitting uncompiled are explicitly not a reason to
+resend — the existing brief already counts them.
+
+`--catchup-time` moves it; `--no-catchup` skips it.
 
 `--due-time` moves the due check; `--no-due-check` skips it. It reads the vault directly and
 does not call a model, so it is fast and cannot fail on a network problem.

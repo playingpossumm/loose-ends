@@ -3,16 +3,28 @@
 Nothing pushes you until this runs. Without it you have to remember to run /brief, which is
 the exact habit the weekly brief exists to replace.
 
-    python scripts/install_schedule.py                                  # weekly, Mon 08:00
-    python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00
-    python scripts/install_schedule.py --cadence daily --time 07:30
-    python scripts/install_schedule.py --no-capture                     # brief only
+    python scripts/install_schedule.py --day FRI,SUN --time 19:00
+    python scripts/install_schedule.py --cadence daily --time 19:00
+    python scripts/install_schedule.py --no-capture --no-due-check   # brief only
     python scripts/install_schedule.py --remove
 
+Four tasks are registered:
+
+  <name>-WeeklyBrief    writes and emails the brief, on the days and time you give
+  <name>-BriefCatchup   the next morning: recovers a failed run, or folds in anything
+                        that arrived overnight and changes what you would do
+  <name>-Capture        drains Telegram into the inbox, daily
+  <name>-DueCheck       emails when something is overdue, due today or due tomorrow;
+                        silent otherwise, daily
+
+Schedule the brief for the EVENING BEFORE the morning you read it. A morning task on a
+sleeping laptop depends on Windows wake timers, which Windows disables on battery, so the
+run waits until the machine is next opened — possibly hours after it was useful. In the
+evening the machine is already awake.
+
 Tasks run whether or not Claude Code is open, on battery as well as mains, and the brief
-may wake a sleeping machine. What they cannot do is run on a laptop that is fully powered
-off — that occurrence is caught at next startup instead, so the brief arrives late rather
-than never.
+may wake a sleeping machine. A laptop that is fully powered off runs the task at next
+startup, so the brief arrives late rather than never.
 """
 
 from __future__ import annotations
@@ -97,7 +109,8 @@ def main() -> None:
                          "week, e.g. SAT,MON (ignored when --cadence daily). schtasks "
                          "takes a day list on one task, so this stays a single task "
                          "rather than one per day.")
-    ap.add_argument("--time", default="08:00", help="what time, HH:MM")
+    ap.add_argument("--time", default="19:00",
+                    help="what time, HH:MM. Use the evening before you read it.")
     ap.add_argument("--capture-time", default="18:00", help="daily Telegram drain, HH:MM")
     ap.add_argument("--due-time", default="07:30",
                     help="daily due-date check, HH:MM. Sends nothing unless something is "
@@ -108,7 +121,7 @@ def main() -> None:
     ap.add_argument("--no-catchup", action="store_true", help="skip the second attempt")
     ap.add_argument("--no-due-check", action="store_true", help="skip the daily due-date task")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
-    ap.add_argument("--remove", action="store_true", help="remove both tasks")
+    ap.add_argument("--remove", action="store_true", help="remove all four tasks")
     args = ap.parse_args()
 
     if args.remove:
@@ -166,9 +179,9 @@ def main() -> None:
     if ok:
         print(f"\nThe brief now writes and emails itself {when}.")
         print("\nChange your mind — just re-run with different flags:")
-        print("  python scripts/install_schedule.py --cadence daily --time 07:30")
-        print("  python scripts/install_schedule.py --cadence weekly --day SAT --time 09:00")
-        print("  python scripts/install_schedule.py --day SAT,MON --time 07:00")
+        print("  python scripts/install_schedule.py --day FRI,SUN --time 19:00")
+        print("  python scripts/install_schedule.py --cadence daily --time 19:00")
+        print("  python scripts/install_schedule.py --day THU --time 20:00")
         print("\nRun it now:  schtasks /run /tn SecondBrain-WeeklyBrief")
         print("Stop it:     python scripts/install_schedule.py --remove")
     else:

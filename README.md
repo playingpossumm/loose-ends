@@ -122,15 +122,17 @@ the MCP server is registered.
 | Browser clippings into `vault/raw/inbox/` | yes, when you click |
 | Compiling captured items | **no** — you run `/ingest` |
 | Writing and emailing the brief | yes, on your schedule |
+| Retrying if that fails, the next morning | yes |
 | Reminding you on the day something is due | yes, daily — silent unless something is due |
 
 Compilation stays manual because it writes to ten or fifteen pages at once. It shows a plan
 and waits. The brief counts anything left uncompiled and reports it, so nothing sits unseen.
 
-Scheduling uses Windows Task Scheduler:
+Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you
+read the brief:
 
 ```
-python scripts/install_schedule.py --cadence weekly --day SAT --time 08:00
+python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
 That registers four tasks: the brief the evening before each day you read it, a second

@@ -3,11 +3,22 @@
 Without this, nothing pushes you — you have to remember to run /brief, which is exactly
 the problem the weekly brief exists to solve. This is what makes the system act on its own.
 
-    python scripts/autopilot.py --capture   # drain Telegram into the inbox
-    python scripts/autopilot.py --weekly    # drain, write the brief, email it
+    python scripts/autopilot.py --capture          # drain Telegram into the inbox
+    python scripts/autopilot.py --weekly           # drain, write the brief, email it
+    python scripts/autopilot.py --weekly-catchup   # second attempt the next morning
 
---weekly drives Claude Code headlessly to run the /brief skill, then sends the result.
-Permission mode is acceptEdits: it may write to the vault, nothing more.
+--weekly and --weekly-catchup drive Claude Code headlessly to run the /brief skill and then
+send the result. Permission mode is acceptEdits: they may write to the vault, nothing more.
+
+--weekly-catchup does one of three things, depending on what happened the night before:
+
+  last night failed        run the full pass and send. The safety net.
+  succeeded, nothing new   drain Telegram, send nothing.
+  succeeded, new material  ask whether it changes what the reader would do, and revise
+                           and resend only if it does.
+
+Every mode waits for the network first. If a run fails for any other reason it emails a
+report, because a job you only notice by its absence is not automation.
 
 Install as scheduled tasks with scripts/install_schedule.py.
 """
