@@ -3,6 +3,26 @@
 Notable changes, newest first. Started 30 August 2026; earlier work is in the git history
 and in [`docs/decisions.md`](docs/decisions.md).
 
+## 2026-08-31
+
+### Fixed — the brief was lost to a cold network
+
+The 07:00 run woke the machine and started before Wi-Fi associated. Telegram failed on a
+connection error and Claude Code could not refresh its OAuth token. Both looked like faults
+in the log; neither was. No brief was written and nothing said so — the absence was the only
+signal.
+
+`autopilot.py` now **waits for the network before doing anything**, polling for up to 45
+minutes. If it never arrives the run stops without attempting: every stage needs a network,
+and so does the failure email, so continuing only produces a cascade of misleading errors.
+The scheduled task's time limit went from one hour to two to accommodate the wait.
+
+Each stage now retries — twice for capture and mail, once for the brief.
+
+If a run still fails, it **emails you**: what failed, the last 25 log lines, the command to
+retry by hand, and a note to re-authenticate if the log mentions OAuth. Finding out by
+noticing an absent email has the same weakness as a brief you have to remember to run.
+
 ## 2026-08-30
 
 ### Added — due-date reminders

@@ -62,7 +62,7 @@ def harden(name: str, wake: bool = False) -> None:
         f"$s = New-ScheduledTaskSettingsSet "
         f"-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable "
         f"{'-WakeToRun ' if wake else ''}"
-        f"-MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 1); "
+        f"-MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 2); "
         f"Set-ScheduledTask -TaskName '{name}' -Settings $s | Out-Null"
     )
     r = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
