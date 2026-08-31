@@ -88,9 +88,9 @@ anything older than two weeks.
 
 Four things run without you. Telegram messages are drained into `vault/raw/inbox/` once a
 day, browser clippings land there the moment you click, the brief is written and emailed on
-your schedule with a retry the following morning, and a due-date check runs every morning
-and stays silent unless something is due. Compiling is the single exception, for the reason
-given above.
+your schedule with a retry the following morning, and nudges go out at 07:00 and 19:30,
+silent unless something is due. Compiling is the single exception, for the reason given
+above.
 
 Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you intend
 to read the brief:
@@ -99,14 +99,16 @@ to read the brief:
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That registers four tasks: the brief on the evening before each day you read it, a second
-attempt the following morning, a daily capture from Telegram, and a daily due-date check.
+That registers five tasks: the brief on the evening before each day you read it, a second
+attempt the following morning, a daily capture from Telegram, and the two daily nudges. Use
+`--nudge-morning` and `--nudge-evening` to move the last two.
 
 ### Reliability
 
-A scheduled job that quietly stops running is worse than no job at all, because the only
-signal that it failed is an absence you have to notice. Six behaviours stand between a
-scheduled brief and a missed one, each covering a way the one before it fails.
+The system is free because it runs on your own laptop, which means it only runs when your
+laptop is on. That is the trade: no server, and therefore no guarantee that the machine is
+awake at the hour a brief or a nudge is due. Six behaviours cover it, each addressing a way
+the one before it fails.
 
 - **19:00, the evening before you read it.** A morning task has to wake a sleeping laptop,
   which needs Windows wake timers, and Windows disables those on battery.
@@ -120,27 +122,42 @@ scheduled brief and a missed one, each covering a way the one before it fails.
 - **The full pass again the next morning**, for any reason at all that the evening run did
   not complete.
 
-If all six fail, the system emails you what broke, the last 25 lines of the log, the command
-to run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not
-the mail got out, and a machine that was fully off runs the task at next startup, so the
-brief arrives late rather than not at all.
+The middle four apply to the nudges as well, since both run through the same script. The
+first and last are specific to the brief, which is weekly and can therefore afford a second
+attempt; a nudge that fails outright is instead picked up by the next morning's run, where
+the item now counts as overdue.
+
+If they all fail, the system emails you what broke, the last 25 lines of the log, the
+command to run by hand, and what to check, and every attempt appends to `autopilot.log`
+whether or not that mail got out.
+
+If the machine was simply off, nothing is lost and nothing is retried. Windows runs the
+missed task the next time you start the laptop, so the brief arrives late rather than never.
 
 The morning task has a second job, which is to recover the one thing an evening brief gives
 up. It drains Telegram and resends only when something captured overnight changes what you
 would actually do, such as a new deadline or a loop now resolved, and otherwise sends
 nothing. A normal week therefore produces one email.
 
-### Due dates
+### Nudges
 
-The brief reports what is coming, but a deadline also needs saying on the day itself. A daily
-check emails you when something is overdue, due today, or due tomorrow, and sends nothing on
-any other day.
+The brief reports what is coming, but a deadline also needs saying on the day itself. Nudges
+go out twice a day and send nothing at all unless something is due, because a reminder is
+only useful at the hour you can act on it.
 
-The silence is the point. A daily message that usually says "nothing due" trains you to
-ignore the channel, and the one that matters is then ignored with the rest. An overdue item
-stops sending daily reminders after 14 days and appears only in the brief, where it is
-presented as a decision rather than a reminder: drop it, set a new date, or do it now.
-Reminding indefinitely is the same failure by a slower route.
+- **07:00** carries what is due today and what is overdue, so the working day is still in
+  front of it.
+- **19:30** carries what is due tomorrow, while there is still an evening to prepare in.
+
+The split follows the due date by default, and a loop overrides it with `nudge: morning` or
+`nudge: evening` when its nature disagrees. An article to read is an evening item whatever
+its date; a booking that needs an office to be open is a morning one.
+
+The silence between them is the point. A daily message that usually says "nothing due"
+trains you to ignore the channel, and the one that matters is then ignored with the rest. An
+overdue item stops nudging after 14 days and appears only in the brief, where it is put as a
+decision rather than a reminder: drop it, set a new date, or do it now. Reminding
+indefinitely is the same failure by a slower route.
 
 ## Capture
 

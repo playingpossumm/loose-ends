@@ -59,7 +59,7 @@ what it unlocks or what it blocks, and let the stakes carry it.
 
 ```
 The RAG project is at 75% and one day of technical work finishes it, which clears the rest
-of the week for the CV and portfolio due Sunday. Kyara is waiting on the GTM plan today, and
+of the week for the CV and portfolio due Sunday 6 September. Kyara is waiting on the GTM plan today, and
 Q4 starts in a month with nothing written down. The Jakarta trip takes Friday to Sunday.
 ```
 
@@ -121,11 +121,19 @@ looking for it.
 
 A date, a deadline, or how long the thing takes. Nothing else.
 
+**Always an absolute date.** The brief covers a week and is read across that week, so a
+relative word means something different on Thursday from what it meant on Monday and forces
+the reader to work out which. Name the day.
+
 | Wrong | Right |
 |---|---|
+| today | Monday 31 August |
+| due tomorrow | due Tuesday 1 September |
+| this weekend | Saturday 5 September |
 | saved 30 August | due 30 November |
 | captured 29 August | 20 minutes |
-| added last week | Thursday 3 September |
+
+Day name and date together. The year only when the item falls in a different one.
 
 When the item has no date and no useful duration, drop the dash and the timing and give the
 title alone. When something arrived is not a deadline, and the user already knows he saved
@@ -146,11 +154,11 @@ Spell out only where a digit starts a sentence.
 ## Now
 <This week. Anything due or worked on between today and Sunday, earliest date first.
 
-### Foundation GTM Planning — today
+### Foundation GTM Planning — Monday 31 August
 
 Sit down with Kyara and write it down. Q4 starts in one month.
 
-### RAG Project — due tomorrow
+### RAG Project — due Tuesday 1 September
 
 At 75%. Remaining technical work, plus the UI.
 
@@ -215,7 +223,7 @@ An item more than 14 days past its date goes at the top of `Now` with three opti
 nothing else:
 
 ```
-### Foundation GTM Planning — due 31 August, 23 days ago
+### Foundation GTM Planning — due Monday 31 August, 23 days ago
 
 Drop it, set a new date, or do it now.
 ```

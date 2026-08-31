@@ -8,14 +8,19 @@ the exact habit the weekly brief exists to replace.
     python scripts/install_schedule.py --no-capture --no-due-check   # brief only
     python scripts/install_schedule.py --remove
 
-Four tasks are registered:
+Five tasks are registered:
 
   <name>-WeeklyBrief    writes and emails the brief, on the days and time you give
   <name>-BriefCatchup   the next morning: recovers a failed run, or folds in anything
                         that arrived overnight and changes what you would do
   <name>-Capture        drains Telegram into the inbox, daily
-  <name>-DueCheck       emails when something is overdue, due today or due tomorrow;
-                        silent otherwise, daily
+  <name>-NudgeMorning   07:00, daily: what is due today, and what is overdue
+  <name>-NudgeEvening   19:30, daily: what is due tomorrow
+
+Both nudges are silent unless something is due. A reminder is only useful at the hour you
+can act on it, so what is due today arrives with the working day in front of it and what is
+due tomorrow arrives with an evening left to prepare in. A loop overrides the split with
+`nudge: morning` or `nudge: evening` when its nature disagrees with its date.
 
 Schedule the brief for the EVENING BEFORE the morning you read it. A morning task on a
 sleeping laptop depends on Windows wake timers, which Windows disables on battery, so the
@@ -42,8 +47,13 @@ DUE_CHECK = ROOT / "scripts" / "due_check.py"
 
 WEEKLY = "SecondBrain-WeeklyBrief"
 CAPTURE = "SecondBrain-Capture"
-DUE = "SecondBrain-DueCheck"
+DUE_AM = "SecondBrain-NudgeMorning"
+DUE_PM = "SecondBrain-NudgeEvening"
 CATCHUP = "SecondBrain-BriefCatchup"
+
+# Task names this script registered in earlier versions. Windows keeps a task after the
+# script stops creating it, so an upgrade would leave the old one firing beside the new.
+LEGACY = ["SecondBrain-DueCheck"]
 DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 
@@ -112,16 +122,18 @@ def main() -> None:
     ap.add_argument("--time", default="19:00",
                     help="what time, HH:MM. Use the evening before you read it.")
     ap.add_argument("--capture-time", default="18:00", help="daily Telegram drain, HH:MM")
-    ap.add_argument("--due-time", default="07:30",
-                    help="daily due-date check, HH:MM. Sends nothing unless something is "
-                         "overdue, due today, or due tomorrow.")
+    ap.add_argument("--nudge-morning", default="07:00", metavar="HH:MM",
+                    help="the morning nudge: what is due today, and what is overdue.")
+    ap.add_argument("--nudge-evening", default="19:30", metavar="HH:MM",
+                    help="the evening nudge: what is due tomorrow, while there is still a "
+                         "night to prepare in.")
     ap.add_argument("--catchup-time", default="08:00",
                     help="second attempt, the morning after the main run. Does nothing if "
                          "the brief already went out. HH:MM")
     ap.add_argument("--no-catchup", action="store_true", help="skip the second attempt")
-    ap.add_argument("--no-due-check", action="store_true", help="skip the daily due-date task")
+    ap.add_argument("--no-due-check", action="store_true", help="skip both nudge tasks")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
-    ap.add_argument("--remove", action="store_true", help="remove all four tasks")
+    ap.add_argument("--remove", action="store_true", help="remove every task")
     args = ap.parse_args()
 
     if args.remove:
@@ -129,7 +141,10 @@ def main() -> None:
         remove(WEEKLY)
         remove(CATCHUP)
         remove(CAPTURE)
-        remove(DUE)
+        remove(DUE_AM)
+        remove(DUE_PM)
+        for name in LEGACY:
+            remove(name)
         return
 
     if not PY.is_file():
@@ -162,6 +177,12 @@ def main() -> None:
         "fortnightly": f"every other week on {' and '.join(days)} at {args.time}",
     }[args.cadence]
 
+    for name in LEGACY:
+        code, _ = schtasks(["/query", "/tn", name])
+        if code == 0:
+            print(f"Superseded task found:")
+            remove(name)
+
     print("Registering scheduled tasks:")
     ok = create(WEEKLY, "--weekly", sched, args.time, wake=True)
     if not args.no_catchup and args.cadence != "daily":
@@ -174,7 +195,16 @@ def main() -> None:
     if not args.no_capture:
         ok &= create(CAPTURE, "--capture", ["/sc", "DAILY"], args.capture_time)
     if not args.no_due_check:
-        ok &= create(DUE, "", ["/sc", "DAILY"], args.due_time, script=str(DUE_CHECK))
+        # Two sends, because a reminder is only useful at the hour you can act on it.
+        # Morning carries what is due today and what is overdue; evening carries what is due
+        # tomorrow, while there is still a night to prepare in. Each loop can override the
+        # split with `nudge: morning` or `nudge: evening`.
+        #
+        # Through autopilot rather than due_check.py directly, so the nudge inherits the same
+        # network wait, retries and failure email as the brief. It was scheduled directly
+        # until 31 August, which meant a cold network killed the reminder in silence.
+        ok &= create(DUE_AM, "--due-check morning", ["/sc", "DAILY"], args.nudge_morning)
+        ok &= create(DUE_PM, "--due-check evening", ["/sc", "DAILY"], args.nudge_evening)
 
     if ok:
         print(f"\nThe brief now writes and emails itself {when}.")

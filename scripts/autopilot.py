@@ -214,6 +214,14 @@ def capture() -> bool:
                "telegram capture", timeout=180, retries=2)
 
 
+def due_check(window: str) -> bool:
+    """The daily nudge. Routed through here rather than scheduled directly, so it gets the
+    same network wait, retry and failure report as the brief. A reminder that dies silently
+    on a cold network is the exact failure the brief was rebuilt to prevent."""
+    return run([str(PY), str(ROOT / "scripts" / "due_check.py"), "--window", window],
+               f"due check ({window})", timeout=180, retries=2)
+
+
 def inbox_count() -> int:
     return len(list((VAULT / "raw" / "inbox").glob("*.md")))
 
@@ -294,6 +302,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--capture", action="store_true", help="drain Telegram into the inbox")
+    g.add_argument("--due-check", choices=("morning", "evening"), metavar="WINDOW",
+                   help="email the nudges belonging to this window: morning or evening")
     g.add_argument("--weekly", action="store_true", help="drain, write the brief, email it")
     g.add_argument("--weekly-catchup", action="store_true",
                    help="same as --weekly, but do nothing if a brief was already sent in "
@@ -318,8 +328,12 @@ def main() -> None:
             sys.exit(0 if ok else 1)
         log("catch-up: no brief went out last night, running the full pass")
 
-    stage = "capture" if args.capture else "brief"
-    ok = capture() if args.capture else weekly()
+    if args.capture:
+        stage, ok = "capture", capture()
+    elif args.due_check:
+        stage, ok = f"due check ({args.due_check})", due_check(args.due_check)
+    else:
+        stage, ok = "brief", weekly()
     log(f"done: {'ok' if ok else 'FAILED'}")
     if not ok:
         report_failure(stage)

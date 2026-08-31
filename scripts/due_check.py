@@ -21,7 +21,7 @@ import argparse
 import re
 import smtplib
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -42,25 +42,95 @@ def read_dated() -> list[dict]:
             status = re.search(r"^status:\s*(\w+)", text, re.M)
             if not due or (status and status.group(1) != "open"):
                 continue
-            title = next(
+            title = clean_title(next(
                 (l.lstrip("# ").strip() for l in text.splitlines() if l.startswith("# ")),
                 p.stem,
-            )
+            ))
             out.append({
                 "path": p.relative_to(VAULT).as_posix(),
                 "title": title,
                 "due": date.fromisoformat(due.group(1)),
                 "body": body_of(text),
+                "link": link_of(text),
+                "window": window_of(text, date.fromisoformat(due.group(1)), date.today()),
             })
     return out
 
 
+SUMMARY = re.compile(r"^summary:\s*(.+)$", re.M)
+NUDGE = re.compile(r"^nudge:\s*(morning|evening)\s*$", re.M | re.I)
+LINK = re.compile(r"<(https?://[^>]+)>|\[[^\]]*\]\((https?://[^)]+)\)|(?<![(<])(https?://\S+)")
+
+
 def body_of(text: str) -> str:
-    """The page's own text, minus frontmatter and heading — context for the reminder."""
-    parts = text.split("---", 2)
-    rest = parts[2] if len(parts) > 2 else text
-    lines = [l for l in rest.splitlines() if l.strip() and not l.startswith("# ")]
-    return "\n".join(lines[:6]).strip()
+    """The loop's own one-line summary, or nothing.
+
+    Earlier versions took the first few lines of the page instead. That page is written for
+    the vault: it cites its sources by path, argues its own ranking, and narrates the user
+    in the third person, so a reminder built from it read "His own date, stated 2026-08-31".
+    No amount of stripping fixes the pronouns, so the compiler now writes a `summary:` line
+    addressed to the reader, and this returns that or says nothing at all.
+    """
+    m = SUMMARY.search(text)
+    return m.group(1).strip() if m else ""
+
+
+def link_of(text: str) -> str:
+    """The first URL on the page, so a reminder to read something includes the thing."""
+    m = LINK.search(text)
+    return next((g for g in m.groups() if g), "") if m else ""
+
+
+def window_of(text: str, due: date, today: date) -> str:
+    """Which of the two daily sends this item belongs in: morning or evening.
+
+    A reminder is only useful at the hour you can act on it. Something due today needs the
+    working day in front of it, so it goes at 07:00. Something due tomorrow needs an evening
+    of preparation, so it goes at 19:30 while there is still a night to use. Overdue items
+    go in the morning, where the day is longest.
+
+    The compiler overrides this per loop with `nudge: morning` or `nudge: evening` when the
+    nature of the item disagrees with the date — an article to read is an evening item on
+    any date, and a booking that needs an office to be open is a morning one.
+    """
+    m = NUDGE.search(text)
+    if m:
+        return m.group(1).lower()
+    return "evening" if due == today + timedelta(days=1) else "morning"
+
+
+# Words that carry no meaning once the due date is printed beside the title. Compared as
+# whole tokens rather than by regex: a pattern needing word boundaries does not survive
+# being written through a shell heredoc, and this file is read far more often than it runs.
+DATEWORDS = frozenset("""
+monday tuesday wednesday thursday friday saturday sunday
+january february march april may june july august september october november december
+jan feb mar apr jun jul aug sep sept oct nov dec
+to and of by on due from before after early mid late end start next this week
+""".split())
+
+
+def is_date_clause(text: str) -> bool:
+    """True when every word in the clause belongs to a date expression."""
+    words = [w.strip(".,()").lower() for w in text.split() if w.strip(".,()")]
+    return bool(words) and all(
+        w in DATEWORDS or w.rstrip("stndrh").isdigit() for w in words)
+
+
+def clean_title(raw: str) -> str:
+    """Loop headings are descriptions, not titles. Trim them to something a subject line can
+    carry: no trailing parenthetical, and no trailing clause that only repeats the due date,
+    which the reminder already prints beside the title.
+
+    The clause survives whenever it carries meaning, as in "for GMAP SEA", and whenever
+    dropping it would leave a single generic word, since "Trip" names nothing.
+    """
+    title = re.sub(r"\s*\([^)]*\)\s*$", "", raw).strip()
+    head, sep, tail = title.rpartition(chr(8212))
+    head = head.strip()
+    if sep and len(head.split()) >= 2 and is_date_clause(tail):
+        return head
+    return title
 
 
 # How long an overdue item keeps sending daily reminders. After this it appears in the brief
@@ -69,8 +139,12 @@ def body_of(text: str) -> str:
 OVERDUE_NAG_DAYS = 14
 
 
-def buckets(items: list[dict], today: date) -> dict[str, list[dict]]:
-    """Overdue, today, tomorrow. Nothing further out — the brief covers that."""
+def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]]:
+    """Overdue, today, tomorrow, restricted to one of the two daily sends.
+
+    Nothing further out: the brief covers that.
+    """
+    items = [i for i in items if i["window"] == window]
     overdue = [
         i for i in items
         if i["due"] < today and (today - i["due"]).days <= OVERDUE_NAG_DAYS
@@ -99,12 +173,18 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
         for i in items:
             when = i["due"].isoformat()
             overdue_by = (today - i["due"]).days
-            stamp = f"{when} ({overdue_by} day{'s' if overdue_by != 1 else ''} ago)" \
-                if overdue_by > 0 else when
-            text += [f"  {i['title']} — {stamp}", f"    {i['body'][:200]}", ""]
+            stamp = (f"{when} ({overdue_by} day{'s' if overdue_by != 1 else ''} ago)"
+                     if overdue_by > 0 else when)
+            text += [f"  {i['title']} {chr(8212)} {stamp}"]
+            if i["body"]:
+                text.append(f"    {i['body']}")
+            if i["link"]:
+                text.append(f"    {i['link']}")
+            text.append("")
+            head = (f"<a href='{i['link']}'>{i['title']}</a>" if i["link"] else i["title"])
             html.append(
-                f"<p><strong>{i['title']}</strong><br>"
-                f"<span class='when'>{stamp}</span><br>{i['body'][:300]}</p>"
+                f"<h3>{head}</h3><p><span class='when'>{stamp}</span>"
+                + (f"<br>{i['body']}" if i["body"] else "") + "</p>"
             )
         text.append("")
 
@@ -124,13 +204,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="print instead of sending")
+    ap.add_argument("--window", choices=("morning", "evening"), default=None,
+                    help="which daily send this is. Defaults to whichever is nearer now.")
     args = ap.parse_args()
 
     today = date.today()
-    groups = buckets(read_dated(), today)
+    window = args.window or ("morning" if datetime.now().hour < 13 else "evening")
+    groups = buckets(read_dated(), today, window)
 
     if not any(groups.values()):
-        print(f"{today}: nothing overdue, due today, or due tomorrow. No email sent.")
+        print(f"{today} {window}: nothing to send.")
         return
 
     env = load_env()
