@@ -18,40 +18,12 @@ during compilation, from material you captured for some other reason. After a lo
 appeared four times without an answer it moves to the top of the brief with the work already
 drafted, so what arrives is the message itself rather than a reminder to write it.
 
-**What you need:** Claude Code, and a machine you use most days. Nothing else — no API keys,
+**Requirements:** Claude Code, and a machine you use most days. Nothing else — no API keys,
 no database, no server, no vector store, and no monthly cost.
 
 ---
 
-## Terms
-
-| Term | Meaning |
-|---|---|
-| **vault** | The folder holding your content: `vault/`. A separate private git repository. |
-| **capture** | Recording something without interpreting it. Fast, and it never fails. |
-| **compile** | Reading a captured item and writing pages and loops from it. This is where the work happens, and it is the only step that cannot be undone with one keystroke. |
-| **source** | One captured item, and the page written from it. |
-| **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
-| **surfaced** | A count on each loop of how many times it has appeared in a brief without an answer. At four it moves to the top. |
-| **brief** | The periodic report. What is due, what needs deciding, and the drafted work to finish it. |
-| **close** | Producing the artifact that finishes a loop, then marking it done, dropped, or deferred. |
-| **unsource** | Removing a source and reversing every change it caused across every page. |
-
-### The four folders
-
-| | Holds | Written by |
-|---|---|---|
-| `vault/raw/` | what you captured, unchanged | capture |
-| `vault/wiki/` | compiled pages: sources, entities, concepts | the compiler |
-| `vault/loops/` | open, closed, and dated items | the compiler |
-| `vault/mem/` | your profile, goals, projects, people, rules | you |
-
-`raw/` is never edited. `wiki/` can be rebuilt from `raw/` at any time. `mem/` cannot be
-rebuilt, so the compiler proposes changes to it and never writes them.
-
----
-
-## Install
+## Installation
 
 ```bash
 git clone https://github.com/playingpossumm/loose-ends.git
@@ -61,7 +33,8 @@ python -m venv .venv
 python scripts/init_vault.py
 ```
 
-Make the vault a separate private repository, so your content has history and a backup:
+The vault should be its own private repository, so that your content has a history and a
+backup independent of the system that reads it:
 
 ```bash
 cd vault && git init && git add -A && git commit -m "empty vault"
@@ -69,13 +42,13 @@ gh repo create my-vault --private --source=. --push
 cd ..
 ```
 
-Open Claude Code in the project root. The commands exist only there — not in `vault/`, and
-not in your home directory. Type a forward slash to confirm they loaded.
+Open Claude Code in the project root. The commands exist only there, not in `vault/` and not
+in your home directory; type a forward slash to confirm they loaded.
 
-Then run `/bootstrap`. It asks one question at a time about your work, goals, current
-projects, the people involved, and the rules it must follow, and writes the answers to
-`mem/`. It takes about twenty minutes and can be stopped and resumed. Output is generic
-until it runs.
+Then run `/bootstrap`. It asks one question at a time about your work, your goals, the
+projects you have running, the people involved in them, and the rules the system must
+follow, and it writes the answers into `mem/`. It takes about twenty minutes, and it can be
+stopped and resumed. Until it has run, everything the system produces is generic.
 
 ## Commands
 
@@ -91,91 +64,92 @@ until it runs.
 | `/bootstrap` | The interview that fills `mem/`. |
 | `/unsource` | Remove a source and reverse every change it caused. |
 
-## Using it
+## Operation
 
 ```
 capture something  →  /ingest  →  /ask, or wait for the brief  →  /close
 ```
 
-**Capture whenever.** Move a file into `vault/raw/inbox/`, run `/capture`, click the browser
-extension, or message the Telegram bot. All four write to the same folder.
+Capture is deliberately separated from compilation, because the two have opposite
+requirements. Capture must be fast enough that you do it without thinking, and it must never
+fail, so it records material without interpreting it — move a file into `vault/raw/inbox/`,
+run `/capture`, click the browser extension, or message the Telegram bot, and all four write
+to the same folder. Compilation is where the reading happens, and a single source can touch
+ten or fifteen pages at once, so it shows you its plan and waits for approval. `/ingest`
+handles one source; `/ingest-all` handles the whole inbox in one pass and can therefore see
+across sources, which matters because three notes about the same thing should produce one
+loop rather than three.
 
-**Compile when you sit down.** `/ingest` handles one source and shows a plan first;
-`/ingest-all` handles the inbox in one pass. Captured items are searchable straight away but
-produce no loops and no links until compiled.
+Captured material is searchable immediately but produces no pages and no loops until it is
+compiled. To stop anything sitting unseen, the brief counts what is waiting and reports
+anything older than two weeks.
 
-**Ask any time.** `/ask` in the project folder, or plain language in any other project once
-the MCP server is registered.
-
-**Read the brief when it arrives**, then `/close` whatever you decide to act on.
-
-### What runs on its own
+### Automation
 
 | Step | Automatic |
 |---|---|
-| Telegram messages into `vault/raw/inbox/` | yes, on a daily schedule |
-| Browser clippings into `vault/raw/inbox/` | yes, when you click |
+| Telegram messages into `vault/raw/inbox/` | yes, daily |
+| Browser clippings into `vault/raw/inbox/` | yes, on click |
 | Compiling captured items | **no** — you run `/ingest` |
 | Writing and emailing the brief | yes, on your schedule |
-| Retrying if that fails, the next morning | yes |
-| Reminding you on the day something is due | yes, daily — silent unless something is due |
+| Retrying a failed run the next morning | yes |
+| Reminding you on the day something is due | yes, daily, silent unless something is due |
 
-Compilation stays manual because it writes to ten or fifteen pages at once. It shows a plan
-and waits. The brief counts anything left uncompiled and reports it, so nothing sits unseen.
-
-Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you
-read the brief:
+Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you intend
+to read the brief:
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That registers four tasks: the brief the evening before each day you read it, a second
-attempt the next morning, a daily capture from Telegram, and a daily due-date check.
+That registers four tasks: the brief on the evening before each day you read it, a second
+attempt the following morning, a daily capture from Telegram, and a daily due-date check.
 
 ### Reliability
 
 A scheduled job that quietly stops running is worse than no job at all, because the only
-signal that it failed is an absence you have to notice. Three mechanisms handle that, and
-each one covers a different way the previous one breaks.
+signal that it failed is an absence you have to notice. Three mechanisms handle that, each
+covering a different way the previous one breaks.
 
 **The run happens while the machine is awake.** A task set for the morning has to wake a
 sleeping laptop, which depends on Windows wake timers, and Windows disables those on battery.
 The brief therefore runs at 19:00 the evening before the morning you read it, when the
-machine is already on and online. Windows' remaining defaults work against this as well, so
-the installer overrides three of them, allowing tasks to start on battery, to survive being
-unplugged mid-run, and to run a missed occurrence at the next opportunity rather than skipping
-it permanently. A machine that was fully off runs the task at next startup, which means the
-brief arrives late rather than not at all.
+machine is already on and connected. Windows' remaining defaults work against this as well,
+so the installer overrides three of them, allowing tasks to start on battery, to survive
+being unplugged mid-run, and to run a missed occurrence at the next opportunity rather than
+skipping it permanently. A machine that was fully off runs the task at next startup, which
+means the brief arrives late rather than not at all.
 
 **A single run does not give up easily.** Waking a machine starts the task before Wi-Fi has
-associated, so the run polls for a network connection for up to ten minutes before doing
-anything. If the network never arrives it stops without attempting anything, because every
-stage needs one and so does the failure email, and continuing would only produce a cascade of
-misleading errors. Each stage that does run retries on failure, twice for capture and mail
-and once for the brief, thirty seconds apart.
+associated, so the run polls for a connection for up to ten minutes before attempting
+anything. If the network never arrives it stops rather than proceeding, because every stage
+needs one and so does the failure email, and continuing would produce nothing but a cascade
+of misleading errors. Each stage that does run retries on failure, twice for capture and
+mail and once for the brief.
 
 **A failed evening is caught the next morning.** The morning task checks what happened
-overnight and does the full pass if the evening run failed for any reason. If the evening
+overnight and runs the full pass if the evening failed for any reason. If the evening
 succeeded it drains Telegram and resends only when something that arrived overnight changes
 what you would actually do, such as a new deadline or a loop that is now resolved, and
-otherwise sends nothing at all. That keeps a normal week at one email while recovering the
-one thing an evening brief gives up, which is anything captured after it was written. Should
-every layer fail, the system emails you what broke, the last 25 lines of the log, the command
-to run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not
-the mail got out.
+otherwise sends nothing. That holds a normal week to one email while recovering the one thing
+an evening brief gives up, which is anything captured after it was written. Should every
+layer fail, the system emails you what broke, the last 25 lines of the log, the command to
+run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not the
+mail got out.
 
 ### Due dates
 
-The brief reports what is coming, but a deadline needs saying on the day. A daily check
-emails you when something is **overdue, due today, or due tomorrow**, and sends nothing
-otherwise.
+The brief reports what is coming, but a deadline also needs saying on the day itself. A daily
+check emails you when something is overdue, due today, or due tomorrow, and sends nothing on
+any other day.
 
-Silence is deliberate. A daily message that usually says "nothing due" teaches you to ignore
-the channel. An overdue item stops sending daily reminders after 14 days and appears in the
-brief only.
+The silence is the point. A daily message that usually says "nothing due" trains you to
+ignore the channel, and the one that matters is then ignored with the rest. An overdue item
+stops sending daily reminders after 14 days and appears only in the brief, where it is
+presented as a decision rather than a reminder: drop it, set a new date, or do it now.
+Reminding indefinitely is the same failure by a slower route.
 
-## Capture methods
+## Capture
 
 | Method | Use | Setup |
 |---|---|---|
@@ -185,12 +159,16 @@ brief only.
 | Telegram | anything, from a phone | 5 minutes |
 | `brain_capture` over MCP | from any other project | one command |
 
-### Telegram without a server
+Capture refuses labelled credentials before writing anything to disk. A message containing
+`password:`, `api key =`, a seed phrase, or a PEM private key block is rejected and nothing
+is stored. The test errs toward refusing, because losing one note costs less than storing one
+password in a git repository.
 
-Messaging an assistant from a phone normally requires a server running constantly, which is
-the recurring cost most comparable systems assume.
+### Telegram
 
-Telegram holds bot messages for 24 hours, so nothing needs to be running when you send:
+Messaging an assistant from a phone would normally require a server running continuously,
+which is the recurring cost most comparable systems assume. Telegram holds bot messages for
+24 hours, so nothing has to be running at the moment you send:
 
 ```
 Monday, away from the machine  →  send the bot three links and a note
@@ -199,44 +177,51 @@ Tuesday, at the machine        →  python scripts/telegram_capture.py --once
                                →  /ingest-all
 ```
 
-It handles text, links, forwarded messages, images and PDFs. Forwarded messages record the
-original sender, so a claim relayed from someone else is not attributed to you. Only your own
-chat identifier is accepted, so nobody who finds the bot can write to the vault.
+It accepts text, links, forwarded messages, images and PDFs. A forwarded message records its
+original sender, so a claim relayed from someone else is never attributed to you, and only
+your own chat identifier is accepted, so nobody who finds the bot can write into the vault.
 
-This provides capture, not conversation. The bot does not reply. Answering requires a model
-running constantly, which is the one part of this design that would cost money.
+This provides capture and not conversation; the bot does not reply. Answering would require a
+model running continuously, which is the one part of this design that would cost money.
 
-## Reading it from other projects
+## MCP server
 
-Without the MCP server the vault is readable only when its folder is open. Registering it
-once lets any Claude Code session read the vault from any project.
+Without the MCP server the vault is readable only when its folder is open in Claude Code.
+Registering it once makes the vault readable from any project on the machine.
 
 | Available anywhere | Only in the project folder |
 |---|---|
 | search, read, list open loops, capture | `/ingest`, `/brief`, `/close`, `/lint`, `/unsource`, `/bootstrap` |
 
-Reading is safe from any directory. Compiling and deciding stay where the vault is visible.
-Setup is one command, in [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
+Reading is safe from any directory, so it is exposed everywhere. Compiling and deciding stay
+where the vault is visible and where a plan can be reviewed before it is applied. Setup is a
+single command, documented in
+[`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
----
+## Escalation
 
-## What arrives with a reminder
+Every loop carries a count of how many briefs it has appeared in without being answered. The
+count exists because repetition on its own does not change behaviour, and a reminder that has
+been ignored three times is unlikely to succeed on the fourth attempt in the same form. On
+the fourth appearance the loop is promoted to the head of the brief and its closing artifact
+is generated alongside it.
 
-After the fourth unanswered appearance, a loop moves to the top of the brief with the work
-already drafted:
-
-| Loop | What the brief includes |
+| Loop | What arrives with it |
 |---|---|
-| You owe someone a message | the drafted message, using facts from your notes |
-| A deadline or birthday | the entry to paste into a calendar, and a note that none exists |
-| An unread document | a summary, so you can judge it without opening the file |
+| You owe someone a message | the message, written from facts the vault already holds |
+| A deadline or a birthday | the calendar entry, ready to paste |
+| An unread document | a summary close enough to judge it without opening the file |
 | An undecided question | the options, and what your notes record about each |
 
-The system drafts. It does not send. The one script that sends mail takes no recipient
-argument: the address is fixed in configuration, and passing another one is a syntax error.
-No code path exists that could send a message to a third party.
+The premise throughout is that what prevents a loop from closing is rarely forgetting, and
+usually the cost of starting.
 
-## What it costs
+The system drafts and it does not send. The single script that transmits mail accepts no
+recipient argument: the destination is read once from configuration, and passing another one
+is a syntax error rather than a policy violation. No code path exists by which a message
+reaches a third party.
+
+## Cost
 
 | Component | Why it is free |
 |---|---|
@@ -251,10 +236,10 @@ No code path exists that could send a message to a third party.
 Comparable systems assume a server at $7 to $24 a month, an API budget of roughly $15 to $40
 a month at moderate volume, or a hosted vector database.
 
-One capability is omitted because it would cost money: asking questions from a phone while
-the machine is off. Capture from a phone works and is free. Answering does not.
+One capability is omitted because it would cost money, which is asking questions from a phone
+while the machine is off. Capture from a phone works and is free; answering does not.
 
-## How it works
+## Architecture
 
 ```
 capture → raw/ → compile ─┬→ wiki/  → ask
@@ -262,20 +247,28 @@ capture → raw/ → compile ─┬→ wiki/  → ask
                           └→ loops/ → brief → close
 ```
 
-### Two stores
+### Storage model
+
+The vault is divided into two stores, which are treated differently because they fail
+differently. `wiki/` holds what the compiler has written from material you captured, and
+because it can be rebuilt from `raw/` in full, the compiler writes into it without asking.
+`mem/` holds what you have told the system about yourself, and nothing can reconstruct it if
+it is lost, so the compiler may only propose changes there and never apply them.
 
 | | `wiki/` — what you read | `mem/` — who you are |
 |---|---|---|
-| Written by | the model | you |
+| Written by | the compiler | you |
 | Rebuildable from `raw/` | yes | no |
-| A contradiction is | a finding: keep both, flag it | an error: report it, you fix it |
+| A contradiction is | a finding: keep both, record it | an error: report it, you fix it |
 | The compiler may | write freely | propose only |
 
-Two articles that disagree is useful information, and both are kept. A stated goal that
-conflicts with a stated commitment is an error and is reported for you to resolve. Systems
-that treat these the same produce vague output.
+The distinction extends to how contradiction is handled. Two articles that disagree
+constitute a finding, and both are kept with the conflict recorded. A stated goal that
+contradicts a stated commitment is an error, and it is reported for you to resolve rather
+than quietly reconciled. Systems that collapse these two cases into one produce output that
+grows vaguer the more they hold.
 
-### Layout
+### Directory layout
 
 ```
 loose-ends/              the system. shareable.
@@ -288,61 +281,70 @@ loose-ends/              the system. shareable.
    └─ index.md  log.md   the catalogue, and a record of what happened
 ```
 
-Separating the two allows the system to be public while the content stays private.
-Versioning the vault on its own means each compilation is a commit you can inspect or undo.
+The vault holds four folders, in a strict order of authority. `raw/` holds what you captured,
+unchanged, and is never edited. `wiki/` holds the compiled pages and can be rebuilt from
+`raw/` at any time. `loops/` holds open, closed and dated items, all written by the compiler.
+`mem/` holds your profile, goals, projects, people and rules, and is the one folder you write
+yourself.
+
+Separating the system from the vault is what allows the system to be public while the content
+stays private. Versioning the vault on its own means that each compilation is a commit you
+can inspect, and one you can undo.
 
 ### Search
 
-At a few hundred pages an index file and `grep` are faster, cheaper and easier to inspect
-than a vector store. Search sits behind one interface, so replacing it later is a
-substitution rather than a rewrite. Vector search becomes worthwhile above roughly 5,000
-pages.
+At a few hundred pages, an index file and `grep` are faster, cheaper and easier to inspect
+than a vector store, and they fail in ways you can see. Search sits behind a single interface,
+so replacing it later is a substitution rather than a rewrite. Vector search becomes
+worthwhile somewhere above 5,000 pages.
 
 ## Properties
 
-**The files are yours.** Markdown in a git repository. Any text editor can read them.
+**The files are yours.** Markdown in a git repository, readable by any text editor.
 
-**Portable, with some work.** The vault is markdown and the scripts are plain Python, so
+**Claims are checkable.** Every claim cites its source, so you can verify it instead of
+trusting it.
+
+**Compilation reverses.** `/unsource` removes a source and every change it caused. This
+matters because compiling one source writes to ten or fifteen pages, and `git revert` does
+not solve it: later correct edits sit on top of the incorrect ones. Published descriptions of
+this pattern state the problem and offer no remedy.
+
+**There is no filing system to maintain.** No folder taxonomy and no tags to keep consistent.
+Pages exist because a source created them, and the structure comes from citations.
+
+**It is private by default.** Files stay on the machine. Content passes through the model when
+you ask it to read something, as in any conversation, but the store is local.
+
+**It is portable, with some work.** The vault is markdown and the scripts are plain Python, so
 neither needs Claude. The MCP server speaks a standard protocol and works with any client
 that supports it. The nine commands are the part written for Claude Code, and they are prose
-instruction files rather than code — moving to another agent means renaming `CLAUDE.md` to
+instruction files rather than code, so moving to another agent means renaming `CLAUDE.md` to
 whatever that agent reads and translating those nine files. Your content is never the thing
 that has to move.
 
-**Claims are checkable.** Every claim cites its source, so you can verify it rather than
-trust it.
+Several things are absent deliberately:
 
-**Compilation reverses.** `/unsource` removes a source and every change it caused. Compiling
-one source writes to ten or fifteen pages; published descriptions of this pattern state the
-problem and offer no remedy. `git revert` does not solve it either, because later correct
-edits sit on top of the incorrect ones.
-
-**No filing system to maintain.** No folder taxonomy. Pages exist because a source created
-them, and structure comes from citations.
-
-**Private by default.** Files stay on the machine. Content passes through the model when you
-ask it to read something, as in any conversation, but the store is local.
-
-## Not included
-
-| Omitted | Reason |
+| Absent | Reason |
 |---|---|
 | Task entry | You never type a task. Loops come from material captured for other reasons. A system that requires task entry is a task manager. |
 | Vector store or graph database | Justified above 100,000 pages, not hundreds. |
 | A web interface | Claude Code operates it. Obsidian reads it. |
-| A constantly running process | A weekly schedule does not need one. |
+| A continuously running process | A weekly schedule does not need one. |
 | Sending messages | The system drafts. You send. |
-| Writing to a calendar | The brief reports that no entry exists. You create it. |
+| Writing to a calendar | The brief produces the entry. You create it. |
 
 ## Status
 
-The system is complete and has been in use for one week. Its central claim — that reminders
-delivered with the work attached get acted on — is an argument, not a result.
+The system is complete and has been in use for one week. Its central claim, that reminders
+delivered with the work already attached get acted on where bare reminders do not, is an
+argument rather than a result.
 
-The measure is **nudge precision**: of the loops reported each period, how many were worth
-reporting. Below about 30 per cent the design is wrong. Two further conditions end the
-project: nothing entering `raw/` for three consecutive weeks, which means capture is too
-inconvenient; or finding yourself editing the wiki by hand, which means the compiler failed.
+The measure is **nudge precision**: of the loops reported in each period, how many were worth
+reporting. Below roughly 30% the design is wrong. Two further conditions end the project.
+Nothing entering `raw/` for three consecutive weeks means capture is too inconvenient, and
+finding yourself editing the wiki by hand means the compiler has failed at the only job it
+has.
 
 ## Updates
 
@@ -351,18 +353,33 @@ Newest first. The reasoning behind each one is in the commit that made it.
 **31 August 2026.** The brief was rewritten after a week of real output. Two sections that
 reported on the system rather than on your work were cut, `Now` was narrowed to mean today
 only, and a `Don't forget` section took their place to resurface things captured and never
-returned to. Capture now refuses labelled credentials before writing anything to disk, after
-a bank password reached the vault and had to be removed. Delivery was rebuilt in layers,
-described under [Reliability](#reliability), following a brief that was lost to a laptop
-that woke before its Wi-Fi did.
+returned to. Entries now carry a due date rather than the date they were captured, and
+anything with a URL is linked from its title. Capture began refusing labelled credentials
+after a bank password reached the vault and had to be removed. Delivery was rebuilt in
+layers, described under [Reliability](#reliability), following a brief that was lost to a
+laptop that woke before its Wi-Fi did.
 
 **30 August 2026.** Added `/ingest-all`, which compiles the whole inbox under one approval
 and can therefore see across sources, so three notes about the same thing produce one loop
 rather than three. Added a daily due-date check that emails only when something is overdue,
-due today, or due tomorrow, and stops nagging at 14 days so the brief can force a decision
-instead. The brief email now renders as HTML rather than raw markdown. The project was
+due today, or due tomorrow, and which stops at 14 days so the brief can force a decision
+instead. The brief email began rendering as HTML rather than raw markdown. The project was
 renamed from `second-brain`, a name shared with thousands of repositories that said nothing
 about what this one does.
+
+## Terminology
+
+| Term | Meaning |
+|---|---|
+| **vault** | The folder holding your content: `vault/`. A separate private git repository. |
+| **capture** | Recording something without interpreting it. Fast, and it never fails. |
+| **compile** | Reading a captured item and writing pages and loops from it. Where the work happens, and the only step that cannot be undone with one keystroke. |
+| **source** | One captured item, and the page written from it. |
+| **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
+| **surfaced** | The count on each loop of how many times it has appeared in a brief without an answer. At four it is promoted. |
+| **brief** | The periodic report. What is due, what is coming, and what you captured and forgot. |
+| **close** | Producing the artifact that finishes a loop, then marking it done, dropped, or deferred. |
+| **unsource** | Removing a source and reversing every change it caused across every page. |
 
 ## Further reading
 
