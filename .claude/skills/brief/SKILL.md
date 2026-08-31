@@ -50,31 +50,35 @@ month, four-digit year. Nothing else on the line.
 
 ## Opening
 
-One paragraph under the title, two or three sentences, before the first section. It states
-what the shape of the period is — how much is due, what the fixed point is, what has slipped
-— so the sections that follow are read against something.
+Two or three sentences under the title, before the first section. **Name things.** Every
+sentence must contain a real item and a real date, or it is not worth writing.
 
 ```
-Two things need doing today and the week is dominated by the Jakarta trip, which starts
-Friday. The RAG project is the only item with a hard deadline before then. Two saved
-articles are still unread.
+The RAG project is due tomorrow at 75%, and Kyara is waiting on the GTM plan today. Sunday
+takes the CV, the portfolio and the personal website at once, with the Jakarta trip
+occupying Friday to Sunday before it.
 ```
 
-It describes the work, never the brief. Do not write "this brief covers", "here is what is
-coming up", "as of today", or any sentence whose subject is the report itself. If the period
-is genuinely empty, say so in one sentence and omit the sections.
+Do not write a sentence whose subject is the report — no "this brief covers", "here is what
+is coming up", "as of today". Do not do arithmetic on the reader's behalf: "six working
+days, three of them away" is a calculation, not a fact, and it belongs nowhere in the brief.
+If nothing is due, say that in one sentence and omit the empty sections.
+
+## Structure
 
 Three sections. Two of them are often empty, and an empty section is omitted entirely.
 
-Every entry has the same two parts, separated by a blank line:
+Every entry is a level-three heading followed by one or two lines:
 
 ```
-**Proper Title** — timing
+### Proper Title — when it is due
 
 One or two lines.
 ```
 
-The blank line is required. Without it the title and the detail run together.
+Use `###`, not bold. The heading is what puts space above each entry and keeps its detail
+attached to it; bold text renders as another paragraph and the whole section reads as one
+block.
 
 ### Titles
 
@@ -90,55 +94,85 @@ Use the real name of the thing, in title case. Standard abbreviations are fine.
 | CV and portfolio | CV and Portfolio |
 
 A single generic word is not a title. If the entry is called `Sheet` or `Website` or
-`Interview`, name which one.
+`Interview`, name which one. Where the vault does not know which one, do not paper over it
+with a vague description — quote the user's own words verbatim so at least he recognises
+what he meant, and offer to drop it.
+
+**Link anything that has a URL.** An article, a page, a tool, a repository: the title is the
+link.
+
+```
+### [How Complex Systems Fail](https://how.complexsystems.fail/) — 20 minutes
+```
+
+A reminder to read something that does not include the thing to read is a reminder to go
+looking for it.
+
+### The timing after the dash
+
+A date, a deadline, or how long the thing takes. Nothing else.
+
+| Wrong | Right |
+|---|---|
+| saved 30 August | due 30 November |
+| captured 29 August | 20 minutes |
+| added last week | Thursday 3 September |
+
+When the item has no date and no useful duration, drop the dash and the timing and give the
+title alone. When something arrived is not a deadline, and the user already knows he saved
+it.
+
+### Numbers
+
+Digits and standard symbols: `75%`, `20 minutes`, `£40`, `3 September`. Never `75 per cent`.
+Spell out only where a digit starts a sentence.
 
 ### The three sections
 
 ```markdown
 # Morning Brief — Monday, 31 August 2026
 
-<Opening paragraph. Two or three sentences on the shape of the period.>
+<Opening paragraph. Two or three sentences, each naming a real item and a real date.>
 
 ## Now
 <Only what is to be done today, or worked on continuously today. Nothing else.
 
-**Foundation GTM Planning** — today
+### Foundation GTM Planning — today
 
 Sit down with Kyara and write it down. Q4 starts in one month.
 
-**RAG Project** — continuous, due tomorrow
+### RAG Project — due tomorrow
 
-At 75 per cent. Remaining technical work, plus the UI.
+At 75%. Remaining technical work, plus the UI.
 
 State what it is and when. Not how to do it.>
 
 ## Soon
 <This week. Early next week only when it needs preparing for now. Nothing further out.
 
-**Jakarta Trip** — Friday 4 to Sunday 6 September
+### Jakarta Trip — Friday 4 to Sunday 6 September
 
 Pack Wednesday.
 
-**Masters Applications** — Thursday 3 September
+### Masters Applications — Thursday 3 September
 
-Find the closing date.>
+Find the closing date. No programme or school recorded yet.>
 
 ## Don't forget
 <Things captured and not returned to. These are what the user would otherwise lose, which is
 what the system is for. Rank by how likely they are to be lost.
 
-**How Complex Systems Fail** — saved 30 August
+### [How Complex Systems Fail](https://how.complexsystems.fail/) — 20 minutes
 
-Unread.
+Richard Cook, 18 principles. Unread.
 
-**Collect UI** — saved 29 August
+### [Collect UI](https://collectui.com/)
 
 A gallery of interface patterns.
 
-Give the real title and when it arrived. Say what the thing is if the name does not carry
-it. Never say where the file lives, never say a loop produced it, and never say that no note
-was attached — the user knows they saved it without a note, and reading that back is
-useless.>
+Give the real title, link it if it has a URL, and say what the thing is if the name does not
+carry it. Never say where the file lives, never say a loop produced it, never say when it
+was saved, and never say that no note was attached.>
 ```
 
 ## What never appears
@@ -163,7 +197,7 @@ An item more than 14 days past its date goes at the top of `Now` with three opti
 nothing else:
 
 ```
-**Foundation GTM Planning** — due 31 August, 23 days ago
+### Foundation GTM Planning — due 31 August, 23 days ago
 
 Drop it, set a new date, or do it now.
 ```

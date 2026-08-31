@@ -102,7 +102,11 @@ CSS = """
   h1 { font-size:21px; line-height:1.25; margin:0 0 18px; letter-spacing:-.01em; }
   h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#1f6f5c;
        margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid #e8ebee; }
-  h3 { font-size:15px; margin:18px 0 6px; }
+  /* Each entry is an h3 with one paragraph under it. The gap above the heading has to be
+     clearly larger than the gap between the heading and its own text, or the section reads
+     as one undifferentiated block. */
+  h3 { font-size:15px; margin:28px 0 3px; }
+  h2 + h3 { margin-top:12px; }
   p { margin:0 0 12px; }
   ul, ol { margin:0 0 12px; padding-left:20px; }
   li { margin-bottom:8px; }
