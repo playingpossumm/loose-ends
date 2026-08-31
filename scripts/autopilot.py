@@ -61,10 +61,10 @@ UPDATE_PROMPT = (
 )
 
 BRIEF_PROMPT = (
-    "Run the /brief skill. Write the weekly brief to briefs/ in the vault, following the "
-    "skill exactly — including the decide-now section with closing artifacts, and the "
-    "coverage note. Do not ask me anything; I am not at the keyboard. If there is nothing "
-    "worth reporting, still write the brief and say so plainly."
+    "Run the /brief skill. Write the brief to briefs/ in the vault, following the skill "
+    "exactly — the title format, the opening paragraph, and only the sections the skill "
+    "defines. Do not ask me anything; I am not at the keyboard. If there is nothing worth "
+    "reporting, still write the brief and say so in one sentence."
 )
 
 
