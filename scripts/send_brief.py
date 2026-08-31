@@ -126,7 +126,9 @@ CSS = """
 
 def to_html(body: str, title: str) -> str:
     html = markdown.markdown(
-        body, extensions=["extra", "sane_lists", "nl2br"], output_format="html"
+        # No nl2br: the source is hard-wrapped at ~90 characters, and turning every
+        # newline into a line break splits sentences mid-clause.
+        body, extensions=["extra", "sane_lists"], output_format="html"
     )
     return (
         f"<!doctype html><html><head><meta charset='utf-8'>"
@@ -138,12 +140,19 @@ def to_html(body: str, title: str) -> str:
     )
 
 
+def subject_for(body: str, brief: Path) -> str:
+    """Use the brief's own H1 as the subject, so the inbox line matches the page."""
+    for line in body.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return f"Brief — {brief.stem}"
+
+
 def build(brief: Path, to: str, sender: str) -> EmailMessage:
     raw = strip_frontmatter(brief.read_text(encoding="utf-8"))
-    urgent = has_decisions(raw)
 
     msg = EmailMessage()
-    msg["Subject"] = f"Loose ends — {brief.stem}" + (" · decisions waiting" if urgent else "")
+    msg["Subject"] = subject_for(raw, brief)
     msg["From"] = sender
     msg["To"] = to  # the only assignment to this header in the codebase
 
