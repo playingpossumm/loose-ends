@@ -31,6 +31,7 @@ DUE_CHECK = ROOT / "scripts" / "due_check.py"
 WEEKLY = "SecondBrain-WeeklyBrief"
 CAPTURE = "SecondBrain-Capture"
 DUE = "SecondBrain-DueCheck"
+CATCHUP = "SecondBrain-BriefCatchup"
 DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 
@@ -101,6 +102,10 @@ def main() -> None:
     ap.add_argument("--due-time", default="07:30",
                     help="daily due-date check, HH:MM. Sends nothing unless something is "
                          "overdue, due today, or due tomorrow.")
+    ap.add_argument("--catchup-time", default="08:00",
+                    help="second attempt, the morning after the main run. Does nothing if "
+                         "the brief already went out. HH:MM")
+    ap.add_argument("--no-catchup", action="store_true", help="skip the second attempt")
     ap.add_argument("--no-due-check", action="store_true", help="skip the daily due-date task")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")
     ap.add_argument("--remove", action="store_true", help="remove both tasks")
@@ -109,6 +114,7 @@ def main() -> None:
     if args.remove:
         print("Removing scheduled tasks:")
         remove(WEEKLY)
+        remove(CATCHUP)
         remove(CAPTURE)
         remove(DUE)
         return
@@ -145,6 +151,13 @@ def main() -> None:
 
     print("Registering scheduled tasks:")
     ok = create(WEEKLY, "--weekly", sched, args.time, wake=True)
+    if not args.no_catchup and args.cadence != "daily":
+        # The morning after each delivery day. Same brief, second attempt: it exits at once
+        # unless the evening run failed to send.
+        after = [DAYS[(DAYS.index(d) + 1) % 7] for d in days]
+        ok &= create(CATCHUP, "--weekly-catchup",
+                     ["/sc", "WEEKLY", "/d", ",".join(dict.fromkeys(after))],
+                     args.catchup_time, wake=True)
     if not args.no_capture:
         ok &= create(CAPTURE, "--capture", ["/sc", "DAILY"], args.capture_time)
     if not args.no_due_check:

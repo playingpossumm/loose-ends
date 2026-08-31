@@ -133,8 +133,14 @@ Scheduling uses Windows Task Scheduler:
 python scripts/install_schedule.py --cadence weekly --day SAT --time 08:00
 ```
 
-That registers three tasks: the brief on your chosen days, a daily capture from Telegram,
-and a daily due-date check.
+That registers four tasks: the brief the evening before each day you read it, a second
+attempt the next morning, a daily capture from Telegram, and a daily due-date check.
+
+The brief runs in the evening because a morning task on a sleeping laptop depends on Windows
+wake timers, which Windows disables on battery. In the evening the machine is already awake.
+The morning task is a catch-up: it checks whether a brief went out in the last 18 hours and
+does nothing if one did, so a normal week produces one email and a failed evening still
+gets delivered.
 
 Tasks run on battery, survive being unplugged, and can wake a sleeping machine. A machine
 that is fully off runs the task at next startup, so the brief arrives late rather than not

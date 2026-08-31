@@ -5,6 +5,20 @@ and in [`docs/decisions.md`](docs/decisions.md).
 
 ## 2026-08-31
 
+### Added — a second attempt the next morning
+
+The evening run can still fail. Since running the system costs nothing, it now runs twice:
+once at 19:00 the evening before, and again at 08:00 the next morning.
+
+The morning run is a **catch-up**. It checks whether a brief was delivered in the last 18
+hours and exits immediately if one was. Running twice costs nothing; sending the same brief
+twice costs attention, which is the scarce thing.
+
+So the morning run does nothing on a normal week, and silently covers the evening having
+failed — a dead network, a laptop shut early, an expired login.
+
+`--catchup-time` moves it; `--no-catchup` skips it.
+
 ### Changed — the brief runs the evening before
 
 It ran at 07:00 on the day you read it, which on a sleeping laptop depends on Windows wake

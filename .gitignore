@@ -21,3 +21,6 @@ vault/
 
 # autopilot run log — local, not content
 autopilot.log
+
+# Timestamp of the last brief actually delivered. Local state.
+.last-brief

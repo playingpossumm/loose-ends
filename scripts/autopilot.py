@@ -28,6 +28,13 @@ ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
 LOG = ROOT / "autopilot.log"
+STATE = ROOT / ".last-brief"
+
+# A catch-up run does nothing if a brief was sent within this many hours. The evening run
+# and the morning run are the same delivery, attempted twice — the second exists only to
+# cover the first having failed. Running the system twice costs nothing; sending the same
+# brief twice costs attention, which is the scarce thing.
+CATCHUP_WINDOW_HOURS = 18
 
 BRIEF_PROMPT = (
     "Run the /brief skill. Write the weekly brief to briefs/ in the vault, following the "
@@ -167,6 +174,17 @@ def report_failure(stage: str) -> None:
         log(f"report: could not send failure email — {type(e).__name__}: {e}")
 
 
+def last_brief_sent() -> datetime | None:
+    try:
+        return datetime.fromisoformat(STATE.read_text(encoding="utf-8").strip())
+    except Exception:
+        return None
+
+
+def mark_brief_sent() -> None:
+    STATE.write_text(datetime.now().isoformat(timespec="seconds"), encoding="utf-8")
+
+
 def capture() -> bool:
     return run([str(PY), str(ROOT / "scripts" / "telegram_capture.py"), "--once"],
                "telegram capture", timeout=180, retries=2)
@@ -195,8 +213,11 @@ def weekly() -> bool:
         # but say so — a silent no-op is the failure mode worth catching here.
         log("  no new brief file; sending the most recent one")
 
-    return run([str(PY), str(ROOT / "scripts" / "send_brief.py")],
-               "email brief", timeout=180, retries=2)
+    if not run([str(PY), str(ROOT / "scripts" / "send_brief.py")],
+               "email brief", timeout=180, retries=2):
+        return False
+    mark_brief_sent()
+    return True
 
 
 def main() -> None:
@@ -204,6 +225,10 @@ def main() -> None:
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--capture", action="store_true", help="drain Telegram into the inbox")
     g.add_argument("--weekly", action="store_true", help="drain, write the brief, email it")
+    g.add_argument("--weekly-catchup", action="store_true",
+                   help="same as --weekly, but do nothing if a brief was already sent in "
+                        "the last %d hours. Schedule this the morning after the main run "
+                        "so a failed evening still gets delivered." % CATCHUP_WINDOW_HOURS)
     args = ap.parse_args()
 
     log("=" * 60)
@@ -212,6 +237,14 @@ def main() -> None:
         # visible in Task Scheduler, but send nothing — the email could not leave either.
         log("done: SKIPPED (no network)")
         sys.exit(1)
+
+    if args.weekly_catchup:
+        last = last_brief_sent()
+        if last and (datetime.now() - last).total_seconds() < CATCHUP_WINDOW_HOURS * 3600:
+            log(f"catch-up: a brief went out at {last:%Y-%m-%d %H:%M} — nothing to do")
+            log("done: ok")
+            sys.exit(0)
+        log("catch-up: no recent brief, running the full pass")
 
     stage = "capture" if args.capture else "brief"
     ok = capture() if args.capture else weekly()
