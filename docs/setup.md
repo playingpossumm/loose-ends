@@ -155,16 +155,22 @@ laptop depends on Windows wake timers, which Windows disables on battery — the
 waits until you next open the machine, possibly hours after it was useful. In the evening the
 machine is already awake and online.
 
-That registers four Windows tasks:
+That registers five Windows tasks:
 
 | Task | Does | Default |
 |---|---|---|
 | `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen days, 19:00 |
 | `SecondBrain-BriefCatchup` | the next morning: recovers a failed run, or folds in overnight material that changes something | the following mornings, 08:00 |
 | `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
-| `SecondBrain-DueCheck` | emails when something is overdue, due today or due tomorrow; silent otherwise | daily, 19:30 |
+| `SecondBrain-NudgeMorning` | emails what is due today and what is overdue; silent otherwise | daily, 07:00 |
+| `SecondBrain-NudgeEvening` | emails what is due tomorrow; silent otherwise | daily, 19:30 |
 
-### Why a scheduled brief still arrives
+Move the last two with `--nudge-morning` and `--nudge-evening`. The split exists because a
+reminder is only useful at the hour you can act on it: what is due today needs the working
+day in front of it, and what is due tomorrow needs an evening to prepare in. A loop overrides
+its window with `nudge: morning` or `nudge: evening` in its frontmatter.
+
+### Why a scheduled brief or nudge still arrives
 
 Six layers, each covering a way the previous one fails:
 
@@ -176,6 +182,10 @@ Six layers, each covering a way the previous one fails:
 | retries each stage | a transient refusal |
 | second attempt next morning | the evening having failed for any reason |
 | emails the failure | everything else, with the log tail and what to check |
+
+The middle four cover the nudges too, since both run through `autopilot.py`. The first and
+last are the brief's alone; a nudge that fails outright is picked up by the next morning's
+run, where the item counts as overdue.
 
 The installer also overrides three Windows defaults that work against this: tasks may start
 on battery, survive being unplugged, and run a missed occurrence at the next opportunity
@@ -199,13 +209,16 @@ resend — the existing brief already counts them.
 
 `--catchup-time` moves it; `--no-catchup` skips it.
 
-`--due-time` moves the due check; `--no-due-check` skips it. It reads the vault directly and
-does not call a model, so it is fast and cannot fail on a network problem.
+`--nudge-morning` and `--nudge-evening` move the two nudges; `--no-due-check` skips both.
+Neither calls a model — they read the vault and send — so they are fast, but they are not
+network-free: sending is the whole job. This file claimed otherwise until 31 August, and the
+nudge was scheduled outside the retry path on the strength of that claim, so a laptop that
+woke before its Wi-Fi lost the reminder in silence.
 
-All three run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
+All of them run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
 `fortnightly`. Re-run the command any time to change it; `--remove` stops all of them.
 
-`scripts/autopilot.py` is what the brief and capture tasks call — it drives Claude Code headlessly with
+`scripts/autopilot.py` is what every task calls — it drives Claude Code headlessly with
 `--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
 appends to `autopilot.log`.
 

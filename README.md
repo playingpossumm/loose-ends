@@ -354,14 +354,32 @@ has.
 
 Newest first. The reasoning behind each one is in the commit that made it.
 
-**31 August 2026.** The brief was rewritten after a week of real output. Two sections that
-reported on the system rather than on your work were cut, `Now` was narrowed to mean today
-only, and a `Don't forget` section took their place to resurface things captured and never
-returned to. Entries now carry a due date rather than the date they were captured, and
-anything with a URL is linked from its title. Capture began refusing labelled credentials
-after a bank password reached the vault and had to be removed. Delivery was rebuilt in
-layers, described under [Reliability](#reliability), following a brief that was lost to a
-laptop that woke before its Wi-Fi did.
+**31 August 2026, evening.** Running a nudge for the first time showed it followed none of
+the rules the brief follows. It pasted the opening lines of the loop page into the email,
+which is the compiler's own working — source paths, ranking arguments, and the user narrated
+in the third person, so one reminder read "His own date, stated 2026-08-31" — and then cut
+it off at a character count, mid-word. Loops now carry `title:` and `summary:`, two fields
+written for a reader rather than for the vault, and the nudge is built from those alone.
+
+Nudges also moved from one daily send to two. **07:00** carries what is due today and what is
+overdue, with the working day still in front of it; **19:30** carries what is due tomorrow,
+while there is an evening left to prepare in. A loop overrides the split with `nudge:
+morning` or `nudge: evening` when its nature disagrees with its date.
+
+The reliability work of that morning turned out not to cover the nudge at all. It was
+scheduled to run its own script directly, bypassing the network wait, the retries and the
+failure email, so a laptop that woke before its Wi-Fi killed the reminder in silence. It now
+runs the same path as everything else.
+
+**31 August 2026, morning.** The brief was rewritten after a week of real output. Two
+sections that reported on the system rather than on your work were cut, and a `Don't forget`
+section took their place to resurface things captured and never returned to. Entries carry a
+due date rather than the date they were captured, anything with a URL is linked from its
+title, and every date is absolute — the brief is read across a whole week, so "tomorrow"
+means something different on Thursday from what it meant on Monday. Capture began refusing
+labelled credentials after a bank password reached the vault and had to be removed. Delivery
+was rebuilt in layers, described under [Reliability](#reliability), following a brief that
+was lost to a laptop that woke before its Wi-Fi did.
 
 **30 August 2026.** Added `/ingest-all`, which compiles the whole inbox under one approval
 and can therefore see across sources, so three notes about the same thing produce one loop
@@ -382,6 +400,7 @@ about what this one does.
 | **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
 | **surfaced** | The count on each loop of how many times it has appeared in a brief without an answer. At four it is promoted. |
 | **brief** | The periodic report. What is due, what is coming, and what you captured and forgot. |
+| **nudge** | A short email sent on the day a loop is due, at 07:00 or 19:30. Silent otherwise. |
 | **close** | Producing the artifact that finishes a loop, then marking it done, dropped, or deferred. |
 | **unsource** | Removing a source and reversing every change it caused across every page. |
 
