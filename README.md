@@ -413,6 +413,7 @@ about what this one does.
 | [`docs/comparison.md`](docs/comparison.md) | Against GBrain, llm-wiki and others, including where they are better |
 | [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
 | [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |
+| [`docs/writing-style.md`](docs/writing-style.md) | The register everything here is written in, as a prompt you can reuse |
 
 ## License
 
