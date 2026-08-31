@@ -63,6 +63,27 @@ def slug(text: str) -> str:
     return (s[:48] or "message").rstrip("-")
 
 
+# Labels that mean the next thing on the line is a secret. Deliberately narrow: this refuses
+# to store material, so a false positive loses a note. It catches the labelled case — someone
+# sending themselves a credential — not every high-entropy string.
+SECRET_LABELS = re.compile(
+    r"\b(pass(word|wd|phrase)?|pwd|pin|otp|cvv|secret|api[\s_-]?key|access[\s_-]?token|auth[\s_-]?token|"
+    r"private[\s_-]?key|seed[\s_-]?phrase|mnemonic)\b\s*[:=]\s*\S",
+    re.I,
+)
+SECRET_BLOCKS = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|\bsk-[A-Za-z0-9]{20,}", re.I)
+
+
+def looks_like_secret(text: str) -> bool:
+    """True if the message appears to carry a credential.
+
+    Pattern matching, not judgement — this runs unattended with no model behind it. It is
+    the last guard before something is written to a git repository, so it errs toward
+    refusing: losing one note costs less than storing one password.
+    """
+    return bool(SECRET_LABELS.search(text) or SECRET_BLOCKS.search(text))
+
+
 def unique(path: Path) -> Path:
     if not path.exists():
         return path
@@ -114,6 +135,14 @@ def save(msg: dict, token: str) -> Path | None:
 
     # Bot commands (/start, /help, /revoke...) are addressed to Telegram, not to the vault.
     if text.startswith("/") and not attachment and len(text.split()) == 1:
+        return None
+
+    if looks_like_secret(text):
+        # Refuse rather than file. The compiler already declines to compile credentials,
+        # but that is one step too late: capture writes to disk first, and the vault is a
+        # git repository. A password is easier to never store than to remove afterwards.
+        print("  REFUSED: the message looks like it contains a credential. Nothing written.")
+        print("  If that is wrong, add it by hand. If it is right, change the password.")
         return None
 
     if not text and not attachment:
