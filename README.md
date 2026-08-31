@@ -125,7 +125,9 @@ the one before it fails.
 The middle four apply to the nudges as well, since both run through the same script. The
 first and last are specific to the brief, which is weekly and can therefore afford a second
 attempt; a nudge that fails outright is instead picked up by the next morning's run, where
-the item now counts as overdue.
+the item now counts as overdue. Nudges also do not wake a sleeping machine, which is
+deliberate — a daily task that is usually silent is not worth waking a laptop for, so a
+nudge arrives when you next open it.
 
 If they all fail, the system emails you what broke, the last 25 lines of the log, the
 command to run by hand, and what to check, and every attempt appends to `autopilot.log`

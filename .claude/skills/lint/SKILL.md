@@ -44,7 +44,15 @@ yet escalated; anything in `loops/open/` that reads as already done. Also loops 
 `summary:`, or whose `summary:` narrates the user in the third person — the nudge email is
 built from that line alone and silently sends nothing without it.
 
-**9. Coverage gaps**
+**9. Entities never promoted**
+`/ingest` promotes a mention to its own `wiki/entities/` page at three independent source
+mentions, but it compiles one source at a time and cannot see the count, so in practice the
+rule does not fire on its own. Count the recurring proper nouns across `wiki/sources/` —
+people, tools, programmes, papers — and list anything at three or more that has no entity
+page. An empty `wiki/entities/` beside forty sources means every question about a person or
+a project is answered by re-reading the sources that mention them.
+
+**10. Coverage gaps**
 Entities mentioned across several pages with no page of their own (promote at 3 mentions).
 Concepts referenced but never compiled. Questions the vault could not answer this week.
 
