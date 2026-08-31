@@ -108,34 +108,27 @@ attempt the following morning, a daily capture from Telegram, and a daily due-da
 ### Reliability
 
 A scheduled job that quietly stops running is worse than no job at all, because the only
-signal that it failed is an absence you have to notice. Three mechanisms handle that, each
-covering a different way the previous one breaks.
+signal that it failed is an absence you have to notice. Six behaviours stand between a
+scheduled brief and a missed one, each covering a way the one before it fails.
 
-**The run happens while the machine is awake.** A task set for the morning has to wake a
-sleeping laptop, which depends on Windows wake timers, and Windows disables those on battery.
-The brief therefore runs at 19:00 the evening before the morning you read it, when the
-machine is already on and connected. Windows' remaining defaults work against this as well,
-so the installer overrides three of them, allowing tasks to start on battery, to survive
-being unplugged mid-run, and to run a missed occurrence at the next opportunity rather than
-skipping it permanently. A machine that was fully off runs the task at next startup, which
-means the brief arrives late rather than not at all.
+| Behaviour | Failure it covers |
+|---|---|
+| Runs at 19:00, the evening before you read it | A morning task has to wake a sleeping laptop, which needs Windows wake timers. Windows disables those on battery. |
+| Overrides three Windows task defaults | Tasks otherwise refuse to start on battery, abort when unplugged, and skip a missed run permanently. |
+| Waits up to ten minutes for a network | Waking a machine starts the task before Wi-Fi has associated. |
+| Stops rather than half-running | Every stage needs a connection, and so does the failure email. Continuing produces only misleading errors. |
+| Retries each stage | Twice for capture and mail, once for the brief. Covers a transient refusal. |
+| Repeats the full pass the next morning | Any reason at all that the evening run did not complete. |
 
-**A single run does not give up easily.** Waking a machine starts the task before Wi-Fi has
-associated, so the run polls for a connection for up to ten minutes before attempting
-anything. If the network never arrives it stops rather than proceeding, because every stage
-needs one and so does the failure email, and continuing would produce nothing but a cascade
-of misleading errors. Each stage that does run retries on failure, twice for capture and
-mail and once for the brief.
+If all six fail, the system emails you what broke, the last 25 lines of the log, the command
+to run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not
+the mail got out, and a machine that was fully off runs the task at next startup, so the
+brief arrives late rather than not at all.
 
-**A failed evening is caught the next morning.** The morning task checks what happened
-overnight and runs the full pass if the evening failed for any reason. If the evening
-succeeded it drains Telegram and resends only when something that arrived overnight changes
-what you would actually do, such as a new deadline or a loop that is now resolved, and
-otherwise sends nothing. That holds a normal week to one email while recovering the one thing
-an evening brief gives up, which is anything captured after it was written. Should every
-layer fail, the system emails you what broke, the last 25 lines of the log, the command to
-run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not the
-mail got out.
+The morning task has a second job, which is to recover the one thing an evening brief gives
+up. It drains Telegram and resends only when something captured overnight changes what you
+would actually do, such as a new deadline or a loop now resolved, and otherwise sends
+nothing. A normal week therefore produces one email.
 
 ### Due dates
 
