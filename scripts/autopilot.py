@@ -59,12 +59,15 @@ def find_claude() -> Path | None:
     return None
 
 
-# Wait this long for the network before giving up. Generous on purpose: a scheduled task
-# wakes the machine and starts before Wi-Fi associates, which is how the 31 August brief was
-# lost — Telegram failed on a connection error and Claude Code could not refresh its OAuth
-# token. Neither was a real fault. The task's own time limit is two hours, so this leaves
-# well over an hour to do the work.
-NETWORK_WAIT = 45 * 60
+# How long to wait for a network before giving up. This is a ceiling, not an interval: when
+# the machine is online — the normal case — the check passes in well under a second and
+# nothing waits at all.
+#
+# It exists because a task that wakes a sleeping machine starts before Wi-Fi associates,
+# which is how the 31 August brief was lost. Running in the evening, while the machine is
+# already awake, makes that case rare. Ten minutes covers a slow reconnection; a machine
+# that has been awake and offline for ten minutes is not about to come back.
+NETWORK_WAIT = 10 * 60
 POLL_EVERY = 15
 
 

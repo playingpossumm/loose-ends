@@ -40,8 +40,22 @@ decides whether the system ever pushes at all — so ask it, do not assume.
 
 - **How often?** Weekly is the default. Fortnightly suits someone with slow-moving
   projects; daily almost always becomes noise and gets ignored by week three.
-- **Which day and roughly what time?** A brief landing when they have no slack gets
-  archived unread. Ask when they actually review things.
+- **When will they *read* it?** Ask this, not when to send it. A brief landing when they
+  have no slack gets archived unread.
+- **Then schedule the run for the evening before.** This is not a detail — it decides
+  whether the brief arrives at all.
+
+  A morning task on a laptop that is asleep depends on Windows wake timers, and Windows
+  disables those on battery. The run then waits until the machine is next opened, which may
+  be hours after it was useful. An evening run happens while the machine is already awake
+  and online, and the brief is waiting when they wake up.
+
+  So: reads it Saturday morning → generate Friday 19:00. Reads it Monday → generate Sunday
+  19:00. Schedule the capture an hour earlier so the brief includes everything from that
+  day.
+
+  The cost is that an evening brief cannot include anything captured overnight. For a
+  periodic review that is not worth the loss of reliability.
 - **How should it arrive?** Email is set up. If they say "I'll just run it myself", push
   back once — gently — because a brief you have to remember to run is the exact habit this
   is meant to replace, and it is the most common way these systems quietly die.

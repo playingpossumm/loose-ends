@@ -5,6 +5,22 @@ and in [`docs/decisions.md`](docs/decisions.md).
 
 ## 2026-08-31
 
+### Changed — the brief runs the evening before
+
+It ran at 07:00 on the day you read it, which on a sleeping laptop depends on Windows wake
+timers — and Windows disables those on battery. The run then waits until the machine is next
+opened, possibly hours after it was useful.
+
+It now runs at 19:00 the evening before, while the machine is awake and online, so the brief
+is waiting in the morning. Capture runs at 18:00, an hour ahead, so the brief includes
+everything from that day.
+
+The cost is that an evening brief cannot include anything captured overnight. For a periodic
+review that is not worth the loss of reliability.
+
+`/bootstrap` now asks when you will *read* the brief rather than when to send it, and
+schedules the run for the evening before.
+
 ### Fixed — the brief was lost to a cold network
 
 The 07:00 run woke the machine and started before Wi-Fi associated. Telegram failed on a
@@ -12,7 +28,7 @@ connection error and Claude Code could not refresh its OAuth token. Both looked 
 in the log; neither was. No brief was written and nothing said so — the absence was the only
 signal.
 
-`autopilot.py` now **waits for the network before doing anything**, polling for up to 45
+`autopilot.py` now **waits for the network before doing anything**, polling for up to ten
 minutes. If it never arrives the run stops without attempting: every stage needs a network,
 and so does the failure email, so continuing only produces a cascade of misleading errors.
 The scheduled task's time limit went from one hour to two to accommodate the wait.
