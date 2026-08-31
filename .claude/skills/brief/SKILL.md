@@ -33,9 +33,8 @@ Neutral and factual, like a reference entry. State the fact and stop. Follow Orw
 | "No calendar event exists" | *(nothing — it is not an action)* |
 | "a number of items" | "four items" |
 
-No opening line about what the brief covers. No closing remark. No commentary on the
-system's own reasoning, counters, or file paths. The first line of a section is the first
-fact.
+No closing remark. No commentary on the system's own reasoning, counters, or file paths.
+The first line of a section is the first fact.
 
 **Write long lines.** Do not hard-wrap sentences mid-clause; the email renders them as
 written.
@@ -49,49 +48,97 @@ written.
 `Morning Brief` on a weekday, `Weekend Brief` on Saturday or Sunday. Full day name, full
 month, four-digit year. Nothing else on the line.
 
-## Structure
+## Opening
+
+One paragraph under the title, two or three sentences, before the first section. It states
+what the shape of the period is — how much is due, what the fixed point is, what has slipped
+— so the sections that follow are read against something.
+
+```
+Two things need doing today and the week is dominated by the Jakarta trip, which starts
+Friday. The RAG project is the only item with a hard deadline before then. Two saved
+articles are still unread.
+```
+
+It describes the work, never the brief. Do not write "this brief covers", "here is what is
+coming up", "as of today", or any sentence whose subject is the report itself. If the period
+is genuinely empty, say so in one sentence and omit the sections.
 
 Three sections. Two of them are often empty, and an empty section is omitted entirely.
+
+Every entry has the same two parts, separated by a blank line:
+
+```
+**Proper Title** — timing
+
+One or two lines.
+```
+
+The blank line is required. Without it the title and the detail run together.
+
+### Titles
+
+Use the real name of the thing, in title case. Standard abbreviations are fine.
+
+| Wrong | Right |
+|---|---|
+| RAG | RAG Project |
+| Foundation go-to-market planning | Foundation GTM Planning |
+| Masters | Masters Applications |
+| Trip | Jakarta Trip |
+| Haircut | Haircut Booking |
+| CV and portfolio | CV and Portfolio |
+
+A single generic word is not a title. If the entry is called `Sheet` or `Website` or
+`Interview`, name which one.
+
+### The three sections
 
 ```markdown
 # Morning Brief — Monday, 31 August 2026
 
+<Opening paragraph. Two or three sentences on the shape of the period.>
+
 ## Now
-<Only what is to be done TODAY, or worked on continuously today. Nothing else.
+<Only what is to be done today, or worked on continuously today. Nothing else.
 
-One item per entry, in this shape:
+**Foundation GTM Planning** — today
 
-**Foundation go-to-market planning** — today
-Sit down with Kyara for 45 minutes. Four questions: first donor by name, what they fund,
-what you can show, what you ask for.
+Sit down with Kyara and write it down. Q4 starts in one month.
 
-**AI projects** — continuous, 11 September
-Procedural Art Generator is unstarted and scheduled last.
+**RAG Project** — continuous, due tomorrow
 
-Keep the elaboration to one or two lines. State what it is and when, not how to do it.>
+At 75 per cent. Remaining technical work, plus the UI.
+
+State what it is and when. Not how to do it.>
 
 ## Soon
-<This week, and early next week only when it genuinely needs preparing for now. Nothing
-further out — a deadline three weeks away is not news today.
+<This week. Early next week only when it needs preparing for now. Nothing further out.
 
-Same shape, usually one line each:
+**Jakarta Trip** — Friday 4 to Sunday 6 September
 
-**Trip** — Friday 4 to Sunday 6 September
-Pack Wednesday.>
+Pack Wednesday.
+
+**Masters Applications** — Thursday 3 September
+
+Find the closing date.>
 
 ## Don't forget
-<The section that earns the brief. Things captured and not returned to: an article dumped
-and unread, a note about something to look into, a decision deferred and gone quiet.
+<Things captured and not returned to. These are what the user would otherwise lose, which is
+what the system is for. Rank by how likely they are to be lost.
 
-These are the items the user would otherwise lose, which is the whole reason this system
-exists. Rank by how likely they are to be lost, not by importance.
+**How Complex Systems Fail** — saved 30 August
 
-**How complex systems fail** — saved 30 August, unread
-`raw/articles/2026-08-30-how-complexsystems-fail.md`
+Unread.
 
-**collectui.com** — saved 29 August, no note on why
+**Collect UI** — saved 29 August
 
-Give the title, when it arrived, and where it is. Nothing more.>
+A gallery of interface patterns.
+
+Give the real title and when it arrived. Say what the thing is if the name does not carry
+it. Never say where the file lives, never say a loop produced it, and never say that no note
+was attached — the user knows they saved it without a note, and reading that back is
+useless.>
 ```
 
 ## What never appears
@@ -104,7 +151,10 @@ Removed because they carried no information:
 - Anything of the form "the vault has no record", "no calendar event exists", "nothing has
   been added since". Absence is not an action.
 - Instructions for work the user already knows how to do.
-- File paths, except in **Don't forget**, where the path is how they find the thing.
+- File paths. Anywhere. The user opens the vault to find things, not the brief.
+- "no note on why", "nothing recorded", "untouched since" as a description of what the
+  user did or did not do when saving something.
+- Which loop or source an item came from.
 - Counters, `surfaced` values, or any description of how the brief was assembled.
 
 ## Overdue
@@ -113,7 +163,8 @@ An item more than 14 days past its date goes at the top of `Now` with three opti
 nothing else:
 
 ```
-**Foundation go-to-market planning** — due 31 August, 23 days ago
+**Foundation GTM Planning** — due 31 August, 23 days ago
+
 Drop it, set a new date, or do it now.
 ```
 

@@ -1,25 +1,22 @@
 # loose-ends
 
-A personal knowledge base that records what you read and tracks what you said you would do
-and have not done.
+A second brain that records what you know and tracks what you said you would do.
 
-You capture things: articles, documents, notes, messages to yourself. It compiles them into
-linked pages you can search, and extracts anything you stated but did not finish.
+It stores a friend's birthday, an article you found worth keeping, a quote you want held
+verbatim, and a deadline three weeks out. Ask it about any of that later and it answers with
+the source of every claim attached, so you can check the answer rather than trust it.
 
-```
-"I want to read this paper."     The file has sat unopened for six weeks.
-"I'll send them the document."   You did not.
-A birthday went in.              No calendar entry exists.
-```
+Most systems stop at storage. You put information in, it becomes something you can pull back
+out, and then it dies there because nothing ever acts on it. This one reads what you captured
+and extracts the commitments buried inside it, then reports those back on a schedule until
+each one is finished or deliberately dropped. A periodic brief tells you what is due this
+week, a nudge returns to the article you saved and never opened, and a reminder arrives
+before the document you have to submit is late.
 
-Those are **loops**. They appear in a report on a schedule until you decide what to do with
-them. After the fourth unanswered appearance the report includes the work needed to finish
-them: the drafted message, a summary of the unread document, the calendar entry to paste.
-
-Two things it does, then:
-
-1. **Answers questions about what you have read**, citing the source of every claim.
-2. **Reports what you have not finished**, with the work to finish it attached.
+Those extracted commitments are called **loops**, and you never type one. They are written
+during compilation, from material you captured for some other reason. After a loop has
+appeared four times without an answer it moves to the top of the brief with the work already
+drafted, so what arrives is the message itself rather than a reminder to write it.
 
 **What you need:** Claude Code, and a machine you use most days. Nothing else — no API keys,
 no database, no server, no vector store, and no monthly cost.
@@ -94,8 +91,6 @@ until it runs.
 | `/bootstrap` | The interview that fills `mem/`. |
 | `/unsource` | Remove a source and reverse every change it caused. |
 
-Recent changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
-
 ## Using it
 
 ```
@@ -138,44 +133,37 @@ python scripts/install_schedule.py --day FRI,SUN --time 19:00
 That registers four tasks: the brief the evening before each day you read it, a second
 attempt the next morning, a daily capture from Telegram, and a daily due-date check.
 
-The brief runs in the evening because a morning task on a sleeping laptop depends on Windows
-wake timers, which Windows disables on battery. In the evening the machine is already awake.
-The morning task covers both failure and freshness. If the evening run failed it does the
-full pass and sends. If the evening succeeded it drains Telegram and resends only when
-something that arrived overnight changes what you would do — a new deadline, something now
-due, a loop now resolved. Otherwise it sends nothing, so a normal week still produces one
-email.
+### Reliability
 
-Tasks run on battery, survive being unplugged, and can wake a sleeping machine. A machine
-that is fully off runs the task at next startup, so the brief arrives late rather than not
-at all.
+A scheduled job that quietly stops running is worse than no job at all, because the only
+signal that it failed is an absence you have to notice. Three mechanisms handle that, and
+each one covers a different way the previous one breaks.
 
-### How delivery is ensured
+**The run happens while the machine is awake.** A task set for the morning has to wake a
+sleeping laptop, which depends on Windows wake timers, and Windows disables those on battery.
+The brief therefore runs at 19:00 the evening before the morning you read it, when the
+machine is already on and online. Windows' remaining defaults work against this as well, so
+the installer overrides three of them, allowing tasks to start on battery, to survive being
+unplugged mid-run, and to run a missed occurrence at the next opportunity rather than skipping
+it permanently. A machine that was fully off runs the task at next startup, which means the
+brief arrives late rather than not at all.
 
-A scheduled job that quietly does not run is worse than no job, because you stop checking.
-Six layers stand between a scheduled brief and a missed one, each covering a way the
-previous one fails.
+**A single run does not give up easily.** Waking a machine starts the task before Wi-Fi has
+associated, so the run polls for a network connection for up to ten minutes before doing
+anything. If the network never arrives it stops without attempting anything, because every
+stage needs one and so does the failure email, and continuing would only produce a cascade of
+misleading errors. Each stage that does run retries on failure, twice for capture and mail
+and once for the brief, thirty seconds apart.
 
-| | Failure it covers |
-|---|---|
-| **1. Run in the evening** | A morning task on a sleeping laptop needs Windows wake timers, and Windows disables those on battery. In the evening the machine is already awake. |
-| **2. Wait for the network** | A task that wakes the machine starts before Wi-Fi associates. The run waits up to ten minutes rather than failing on a cold start. |
-| **3. Stop rather than half-run** | If the network never arrives it exits without attempting. Every stage needs one, and so does the failure email, so continuing only produces misleading errors. |
-| **4. Retry each stage** | Capture and mail retry twice, the brief once, thirty seconds apart. Covers a transient refusal. |
-| **5. Second attempt next morning** | If the evening failed for any reason, the morning run does the full pass and sends. |
-| **6. Report the failure** | If it still fails, you get an email: what broke, the last 25 log lines, the command to retry, and what to check. |
-
-Windows' own defaults work against all of this, so the installer overrides three of them:
-tasks may start on battery, survive being unplugged mid-run, and a missed occurrence runs at
-the next opportunity instead of being skipped permanently.
-
-The morning run is also how the evening schedule keeps its cost down. A brief written at
-19:00 cannot include anything captured overnight, so the morning pass drains Telegram and
-resends **only if** what arrived changes what you would do. Otherwise it sends nothing, and
-a normal week produces one email.
-
-Every attempt appends to `autopilot.log`, so a failure leaves a record whether or not the
-email got out.
+**A failed evening is caught the next morning.** The morning task checks what happened
+overnight and does the full pass if the evening run failed for any reason. If the evening
+succeeded it drains Telegram and resends only when something that arrived overnight changes
+what you would actually do, such as a new deadline or a loop that is now resolved, and
+otherwise sends nothing at all. That keeps a normal week at one email while recovering the
+one thing an evening brief gives up, which is anything captured after it was written. Should
+every layer fail, the system emails you what broke, the last 25 lines of the log, the command
+to run by hand, and what to check. Every attempt appends to `autopilot.log` whether or not
+the mail got out.
 
 ### Due dates
 
@@ -355,6 +343,26 @@ The measure is **nudge precision**: of the loops reported each period, how many 
 reporting. Below about 30 per cent the design is wrong. Two further conditions end the
 project: nothing entering `raw/` for three consecutive weeks, which means capture is too
 inconvenient; or finding yourself editing the wiki by hand, which means the compiler failed.
+
+## Updates
+
+Newest first. The reasoning behind each one is in the commit that made it.
+
+**31 August 2026.** The brief was rewritten after a week of real output. Two sections that
+reported on the system rather than on your work were cut, `Now` was narrowed to mean today
+only, and a `Don't forget` section took their place to resurface things captured and never
+returned to. Capture now refuses labelled credentials before writing anything to disk, after
+a bank password reached the vault and had to be removed. Delivery was rebuilt in layers,
+described under [Reliability](#reliability), following a brief that was lost to a laptop
+that woke before its Wi-Fi did.
+
+**30 August 2026.** Added `/ingest-all`, which compiles the whole inbox under one approval
+and can therefore see across sources, so three notes about the same thing produce one loop
+rather than three. Added a daily due-date check that emails only when something is overdue,
+due today, or due tomorrow, and stops nagging at 14 days so the brief can force a decision
+instead. The brief email now renders as HTML rather than raw markdown. The project was
+renamed from `second-brain`, a name shared with thousands of repositories that said nothing
+about what this one does.
 
 ## Further reading
 
