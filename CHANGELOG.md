@@ -5,6 +5,24 @@ and in [`docs/decisions.md`](docs/decisions.md).
 
 ## 2026-08-31
 
+### Added — capture refuses credentials
+
+A bank password was sent to the vault and written to disk. The compiler refused to compile
+it, which is the rule working, but that is one step too late: capture writes the file first,
+and the vault is a git repository. A password is easier to never store than to remove.
+
+Telegram capture now checks for labelled credentials before writing anything — `password:`,
+`pin:`, `api key =`, seed phrases, PEM private key blocks, and provider token prefixes. A
+match is refused, nothing is written, and the reason is printed.
+
+The test errs toward refusing. It matches the labelled form rather than every high-entropy
+string, because losing one note costs less than storing one password. Verified against twelve
+messages, including the one that got through and the near misses that must not trip it:
+"remind me to change my password", "token economics is interesting".
+
+The vault records that a refusal happened without recording what was refused. That audit
+trail is kept on purpose.
+
 ### Added — a second run the next morning
 
 Running the system costs nothing, so the brief is attempted twice: 19:00 the evening before,
