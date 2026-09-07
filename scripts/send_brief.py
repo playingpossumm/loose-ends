@@ -14,7 +14,11 @@ So: this module can reach exactly one mailbox, and it is yours.
 
 Usage:
     python scripts/send_brief.py --dry-run    # print what would be sent
-    python scripts/send_brief.py              # send it
+    python scripts/send_brief.py              # send it now
+    python scripts/send_brief.py --queue      # send it tagged, for morning release
+
+--queue tags the subject so a Gmail filter can keep the message out of the inbox until an
+Apps Script trigger releases it in the morning. See docs/setup.md, "Morning delivery".
 """
 
 from __future__ import annotations
@@ -33,6 +37,12 @@ ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 
 REQUIRED = ("BRAIN_SMTP_HOST", "BRAIN_SMTP_USER", "BRAIN_SMTP_PASS", "BRAIN_EMAIL_TO")
+
+# Subject tag for a queued brief. A Gmail filter matches this text and archives the message;
+# the Apps Script trigger searches for it, strips it, and sends the brief on in the morning.
+# It is matched as a literal string on both sides, so changing it means changing the filter,
+# the script property, and nothing else.
+QUEUE_TAG = "[BRIEF-QUEUED]"
 
 # Words that mean "this section is empty" when they are all a section contains.
 PLACEHOLDER = {
@@ -152,17 +162,23 @@ def subject_for(body: str, brief: Path) -> str:
     return f"Brief — {brief.stem}"
 
 
-def build(brief: Path, to: str, sender: str) -> EmailMessage:
+def build(brief: Path, to: str, sender: str, queue: bool = False) -> EmailMessage:
     raw = strip_frontmatter(brief.read_text(encoding="utf-8"))
 
     msg = EmailMessage()
-    msg["Subject"] = subject_for(raw, brief)
+    subject = subject_for(raw, brief)
+    msg["Subject"] = f"{QUEUE_TAG} {subject}" if queue else subject
     msg["From"] = sender
     msg["To"] = to  # the only assignment to this header in the codebase
 
     # Flagged high always: this is the one email the system sends, and its whole job is to
     # be dealt with rather than skimmed. Outlook, Apple Mail and Thunderbird render these;
     # Gmail's own importance markers are algorithmic and mostly ignore them — see README.
+    if queue:
+        # Belt and braces: the tag in the subject is what Gmail's filter can match, and this
+        # header is what the Apps Script checks before it forwards anything on.
+        msg["X-Brain-Queued"] = "1"
+
     msg["Importance"] = "High"
     msg["Priority"] = "urgent"
     msg["X-Priority"] = "1 (Highest)"
@@ -177,6 +193,8 @@ def build(brief: Path, to: str, sender: str) -> EmailMessage:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dry-run", action="store_true", help="print the message instead of sending")
+    ap.add_argument("--queue", action="store_true",
+                    help="tag the subject so Gmail holds it for morning release")
     args = ap.parse_args()
 
     env = load_env()
@@ -189,7 +207,8 @@ def main() -> None:
         )
 
     brief = latest_brief()
-    msg = build(brief, to=env["BRAIN_EMAIL_TO"], sender=env["BRAIN_SMTP_USER"])
+    msg = build(brief, to=env["BRAIN_EMAIL_TO"], sender=env["BRAIN_SMTP_USER"],
+                queue=args.queue)
 
     if args.dry_run:
         print(f"--- would send {brief.name} to {env['BRAIN_EMAIL_TO']}")
@@ -202,7 +221,10 @@ def main() -> None:
         s.starttls()
         s.login(env["BRAIN_SMTP_USER"], env["BRAIN_SMTP_PASS"])
         s.send_message(msg)
-    print(f"Sent {brief.name} to {env['BRAIN_EMAIL_TO']}")
+    if args.queue:
+        print(f"Queued {brief.name} for {env['BRAIN_EMAIL_TO']} — releases in the morning")
+    else:
+        print(f"Sent {brief.name} to {env['BRAIN_EMAIL_TO']}")
 
 
 if __name__ == "__main__":

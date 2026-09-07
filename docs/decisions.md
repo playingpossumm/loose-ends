@@ -340,3 +340,59 @@ is now free; revisit query once there is evidence of reaching for it.
 
 Built this round: `scripts/telegram_capture.py`. Tested: text, links, forwards with
 provenance, photos, PDFs, voice-note fallback, empty messages, filename collisions.
+
+## Locked — round 10 (morning delivery)
+
+**The brief is written on Friday and Sunday evening and delivered at 07:00 on Saturday and
+Monday.** Writing and delivery were one act until now, so the evening run put a Monday brief
+in the inbox on Sunday night. On 2026-09-06 that arrived at 23:55, because the laptop was shut
+at 19:00 and Windows ran the missed task at next startup.
+
+**Gmail's Schedule send cannot be used.** It exists in the Gmail interface only. SMTP has no
+scheduling, and `messages.send` in the Gmail API takes no delivery time. Apps Script is
+Google's supported route to sending on a timer.
+
+| Option | Rejected because |
+|---|---|
+| Send from the laptop at 07:00 instead | moves the failure rather than removing it — a shut laptop at seven delays the mail to whenever it opens |
+| Resend, Mailgun or SendGrid `send_at` | a third party holds the brief in transit, and it needs an account, an API key and a verified sender |
+| **Queue in Gmail, release with Apps Script** | **chosen** |
+
+**How it works.** `send_brief.py --queue` tags the subject `[BRIEF-QUEUED]` and sets an
+`X-Brain-Queued` header. A Gmail filter archives anything with that tag, so the night-time
+copy is never seen. `scripts/gmail_scheduler/Code.gs` runs on Google's servers at 07:00 on
+Saturday and Monday, finds the newest tagged message from the last three days, checks the
+header, sends it on without the tag, and labels the queued copy `brief-released` so it cannot
+go twice.
+
+**What it buys and what it does not.** Arrival no longer depends on the laptop: Google
+delivers whether the machine is open, shut or in a bag. Writing still does — no evening run
+means nothing queued, and the 08:00 catch-up then sends directly rather than queuing for a
+morning that has passed. That is the correct fallback, since a brief nobody queued is better
+late than absent.
+
+**The header is a guard, not decoration.** The subject tag is what Gmail's filter can match;
+the header is what stops the script forwarding anything else that happens to carry the words.
+
+**Nothing is deleted.** A released brief is labelled, not trashed, and the label is also the
+mechanism preventing a second send.
+
+Built this round: `scripts/gmail_scheduler/Code.gs`, `scripts/gmail_scheduler/appsscript.json`,
+`--queue` in `scripts/send_brief.py`, and `weekly(queue=...)` in `scripts/autopilot.py`.
+
+### Addendum: the morning check runs before the release
+
+Queuing moved delivery to 07:00 but left the overnight-changes check at 08:00, which put the
+safeguard *after* the thing it was meant to guard. A revision would then arrive as a second
+email rather than as a better first one.
+
+**The catch-up moves to 06:00**, and `refresh()` re-queues instead of sending when it runs
+before `RELEASE_HOUR`. Gmail releases the newest tagged message, so a revision written at six
+is the one delivered at seven and only one email arrives. `Code.gs` labels every tagged thread
+it matched rather than only the one it sent, so the superseded copy cannot resurface.
+
+**Three fallbacks are unchanged.** A catch-up that runs late finds the brief already released
+and sends the revision as a second email. A catch-up that finds nothing queued — the evening
+never ran — writes and sends directly, because a `/brief` run can overrun the hour. And a
+laptop shut at six neither wakes nor blocks the release: the brief written last night still
+goes out at seven.

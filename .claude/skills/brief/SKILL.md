@@ -5,7 +5,8 @@ description: Write the periodic brief — what to do this week, what is coming i
 
 # brief
 
-The brief tells the user what to do today and resurfaces what they would otherwise lose.
+The brief tells the user what to do this week and resurfaces what they would otherwise
+lose.
 
 It does not explain their work back to them. They know how to update a CV, prepare for an
 interview, or plan a launch. Telling them how is noise, and it is the fastest way to make
@@ -59,8 +60,9 @@ what it unlocks or what it blocks, and let the stakes carry it.
 
 ```
 The RAG project is at 75% and one day of technical work finishes it, which clears the rest
-of the week for the CV and portfolio due Sunday 6 September. Kyara is waiting on the GTM plan today, and
-Q4 starts in a month with nothing written down. The Jakarta trip takes Friday to Sunday.
+of the week for the CV and portfolio due Sunday 6 September. Kyara is waiting on the GTM
+plan Monday, and Q4 starts in a month with nothing written down. The Jakarta trip takes
+Friday 4 to Sunday 6 September.
 ```
 
 Do not encourage, congratulate or exhort. No "you've got this", no "a strong week ahead", no
@@ -72,6 +74,36 @@ Do not write a sentence whose subject is the report — no "this brief covers", 
 is coming up", "as of today". Do not do arithmetic on the reader's behalf: "six working
 days, three of them away" is a calculation, not a fact, and it belongs nowhere in the brief.
 If nothing is due, say that in one sentence and omit the empty sections.
+
+## Staleness
+
+The brief reports what the vault knows, and the vault only learns when something is
+compiled. Capture is automatic, compilation is not, so the two drift apart silently and
+nothing in the output looks any different when they have.
+
+Check `log.md` for the most recent `ingest` or `ingest-all` entry before writing. If it is
+**seven or more days old**, or the inbox holds more than five items, or any one item has
+waited more than two weeks, put a single italic line directly under the opening paragraph,
+before the first section:
+
+```
+*Last compiled 9 days ago, with 4 items waiting in the inbox. Anything captured since is
+missing from this brief. Run /ingest-all.*
+```
+
+It goes at the top, not the bottom. A warning about whether the contents can be trusted is
+useless after the contents have been read.
+
+State the real numbers: days since the last compile, and how many items are waiting. When
+the inbox is empty, say so rather than implying something is missing — a vault that has not
+been compiled for nine days is still current if nothing arrived in those nine days.
+
+```
+*Last compiled 9 days ago. The inbox is empty, so nothing captured is missing.*
+```
+
+None of the three conditions met means no line at all. Do not write a reassurance that the
+brief is up to date; silence is the signal.
 
 ## Structure
 
@@ -150,6 +182,7 @@ Spell out only where a digit starts a sentence.
 # Morning Brief — Monday, 31 August 2026
 
 <Opening paragraph. Two or three sentences, each naming a real item and a real date.>
+<Then the staleness line, only if one of its three conditions is met.>
 
 ## Now
 <This week. Anything due or worked on between today and Sunday, earliest date first.
@@ -251,6 +284,5 @@ in `Soon`, or `Soon` is holding things that belong nowhere.
 - **Rank against stated goals**, then by deadline.
 - **Never invent an item to fill a section.** Omit the section.
 - **Never write a calendar entry.** Do not mention that one is missing either.
-- If the inbox holds more than five uncompiled items, or one has waited more than two weeks,
-  add a single line at the end: `12 items uncompiled, oldest 16 days. Run /ingest-all.`
-  Otherwise say nothing about the inbox.
+- **Check the last compile date before writing.** See Staleness above. A brief that
+  silently reports a stale vault is worse than no brief, because it is believed.

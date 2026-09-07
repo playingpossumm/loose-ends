@@ -27,12 +27,13 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,6 +47,12 @@ STATE = ROOT / ".last-brief"
 # cover the first having failed. Running the system twice costs nothing; sending the same
 # brief twice costs attention, which is the scarce thing.
 CATCHUP_WINDOW_HOURS = 18
+
+# The hour the Apps Script trigger releases a queued brief. Must match the triggers installed
+# by scripts/gmail_scheduler/Code.gs. The morning pass uses it to decide whether a revision
+# can still catch the release — before it, re-queue and one corrected email goes out; after
+# it, the brief has already been delivered and a revision is necessarily a second email.
+RELEASE_HOUR = 7
 
 UPDATE_PROMPT = (
     "Run the /brief skill in update mode. A brief already exists in briefs/ for this "
@@ -222,6 +229,32 @@ def capture() -> bool:
                "telegram capture", timeout=180, retries=2)
 
 
+def staleness() -> str:
+    """How long since the vault was last compiled, and how much is waiting.
+
+    Computed here rather than left to the model. The brief skill asks it to check `log.md`
+    and work out whether the last ingest was seven or more days ago, which is date
+    arithmetic on a file it has to read anyway — reliable most of the time and wrong
+    silently the rest. The scheduled brief is the one nobody is watching, so it gets the
+    numbers handed to it.
+    """
+    log_file = VAULT / "log.md"
+    if not log_file.is_file():
+        return ""
+    dates = re.findall(r"^## \[(\d{4}-\d{2}-\d{2})\] ingest",
+                       log_file.read_text(encoding="utf-8", errors="replace"), re.M)
+    if not dates:
+        return ""
+    days = (datetime.now().date() - date.fromisoformat(max(dates))).days
+    waiting = inbox_count()
+    if days < 7 and waiting <= 5:
+        return ""
+    return (f"\n\nFACTS FOR THE STALENESS LINE, already computed — do not recalculate: "
+            f"the vault was last compiled {days} day{'s' if days != 1 else ''} ago, and "
+            f"{waiting} item{'s are' if waiting != 1 else ' is'} waiting in the inbox. "
+            f"Follow the Staleness section of the skill.")
+
+
 def due_check(window: str) -> bool:
     """The daily nudge. Routed through here rather than scheduled directly, so it gets the
     same network wait, retry and failure report as the brief. A reminder that dies silently
@@ -235,10 +268,12 @@ def inbox_count() -> int:
 
 
 def refresh(last: datetime) -> bool:
-    """Morning pass when last night's brief was delivered.
+    """Morning pass when last night's brief was queued or delivered.
 
-    Drains Telegram, then updates and resends the brief only if the new material changes
-    what a reader would do. The model makes that call — it is the same judgement the brief
+    Drains Telegram, then updates the brief only if the new material changes what a reader
+    would do. Run before the release hour it re-queues, so Gmail delivers the revised brief
+    instead of the one written last night and only one email arrives. Run after it, the brief
+    is already in the inbox and the revision follows as a second one. The model makes that call — it is the same judgement the brief
     already makes about what is worth reporting. Anything else means a second email most
     mornings, which is how the channel stops being read.
     """
@@ -255,7 +290,7 @@ def refresh(last: datetime) -> bool:
         log("refresh: FAILED — could not find the Claude Code binary")
         return False
 
-    r = subprocess.run([str(claude), "-p", UPDATE_PROMPT,
+    r = subprocess.run([str(claude), "-p", UPDATE_PROMPT + staleness(),
                         "--permission-mode", "acceptEdits", "--output-format", "text"],
                        cwd=ROOT, capture_output=True, text=True,
                        encoding="utf-8", errors="replace", timeout=900)
@@ -269,14 +304,24 @@ def refresh(last: datetime) -> bool:
         log("refresh: nothing that changes what you would do — not resending")
         return True
 
-    if run([str(PY), str(ROOT / "scripts" / "send_brief.py")], "email update", timeout=180,
-           retries=2):
+    in_time = datetime.now().hour < RELEASE_HOUR
+    cmd = [str(PY), str(ROOT / "scripts" / "send_brief.py")] + (["--queue"] if in_time else [])
+    if in_time:
+        log(f"refresh: before the {RELEASE_HOUR:02d}:00 release — re-queuing the revision")
+    if run(cmd, "queue update" if in_time else "email update", timeout=180, retries=2):
         mark_brief_sent()
         return True
     return False
 
 
-def weekly() -> bool:
+def weekly(queue: bool = False) -> bool:
+    """Write the brief and mail it.
+
+    queue=True tags the message so Gmail holds it back and an Apps Script trigger releases
+    it at 07:00 the next morning. That is the evening run, whose whole purpose is to have
+    the brief written before the machine is shut. The morning catch-up passes queue=False:
+    by then the release trigger has already fired, so a queued message would wait a week.
+    """
     capture()  # fold in anything sent from the phone before writing the brief
 
     claude = find_claude()
@@ -285,7 +330,7 @@ def weekly() -> bool:
         return False
 
     before = {p.name for p in (VAULT / "briefs").glob("*.md")}
-    if not run([str(claude), "-p", BRIEF_PROMPT,
+    if not run([str(claude), "-p", BRIEF_PROMPT + staleness(),
                 "--permission-mode", "acceptEdits", "--output-format", "text"],
                "write brief", timeout=900, retries=1):
         return False
@@ -299,8 +344,8 @@ def weekly() -> bool:
         # but say so — a silent no-op is the failure mode worth catching here.
         log("  no new brief file; sending the most recent one")
 
-    if not run([str(PY), str(ROOT / "scripts" / "send_brief.py")],
-               "email brief", timeout=180, retries=2):
+    cmd = [str(PY), str(ROOT / "scripts" / "send_brief.py")] + (["--queue"] if queue else [])
+    if not run(cmd, "queue brief" if queue else "email brief", timeout=180, retries=2):
         return False
     mark_brief_sent()
     return True
@@ -341,7 +386,9 @@ def main() -> None:
     elif args.due_check:
         stage, ok = f"due check ({args.due_check})", due_check(args.due_check)
     else:
-        stage, ok = "brief", weekly()
+        # The evening run queues for a 07:00 release; the catch-up has missed that window
+        # and sends directly, which is the point of it.
+        stage, ok = "brief", weekly(queue=args.weekly)
     log(f"done: {'ok' if ok else 'FAILED'}")
     if not ok:
         report_failure(stage)

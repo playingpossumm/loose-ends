@@ -127,9 +127,10 @@ def main() -> None:
     ap.add_argument("--nudge-evening", default="19:30", metavar="HH:MM",
                     help="the evening nudge: what is due tomorrow, while there is still a "
                          "night to prepare in.")
-    ap.add_argument("--catchup-time", default="08:00",
-                    help="second attempt, the morning after the main run. Does nothing if "
-                         "the brief already went out. HH:MM")
+    ap.add_argument("--catchup-time", default="06:00",
+                    help="second attempt, the morning after the main run. Recovers a failed "
+                         "evening, and otherwise revises the queued brief before Gmail "
+                         "releases it at 07:00. HH:MM")
     ap.add_argument("--no-catchup", action="store_true", help="skip the second attempt")
     ap.add_argument("--no-due-check", action="store_true", help="skip both nudge tasks")
     ap.add_argument("--no-capture", action="store_true", help="skip the daily capture task")

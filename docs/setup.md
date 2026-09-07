@@ -159,8 +159,8 @@ That registers five Windows tasks:
 
 | Task | Does | Default |
 |---|---|---|
-| `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, emails it | your chosen days, 19:00 |
-| `SecondBrain-BriefCatchup` | the next morning: recovers a failed run, or folds in overnight material that changes something | the following mornings, 08:00 |
+| `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, mails it tagged for morning release | your chosen days, 19:00 |
+| `SecondBrain-BriefCatchup` | the next morning, before the release: recovers a failed run, or folds in overnight material that changes something | the following mornings, 06:00 |
 | `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
 | `SecondBrain-NudgeMorning` | emails what is due today and what is overdue; silent otherwise | daily, 07:00 |
 | `SecondBrain-NudgeEvening` | emails what is due tomorrow; silent otherwise | daily, 19:30 |
@@ -170,13 +170,57 @@ reminder is only useful at the hour you can act on it: what is due today needs t
 day in front of it, and what is due tomorrow needs an evening to prepare in. A loop overrides
 its window with `nudge: morning` or `nudge: evening` in its frontmatter.
 
+### Morning delivery — Gmail holds it until 07:00
+
+The evening run exists so the brief is written while the machine is awake. On its own it also
+*delivers* in the evening, which puts a Monday brief in your inbox at some point on Sunday
+night. Three steps move the arrival to 07:00 without moving the writing, and without needing
+the laptop to be on at seven.
+
+Gmail's own Schedule send cannot do this: it exists in the Gmail interface only, and is
+exposed neither over SMTP nor through `messages.send` in the Gmail API. Apps Script is the
+supported way to have Google send something on a timer.
+
+**1. Tag the message.** Nothing to do — `autopilot.py --weekly` already passes `--queue` to
+`send_brief.py`, which puts `[BRIEF-QUEUED]` in the subject and an `X-Brain-Queued` header on
+the message. A brief sent by hand is untagged and arrives immediately, as before.
+
+**2. Keep the tagged copy out of the inbox.** In Gmail, create a filter with *subject
+contains* `[BRIEF-QUEUED]`, and tick **Skip the Inbox** and **Never send it to Spam**. Without
+this you see the brief twice: once at night and once in the morning.
+
+**3. Release it in the morning.** At [script.google.com](https://script.google.com) create a
+project, paste `scripts/gmail_scheduler/Code.gs` into it, and run `setUpTriggers` once from
+the editor. It asks for permission to send mail as you, then installs two weekly triggers,
+Saturday and Monday at 07:00. Set the project's time zone to your own under Project Settings —
+the file `scripts/gmail_scheduler/appsscript.json` carries `Asia/Jakarta`.
+
+Run `testRelease` from the editor to check the wiring rather than waiting for Saturday.
+
+**What the script does.** It searches for the newest message tagged in the last three days,
+confirms the `X-Brain-Queued` header so it forwards nothing else, sends it on to you without
+the tag, and labels the queued copy `brief-released` so it cannot go twice. Nothing is
+deleted, and if nothing is queued it does nothing and says so in its log.
+
+**The safeguard still runs, and now it runs first.** The 06:00 catch-up drains Telegram and
+asks whether anything that arrived overnight changes what you would do. Because that is an
+hour before the release, a revision is **re-queued** rather than sent: Gmail picks the newest
+tagged message at 07:00, so you get one corrected brief instead of last night's followed by an
+update. If the catch-up runs late — a shut laptop at six — the release has already happened and
+a revision arrives as a second email, which is what it always did.
+
+**What this buys.** The brief arrives at seven on your phone whether the laptop is open, shut
+or in a bag, because Google does the sending. What it does not cover is the laptop being off
+all Friday and Sunday evening — no evening run means nothing queued, and the 08:00 catch-up
+then writes and sends directly.
+
 ### Why a scheduled brief or nudge still arrives
 
 Six layers, each covering a way the previous one fails:
 
 | | Covers |
 |---|---|
-| runs in the evening | a sleeping laptop, where Windows disables wake timers on battery |
+| runs in the evening, delivers in the morning | a sleeping laptop, where Windows disables wake timers on battery; Gmail releases the queued brief at 07:00 |
 | waits up to 10 min for the network | a task that wakes the machine before Wi-Fi associates |
 | stops rather than half-running | no network means no work and no way to report it |
 | retries each stage | a transient refusal |
@@ -199,15 +243,17 @@ It does one of three things:
 
 | Last night | Behaviour |
 |---|---|
-| failed | full pass, sends. The safety net. |
-| succeeded, nothing arrived overnight | drains Telegram, sends nothing |
-| succeeded, something arrived | asks whether it changes what you would do, and revises and resends only if it does |
+| failed, nothing queued | full pass, sends **directly** — the release window is minutes away and a `/brief` run can overrun it |
+| queued, nothing arrived overnight | drains Telegram, sends nothing; the 07:00 release delivers what was written |
+| queued, something arrived | asks whether it changes what you would do; if it does, revises and **re-queues**, so the 07:00 release carries the revision |
 
 A fixed "resend if anything is new" rule would mean a second email most mornings, since
 material arrives most evenings. Items sitting uncompiled are explicitly not a reason to
 resend — the existing brief already counts them.
 
-`--catchup-time` moves it; `--no-catchup` skips it.
+`--catchup-time` moves it; `--no-catchup` skips it. Keep it before the Apps Script release
+hour — `RELEASE_HOUR` in `autopilot.py` is what decides whether a revision is re-queued or
+sent, and it must match the triggers in `Code.gs`.
 
 `--nudge-morning` and `--nudge-evening` move the two nudges; `--no-due-check` skips both.
 Neither calls a model — they read the vault and send — so they are fast, but they are not
@@ -234,8 +280,10 @@ What they *do* handle, because the installer overrides Windows' laptop-hostile d
 | On battery | runs anyway — Windows blocks this by default |
 | You unplug mid-run | keeps going — Windows aborts by default |
 
-So a Saturday spent away from your desk means the brief arrives Sunday, or Monday. Late,
-not lost. The only way to get it exactly on time regardless is a machine that never sleeps,
+So a Friday evening spent away from your desk means nothing is queued, and the brief arrives
+whenever the machine next opens — the 08:00 catch-up sends it directly rather than queuing it
+for a morning that has already passed. Late, not lost. Once the evening run has happened, the
+arrival time no longer depends on the laptop at all. The only way to get it exactly on time regardless is a machine that never sleeps,
 which is the ~$10-15/mo this project deliberately avoids.
 
 Check it:  `schtasks /query /tn SecondBrain-WeeklyBrief`

@@ -87,8 +87,8 @@ anything older than two weeks.
 ### Automation
 
 Four things run without you. Telegram messages are drained into `vault/raw/inbox/` once a
-day, browser clippings land there the moment you click, the brief is written and emailed on
-your schedule with a retry the following morning, and nudges go out at 07:00 and 19:30,
+day, browser clippings land there the moment you click, the brief is written on your schedule and
+delivered the next morning with a retry behind it, and nudges go out at 07:00 and 19:30,
 silent unless something is due. Compiling is the single exception, for the reason given
 above.
 
@@ -103,6 +103,14 @@ That registers five tasks: the brief on the evening before each day you read it,
 attempt the following morning, a daily capture from Telegram, and the two daily nudges. Use
 `--nudge-morning` and `--nudge-evening` to move the last two.
 
+The evening run does not put the brief in front of you at night. It mails the brief to
+yourself tagged `[BRIEF-QUEUED]`, a Gmail filter keeps that copy out of the inbox, and an
+Apps Script trigger running on Google's servers sends it on at 07:00 on Saturday and Monday.
+So the writing depends on your laptop and the arrival does not. Gmail's own Schedule send
+cannot be driven from code — it exists in the interface only — which is why the release runs
+in Apps Script; the script is `scripts/gmail_scheduler/Code.gs` and the three setup steps are
+in [docs/setup.md](docs/setup.md).
+
 ### Reliability
 
 The system is free because it runs on your own laptop, which means it only runs when your
@@ -110,8 +118,10 @@ laptop is on. That is the trade: no server, and therefore no guarantee that the 
 awake at the hour a brief or a nudge is due. Six behaviours cover it, each addressing a way
 the one before it fails.
 
-- **19:00, the evening before you read it.** A morning task has to wake a sleeping laptop,
-  which needs Windows wake timers, and Windows disables those on battery.
+- **19:00, the evening before you read it, delivered at 07:00.** A morning task has to wake a
+  sleeping laptop, which needs Windows wake timers, and Windows disables those on battery. So
+  the brief is written in the evening and held by Gmail until the morning, which puts the one
+  step that needs the machine at the hour the machine is reliably awake.
 - **Three Windows task defaults overridden.** Tasks otherwise refuse to start on battery,
   abort when unplugged, and skip a missed run permanently.
 - **Up to ten minutes waiting for a network.** Waking a machine starts the task before Wi-Fi
