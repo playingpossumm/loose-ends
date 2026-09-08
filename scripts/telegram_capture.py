@@ -35,6 +35,11 @@ STATE = ROOT / ".telegram-offset"
 API = "https://api.telegram.org"
 
 # Telegram holds undelivered updates for 24h. Anything older is gone regardless.
+#
+# This is why the daily scheduled drain exists and must not be removed on the grounds that
+# /ingest-all now drains too. The scheduled run is not a convenience for compiling — it is
+# the only thing standing between a 24-hour gap in your attention and permanent data loss.
+# Compile whenever you like; the drain has to happen daily whether you compile or not.
 LONG_POLL = 50
 
 

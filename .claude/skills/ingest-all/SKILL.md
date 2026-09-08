@@ -15,6 +15,23 @@ between every source.
 
 Read [CLAUDE.md](../../../CLAUDE.md) first if you have not this session.
 
+## Drain first
+
+Before planning anything, run:
+
+```
+python scripts/telegram_capture.py --once
+```
+
+`/ingest-all` compiles what is in `raw/inbox/`, and Telegram messages only land there when
+that script runs. Without this step, "compile everything" silently means "compile everything
+that arrived before the last scheduled drain" — so a note sent from your phone an hour ago
+is missed, and the run reports success anyway.
+
+`--weekly` already drains before writing the brief, for the same reason. Draining twice
+costs nothing: the script tracks an offset, so a second run in the same minute fetches
+nothing.
+
 ## Promotion
 
 Compiling the whole inbox at once is the only moment the compiler sees across sources, so it
