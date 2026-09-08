@@ -107,7 +107,8 @@ brief is up to date; silence is the signal.
 
 ## Structure
 
-Three sections. Two of them are often empty, and an empty section is omitted entirely.
+Four sections. Two or three are usually empty, and an empty section is omitted
+entirely — `Findings` in particular is absent most weeks.
 
 Every entry is a level-three heading followed by one or two lines:
 
@@ -176,7 +177,7 @@ it.
 Digits and standard symbols: `75%`, `20 minutes`, `£40`, `3 September`. Never `75 per cent`.
 Spell out only where a digit starts a sentence.
 
-### The three sections
+### The four sections
 
 ```markdown
 # Morning Brief — Monday, 31 August 2026
@@ -232,7 +233,41 @@ A gallery of interface patterns.
 Give the real title, link it if it has a URL, and say what the thing is if the name does not
 carry it. Never say where the file lives, never say a loop produced it, never say when it
 was saved, and never say that no note was attached.>
+
+## Findings
+<At most one item, and usually absent. See the Findings section below for what qualifies.>
 ```
+
+## Findings
+
+One item, at most, per brief. It is the only part of the brief that is not a commitment, and
+it exists because a vault that only ever reports what you owe is a deadline tracker with a
+wiki attached.
+
+Read `wiki/` before writing it. Something qualifies only if it meets one of these:
+
+- **Two sources disagree.** State both claims and cite both. This is the strongest kind and
+  nothing else in the system finds it.
+- **A source contradicts `mem/`.** What you recorded about yourself no longer matches what
+  you have since captured.
+- **A claim in the vault bears on something in `Now` or `Soon`.** Not a summary of the
+  source — the claim itself, in one sentence, and why it touches this week's work.
+
+```
+## Findings
+
+Cook's third principle is that catastrophe requires multiple failures, and single-cause
+explanations are artefacts of investigation. Your 29 August note on the RAG failure names
+one cause.
+```
+
+**Omit the section when nothing meets the bar.** This will be most weeks, and that is the
+correct outcome. A section that must be filled becomes a section of restated source
+summaries, which is what `Worth knowing` was before it was deleted.
+
+**Never report on the wiki itself.** Not how many pages exist, not how many were written
+this week, not which subjects lack a page. That is housekeeping, it belongs to `/lint`, and
+it was cut from this brief once already.
 
 ## What never appears
 
@@ -247,7 +282,10 @@ Removed because they carried no information:
 - File paths. Anywhere. The user opens the vault to find things, not the brief.
 - "no note on why", "nothing recorded", "untouched since" as a description of what the
   user did or did not do when saving something.
-- Which loop or source an item came from.
+- Which loop or source an item came from — except in `Findings`, which cites its sources
+  because a claim you cannot check is not a finding.
+- Counts of pages, sources or compiled items. `Findings` carries knowledge, never a
+  description of the vault's own size or activity.
 - Counters, `surfaced` values, or any description of how the brief was assembled.
 
 ## Overdue

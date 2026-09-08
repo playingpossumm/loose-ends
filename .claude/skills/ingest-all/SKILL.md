@@ -15,6 +15,17 @@ between every source.
 
 Read [CLAUDE.md](../../../CLAUDE.md) first if you have not this session.
 
+## Promotion
+
+Compiling the whole inbox at once is the only moment the compiler sees across sources, so it
+is the right moment to promote. After writing every source, run `python scripts/synthesis.py`
+and create the entity and concept pages it lists.
+
+This is where the wiki stops being a pile of source summaries. A vault with fifty source
+pages and no entity pages answers "what do I know about X" by re-reading fifty pages and
+learning nothing that persists.
+
+
 ## Procedure
 
 **1. List what is waiting.** Every file in `raw/inbox/` with `status: uncompiled`, oldest

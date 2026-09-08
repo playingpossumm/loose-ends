@@ -44,8 +44,16 @@ Stop here if the plan touches more than 15 pages. Ask.
 **5. Write.**
 - `wiki/sources/<id>.md` — one page for this source: what it is, what it claims, why it
   matters.
-- `wiki/entities/`, `wiki/concepts/` — create or update. Promote a mention to its own page
-  at 3 independent source mentions, or if the user asks.
+- `wiki/entities/`, `wiki/concepts/` — create or update. **Run
+  `python scripts/synthesis.py` and promote whatever it lists.** You compile one source at
+  a time and cannot see mention counts across the other fifty; the script counts them for
+  you, from names already in `mem/` and from the `category:` you write on every source.
+  Promote at 3 independent sources, or whenever the user asks.
+  - An entity page answers "what does the vault know about this person, project or tool",
+    with every claim cited to the source it came from.
+  - A concept page keeps `## What sources say` and `## Current view` separate, and is the
+    only place a contradiction between two sources becomes useful rather than merely
+    recorded.
 - On every page touched, add this source's id to `sources:` and bump `updated:`. This is
   what makes `/unsource` possible later. Do not skip it.
 - Concept pages keep `## What sources say` and `## Current view` separate. Never merge them.
