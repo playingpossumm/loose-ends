@@ -3,7 +3,7 @@
 Without this, nothing pushes you — you have to remember to run /brief, which is exactly
 the problem the weekly brief exists to solve. This is what makes the system act on its own.
 
-    python scripts/autopilot.py --capture          # drain Telegram into the inbox
+    python scripts/autopilot.py --capture          # drain Telegram, compile what is safe
     python scripts/autopilot.py --weekly           # drain, write the brief, email it
     python scripts/autopilot.py --weekly-catchup   # second attempt the next morning
 
@@ -65,6 +65,22 @@ UPDATE_PROMPT = (
     "If it does, revise that same brief file in place, add one line at the top saying what "
     "changed since last night, and follow the skill otherwise. Do not ask me anything; I am "
     "not at the keyboard."
+)
+
+INGEST_PROMPT = (
+    "Run the /ingest-all skill against the inbox, unattended. Apply the triage in that "
+    "skill exactly: plan the whole batch, then write only the sources whose plan touches "
+    "`wiki/` alone. Hold every source that would write a dated loop, change a date already "
+    "recorded, touch `mem/`, contradict an existing claim, or that reads more than one "
+    "way. "
+    "Held sources stay in raw/inbox untouched — do not move them, mark them, or write a "
+    "holding file. What remains in the inbox is what waited. "
+    "For a source that is knowledge and commitment at once, write the source page and hold "
+    "the loop. "
+    "Do not ask me anything; I am not at the keyboard. A question you would have asked is a "
+    "reason to hold, not a reason to guess. Finish by printing one line per source saying "
+    "written or held, and for held, which rule caught it. If the inbox is empty, print "
+    "NOTHING TO DO and stop."
 )
 
 BRIEF_PROMPT = (
@@ -229,6 +245,31 @@ def capture() -> bool:
                "telegram capture", timeout=180, retries=2)
 
 
+def ingest() -> bool:
+    """Compile what is safe to compile, and leave the rest for a person.
+
+    Capture runs unattended and compiling did not, so material accumulated in the inbox
+    until someone opened an editor. The triage in the /ingest-all skill makes unattended
+    compiling safe by scope rather than by trust: a source whose plan touches only `wiki/`
+    is rebuildable from raw/ and cannot cause a reminder to fire wrongly, so it writes
+    itself. Anything touching a date, a loop, `mem/`, or an existing claim waits.
+
+    What is left in the inbox afterwards is what waited, which is what the brief reports.
+    """
+    claude = find_claude()
+    if not claude:
+        log("ingest: FAILED - could not find the Claude Code binary")
+        return False
+    before = inbox_count()
+    ok = run([str(claude), "-p", INGEST_PROMPT,
+              "--permission-mode", "acceptEdits", "--output-format", "text"],
+             "ingest", timeout=1800, retries=1)
+    if ok:
+        log(f"  inbox {before} -> {inbox_count()} ({before - inbox_count()} written, "
+            f"{inbox_count()} held)")
+    return ok
+
+
 def staleness() -> str:
     """How long since the vault was last compiled, and how much is waiting.
 
@@ -354,7 +395,8 @@ def weekly(queue: bool = False) -> bool:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--capture", action="store_true", help="drain Telegram into the inbox")
+    g.add_argument("--capture", action="store_true",
+                   help="drain Telegram, then compile what is safe to compile")
     g.add_argument("--due-check", choices=("morning", "evening"), metavar="WINDOW",
                    help="email the nudges belonging to this window: morning or evening")
     g.add_argument("--weekly", action="store_true", help="drain, write the brief, email it")
@@ -382,7 +424,10 @@ def main() -> None:
         log("catch-up: no brief went out last night, running the full pass")
 
     if args.capture:
-        stage, ok = "capture", capture()
+        # Drain, then compile what is safe to compile. Draining alone left the inbox
+        # growing until someone opened an editor, which is the friction the triage exists
+        # to remove.
+        stage, ok = "capture", capture() and ingest()
     elif args.due_check:
         stage, ok = f"due check ({args.due_check})", due_check(args.due_check)
     else:

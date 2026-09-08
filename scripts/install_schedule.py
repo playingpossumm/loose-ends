@@ -13,7 +13,8 @@ Five tasks are registered:
   <name>-WeeklyBrief    writes and emails the brief, on the days and time you give
   <name>-BriefCatchup   the next morning: recovers a failed run, or folds in anything
                         that arrived overnight and changes what you would do
-  <name>-Capture        drains Telegram into the inbox, daily
+  <name>-Capture        drains Telegram into the inbox and compiles what is safe to
+                        compile without asking, daily
   <name>-NudgeMorning   07:00, daily: what is due today, and what is overdue
   <name>-NudgeEvening   19:30, daily: what is due tomorrow
 

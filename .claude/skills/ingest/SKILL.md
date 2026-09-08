@@ -9,6 +9,13 @@ Compile **one** source at a time. This is the irreversible step in the system â€
 else can be redone from `raw/`, but a bad compile spreads across many pages before anyone
 notices. Work carefully and stay inside the caps.
 
+When run unattended, apply the triage in
+[`../ingest-all/SKILL.md`](../ingest-all/SKILL.md#what-writes-itself-and-what-waits): a
+source whose plan touches only `wiki/` may be written without asking; anything touching a
+date, a loop, `mem/`, or an existing claim waits for the reader. When run with a person
+present, show the plan and ask as before â€” the triage exists to make unattended compiling
+safe, not to stop you approving things yourself.
+
 Read [CLAUDE.md](../../../CLAUDE.md) first if you have not this session. Its rules override
 anything here.
 
