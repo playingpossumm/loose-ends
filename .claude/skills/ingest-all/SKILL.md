@@ -32,6 +32,41 @@ is missed, and the run reports success anyway.
 costs nothing: the script tracks an offset, so a second run in the same minute fetches
 nothing.
 
+## What writes itself, and what waits
+
+Not every source carries the same risk, so not every source needs the same approval. Plan
+the whole batch first, as always, then split it.
+
+The test is **which store the plan writes to**, which is the two-store distinction in
+`CLAUDE.md` applied one step earlier — at the decision of whether to write, not only at what
+may be written.
+
+| The plan writes | Stakes | Then |
+|---|---|---|
+| `wiki/` only | rebuildable from `raw/` at any time | **write it** |
+| a loop carrying a date | a nudge fires, or fails to fire | **hold** |
+| a change to a date already recorded | the same, and it overrides something you set | **hold** |
+| anything in `mem/` | nothing can reconstruct it | **hold** — you may only propose there anyway |
+| a claim contradicting a page in the vault | both must be kept and the conflict recorded | **hold** |
+| more than one reading of what the source means | a guess becomes a fact once written | **hold** |
+
+A wrong `wiki/` page costs a regeneration. A wrong date costs a reminder that does not
+arrive, or one that arrives about the wrong thing. That asymmetry is the whole rule.
+
+**The mixed case is the common one.** An article saved is knowledge; "I should read this" is
+a commitment. Write the source page, hold the loop. The reader keeps what was learned and
+still decides what is owed.
+
+**Held sources stay in `raw/inbox/`.** Do not move them, do not mark them, do not write a
+holding file. Whatever remains in the inbox after a pass is by definition what waited, which
+is what the brief counts and reports. Re-planning them on the next pass is intended: the
+vault has changed since, and a source that was ambiguous last night may not be tonight.
+
+**Say what you did.** Every source that wrote itself gets one line in the report, and every
+source held gets one line saying which row of the table above caught it. Nothing enters the
+vault unseen, and nothing waits without a stated reason.
+
+
 ## Promotion
 
 Compiling the whole inbox at once is the only moment the compiler sees across sources, so it
