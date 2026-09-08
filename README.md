@@ -84,17 +84,19 @@ handles one source; `/ingest-all` handles the whole inbox in one pass and can th
 across sources, which matters because three notes about the same thing should produce one
 loop rather than three.
 
-Captured material is searchable immediately but produces no pages and no loops until it is
-compiled. To stop anything sitting unseen, the brief counts what is waiting and reports
-anything older than two weeks.
+Compilation no longer waits for you in every case. The nightly pass writes any source whose
+plan touches only `wiki/` and holds the rest, which is described under
+[Triage](#triage). What it holds is reported in the brief as a decision waiting, so nothing
+sits unseen.
 
 ### Automation
 
-Four things run without you. Telegram messages are drained into `vault/raw/inbox/` once a
-day, browser clippings land there the moment you click, the brief is written on your schedule and
-delivered the next morning with a retry behind it, and nudges go out at 07:00 and 19:30,
-silent unless something is due. Compiling is the single exception, for the reason given
-above.
+Everything runs without you. Telegram messages are drained into `vault/raw/inbox/` once a
+day and compiled the same evening as far as is safe; browser clippings land there the moment
+you click; the brief is written on your schedule and delivered the next morning with a retry
+behind it; and nudges go out at 07:00 and 19:30, silent unless something is due.
+
+What the nightly pass will not decide for you is described next.
 
 Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you intend
 to read the brief:
@@ -114,6 +116,35 @@ So the writing depends on your laptop and the arrival does not. Gmail's own Sche
 cannot be driven from code — it exists in the interface only — which is why the release runs
 in Apps Script; the script is `scripts/gmail_scheduler/Code.gs` and the three setup steps are
 in [docs/setup.md](docs/setup.md).
+
+### Triage
+
+Compiling used to be the one step that needed a person at a keyboard, because `/ingest-all`
+shows a plan and waits for approval. The consequence was that material accumulated in the
+inbox until someone opened an editor.
+
+The gate is now scoped rather than removed. The test is **which store the plan writes to**,
+which is the two-store distinction applied one step earlier — at the decision of whether to
+write, not only at what may be written.
+
+| The plan writes | Then |
+|---|---|
+| `wiki/` only | it is written that evening |
+| a dated loop, or a change to a date already recorded | it waits for you |
+| anything in `mem/` | it waits — the compiler may only propose there anyway |
+| a claim contradicting a page already in the vault | it waits |
+| something that reads more than one way | it waits |
+
+A wrong `wiki/` page costs a regeneration, since `wiki/` rebuilds from `raw/`. A wrong date
+costs a reminder that never arrives, or one about the wrong thing. That asymmetry is the
+whole rule.
+
+The common case is mixed. An article you save is knowledge; "I should read this" is a
+commitment. The source page is written and the loop is held, so you keep what was learned
+and still decide what is owed.
+
+Held sources stay in `raw/inbox/` untouched, so whatever remains after a pass is by
+definition what waited. The brief reports each one and why, and `/ingest-all` settles them.
 
 ### Reliability
 
@@ -350,6 +381,9 @@ Several things are absent deliberately:
 - **A vector store or graph database.** Justified above 100,000 pages, not hundreds.
 - **A web interface.** Claude Code operates it and Obsidian reads it.
 - **A continuously running process.** A weekly schedule does not need one.
+- **Unattended writes to `mem/` or to a date.** The nightly pass compiles knowledge on its
+  own and holds anything with a consequence. That boundary is the design, not a limitation
+  waiting to be lifted.
 - **Sending messages, and writing to a calendar.** The system drafts and produces the entry.
   You send it and you create it.
 
@@ -381,6 +415,28 @@ compiler has failed at the only job it has.
 ## Updates
 
 Newest first. The reasoning behind each change is in the commit that made it.
+
+### 8 September 2026
+
+- **The nightly pass now compiles what cannot go wrong, and holds the rest.** Compiling was
+  the last step needing a person at a keyboard, so material accumulated in the inbox until
+  someone opened an editor.
+  - The approval gate was scoped rather than removed. A plan touching only `wiki/` is written
+    that evening, because `wiki/` rebuilds from `raw/` and a wrong page there costs a
+    regeneration. A plan touching a dated loop, an existing date, `mem/`, or a claim already
+    recorded waits, because a wrong date costs a reminder that never arrives. Described under
+    [Triage](#triage).
+  - Where a source is knowledge and commitment at once, the source page is written and the
+    loop is held.
+  - Held sources stay in `raw/inbox/` untouched, so whatever remains after a pass is by
+    definition what waited. No new state, and the brief reports each one with the reason.
+- **`/ingest-all` drains Telegram before it plans.** It compiled whatever was already in the
+  inbox, and Telegram messages arrive there only when the drain runs, so a note sent an hour
+  earlier was silently excluded while the run reported success.
+- **`index.md` is generated rather than hand-maintained.** It was a flat list of sixty-one
+  sources in compile order. Sources now group under the subject they belong to, using the
+  `category:` the compiler already writes, and each subject leads with its concept page.
+  Index drift is no longer a possible fault, so `/lint` checks for missing summaries instead.
 
 ### 7 September 2026
 
@@ -477,7 +533,8 @@ Newest first. The reasoning behind each change is in the commit that made it.
 |---|---|
 | **vault** | The folder holding your content: `vault/`. A separate private git repository. |
 | **capture** | Recording something without interpreting it. Fast, and it never fails. |
-| **compile** | Reading a captured item and writing pages and loops from it. Where the work happens, and the only step that cannot be undone with one keystroke. |
+| **compile** | Reading a captured item and writing pages and loops from it. What `/ingest` and `/ingest-all` do. |
+| **held** | A source the nightly pass declined to compile without you, because it would touch a date, a loop, `mem/`, or a claim already recorded. It stays in the inbox and the brief reports it. |
 | **source** | One captured item, and the page written from it. |
 | **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
 | **surfaced** | The count on each loop of how many times it has appeared in a brief without an answer. At four it is promoted. |

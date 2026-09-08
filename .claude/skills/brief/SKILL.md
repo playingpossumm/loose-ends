@@ -75,35 +75,38 @@ is coming up", "as of today". Do not do arithmetic on the reader's behalf: "six 
 days, three of them away" is a calculation, not a fact, and it belongs nowhere in the brief.
 If nothing is due, say that in one sentence and omit the empty sections.
 
-## Staleness
+## Staleness, and what is being held
 
-The brief reports what the vault knows, and the vault only learns when something is
-compiled. Capture is automatic, compilation is not, so the two drift apart silently and
-nothing in the output looks any different when they have.
+Anything still in `raw/inbox/` when the brief is written was **held on purpose**, not
+forgotten. The nightly pass compiles every source whose plan touches only `wiki/`, and holds
+anything that would write a dated loop, change a date already recorded, touch `mem/`,
+contradict an existing claim, or that reads more than one way. What remains is what needs a
+person.
 
-Check `log.md` for the most recent `ingest` or `ingest-all` entry before writing. If it is
-**seven or more days old**, or the inbox holds more than five items, or any one item has
-waited more than two weeks, put a single italic line directly under the opening paragraph,
-before the first section:
-
-```
-*Last compiled 9 days ago, with 4 items waiting in the inbox. Anything captured since is
-missing from this brief. Run /ingest-all.*
-```
-
-It goes at the top, not the bottom. A warning about whether the contents can be trusted is
-useless after the contents have been read.
-
-State the real numbers: days since the last compile, and how many items are waiting. When
-the inbox is empty, say so rather than implying something is missing — a vault that has not
-been compiled for nine days is still current if nothing arrived in those nine days.
+So report it as a decision waiting, not as a backlog:
 
 ```
-*Last compiled 9 days ago. The inbox is empty, so nothing captured is missing.*
+*2 sources held: the 8 September transaction touches mem/, and "edbert briefing" reads two
+ways. Run /ingest-all to settle them.*
 ```
 
-None of the three conditions met means no line at all. Do not write a reassurance that the
-brief is up to date; silence is the signal.
+Say what each one is and why it waited, up to three. Above three, give the count and the two
+most consequential. A held source with a date in it goes first, because that is the one where
+waiting costs something.
+
+Separately, check `log.md` for the most recent `ingest` entry. If it is **seven or more days
+old**, the nightly pass has not been running at all, which is a different fault:
+
+```
+*Nothing has compiled for 9 days. The nightly pass may not be running — check
+autopilot.log.*
+```
+
+Both lines go directly under the opening paragraph, before the first section. A warning about
+whether the contents can be trusted is useless after the contents have been read.
+
+Neither condition met means no line at all. Do not write a reassurance that the vault is up
+to date; silence is the signal.
 
 ## Structure
 
@@ -183,7 +186,7 @@ Spell out only where a digit starts a sentence.
 # Morning Brief — Monday, 31 August 2026
 
 <Opening paragraph. Two or three sentences, each naming a real item and a real date.>
-<Then the staleness line, only if one of its three conditions is met.>
+<Then the held/staleness line, only if there is something to report.>
 
 ## Now
 <This week. Anything due or worked on between today and Sunday, earliest date first.
@@ -322,5 +325,6 @@ in `Soon`, or `Soon` is holding things that belong nowhere.
 - **Rank against stated goals**, then by deadline.
 - **Never invent an item to fill a section.** Omit the section.
 - **Never write a calendar entry.** Do not mention that one is missing either.
-- **Check the last compile date before writing.** See Staleness above. A brief that
-  silently reports a stale vault is worse than no brief, because it is believed.
+- **Report what is held, and why.** See above. Held sources are decisions waiting on you,
+  and a brief that silently reports a vault missing them is worse than no brief, because it
+  is believed.
