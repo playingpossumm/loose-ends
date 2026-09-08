@@ -366,6 +366,16 @@ has.
 
 Newest first. The reasoning behind each one is in the commit that made it.
 
+**7 September 2026.** The brief now warns when it is reporting on a stale vault. Capture is
+automatic and compilation is not, so the two drift apart and nothing in the output looks any
+different when they have — a brief written against a nine-day-old vault reads exactly like a
+current one, which makes it worse than no brief because it is believed. A line under the
+opening paragraph states how long since the last compile and how much is waiting, whenever
+the last compile was seven or more days ago or the inbox is backing up. It sits at the top,
+because a warning about whether the contents can be trusted is useless after the contents
+have been read. `autopilot.py` computes both numbers and hands them to the model rather than
+leaving it to do date arithmetic on a file it happens to be reading.
+
 **31 August 2026, evening.** Running a nudge for the first time showed it followed none of
 the rules the brief follows. It pasted the opening lines of the loop page into the email,
 which is the compiler's own working — source paths, ranking arguments, and the user narrated
@@ -382,6 +392,13 @@ The reliability work of that morning turned out not to cover the nudge at all. I
 scheduled to run its own script directly, bypassing the network wait, the retries and the
 failure email, so a laptop that woke before its Wi-Fi killed the reminder in silence. It now
 runs the same path as everything else.
+
+Projecting the vault forward then exposed the opposite of the intended behaviour: a nudge
+every single day for thirty days running, eight items deep by the second week. Each item
+looked reasonable alone, but overdue items accumulate and every one of them was nudging
+daily. An overdue item now nudges on days 1, 3, 7 and 14 past its date, and the day-14 one
+says it is the last. The failure email lost its 25 lines of log tail, which had made a
+failure look like something to read rather than something to act on.
 
 **31 August 2026, morning.** The brief was rewritten after a week of real output. Two
 sections that reported on the system rather than on your work were cut, and a `Don't forget`
