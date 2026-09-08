@@ -18,12 +18,15 @@ individually — this metric is how the project is judged, so do not summarise i
 Every `[[wikilink]]` resolves. Report broken ones with their containing page.
 
 **3. Orphans**
-Pages with no inbound links. Often means `index.md` or a related page was not updated on
+Pages with no inbound links. Often means a related page was not updated on
 ingest.
 
-**4. Index drift**
-Every page in `wiki/` and `loops/` appears in `index.md`, and every `index.md` entry points
-at a real file.
+**4. Missing summaries**
+`index.md` is generated from each page's `summary:` field, so a page without one appears in
+the index as a bare title. Report any page in `wiki/` or `loops/` that has no `summary:`.
+
+Index drift itself is no longer a class of fault: `scripts/build_index.py` rebuilds the file
+from the vault, so it cannot disagree with what is on disk. Run it if the index looks stale.
 
 **5. Contradictions**
 Pages asserting incompatible things. Check especially where two sources compiled at
@@ -59,7 +62,7 @@ Concepts referenced but never compiled. Questions the vault could not answer thi
 
 ## Fix vs. report
 
-**Fix silently:** index drift, frontmatter fields derivable from context, broken links where
+**Fix silently:** a stale index (rebuild it), frontmatter fields derivable from context, broken links where
 the target obviously renamed, `surfaced:` counters.
 
 **Report only, never touch:** contradictions, staleness, orphans, coverage gaps, anything in

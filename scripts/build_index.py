@@ -1,0 +1,212 @@
+"""Regenerate vault/index.md from the vault itself.
+
+WHY THIS IS A SCRIPT AND NOT A SKILL INSTRUCTION
+------------------------------------------------
+index.md was maintained by hand on every compile, which is why /lint had a check for index
+drift: a hand-maintained catalogue of ninety pages falls behind the moment one compile
+forgets a line, and nothing notices. Generating it removes the drift and the check together.
+
+WHAT CHANGED IN THE LAYOUT
+--------------------------
+It was one flat list of sixty-one sources in compile order, which is the order they happened
+in and no help at all for finding anything. Sources are now grouped under the subject they
+belong to, using the `category:` the compiler already writes on every page, and each subject
+leads with its concept page where one exists — so the synthesis is the first thing under the
+heading and the sources that feed it sit beneath it.
+
+Long lists are wrapped in <details>, which GitHub renders as a collapsed, expandable block.
+A model reading the raw file still sees every line; a person opening the repo sees a page
+that fits on a screen.
+
+    python scripts/build_index.py            # write vault/index.md
+    python scripts/build_index.py --stdout   # print it instead
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import re
+from collections import defaultdict
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
+DASH = chr(8212)
+
+# Above this many entries a section is collapsed. Below it, collapsing costs a click and
+# saves nothing.
+COLLAPSE_OVER = 6
+
+FIELD = {k: re.compile(rf"^{k}:\s*(.+?)\s*$", re.M)
+         for k in ("summary", "category", "due", "status", "title", "type")}
+
+
+def field(text: str, name: str) -> str:
+    m = FIELD[name].search(text)
+    return m.group(1).strip().strip('"').strip("'") if m else ""
+
+
+def heading(text: str, fallback: str) -> str:
+    for line in text.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return fallback
+
+
+class Page:
+    def __init__(self, path: Path):
+        self.path = path
+        self.text = path.read_text(encoding="utf-8", errors="replace")
+        self.rel = path.relative_to(VAULT).as_posix()
+        self.slug = path.stem
+        self.title = field(self.text, "title") or heading(self.text, self.slug)
+        self.summary = field(self.text, "summary")
+        self.category = field(self.text, "category") or "uncategorised"
+        self.due = field(self.text, "due")
+        self.status = field(self.text, "status")
+
+    def line(self) -> str:
+        bits = f"- [{self.title}]({self.rel})"
+        if self.summary:
+            bits += f" {DASH} {self.summary}"
+        if self.due:
+            bits += f" *(due {self.due})*"
+        return bits
+
+
+def load(pattern: str) -> list[Page]:
+    return [Page(p) for p in sorted((VAULT).glob(pattern))]
+
+
+def block(lines: list[str], label: str) -> list[str]:
+    """Collapse a long list behind a <details> summary; leave a short one open."""
+    if len(lines) <= COLLAPSE_OVER:
+        return lines + [""]
+    return ([f"<details>", f"<summary>{label}</summary>", ""] + lines
+            + ["", "</details>", ""])
+
+
+# Acronyms the compiler writes lowercase in `category:`, which read as typos otherwise.
+ACRONYMS = {"ai", "llm", "ui", "cv", "rag", "gmap", "fpfa", "mcp", "api"}
+
+# A category with fewer than this many sources is not yet a subject. Giving each its own
+# heading buried the four that matter under fifteen that did not.
+MIN_SUBJECT = 3
+
+
+def humanise(cat: str) -> str:
+    words = [w.upper() if w.lower() in ACRONYMS else w
+             for w in cat.replace("-", " ").split()]
+    if words and words[0].lower() not in ACRONYMS:
+        words[0] = words[0].capitalize()
+    return " ".join(words)
+
+
+def plural(n: int, word: str) -> str:
+    if n == 1:
+        return f"{n} {word}"
+    return f"{n} {word}es" if word.endswith("s") else f"{n} {word}s"
+
+
+def build() -> str:
+    sources = load("wiki/sources/*.md")
+    concepts = {p.category: p for p in load("wiki/concepts/*.md")}
+    concepts_by_slug = {p.slug: p for p in load("wiki/concepts/*.md")}
+    entities = load("wiki/entities/*.md")
+    open_loops = [p for p in load("loops/open/*.md") if p.status == "open"]
+    other_loops = [p for p in load("loops/open/*.md") if p.status != "open"]
+    dates = load("loops/dates/*.md")
+    closed = load("loops/closed/*.md")
+
+    by_cat: dict[str, list[Page]] = defaultdict(list)
+    for s in sources:
+        by_cat[s.category].append(s)
+    ranked = sorted(by_cat.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    ordered = [(c, i) for c, i in ranked if len(i) >= MIN_SUBJECT]
+    minor = [(c, i) for c, i in ranked if len(i) < MIN_SUBJECT]
+
+    L: list[str] = [
+        "# index",
+        "",
+        f"Every page in `wiki/` and `loops/`, grouped by subject. "
+        f"Generated by `scripts/build_index.py` on {date.today().isoformat()} "
+        f"{DASH} do not edit by hand, the next compile overwrites it.",
+        "",
+        f"**{plural(len(sources), 'source')} · {plural(len(concepts_by_slug), 'concept')} · "
+        f"{len(entities)} {'entity' if len(entities) == 1 else 'entities'} · "
+        f"{plural(len(open_loops), 'open loop')} · {len(dates)} dated · {len(closed)} closed**",
+        "",
+        "## Contents",
+        "",
+    ]
+    for cat, items in ordered:
+        anchor = re.sub(r"[^a-z0-9]+", "-", humanise(cat).lower()).strip("-")
+        mark = " ●" if cat in concepts else ""
+        L.append(f"- [{humanise(cat)}](#{anchor}) {DASH} {plural(len(items), 'source')}{mark}")
+    if minor:
+        L.append(f"- [Other subjects](#other-subjects) {DASH} "
+                 f"{plural(sum(len(i) for _, i in minor), 'source')} across "
+                 f"{len(minor)} categories")
+    L += ["- [People and projects](#people-and-projects)",
+          "- [Open loops](#open-loops)",
+          "- [Dates](#dates)",
+          "- [Closed](#closed)",
+          "",
+          f"● has a concept page synthesising its sources.",
+          "",
+          "---",
+          ""]
+
+    for cat, items in ordered:
+        L += [f"## {humanise(cat)}", ""]
+        if cat in concepts:
+            c = concepts[cat]
+            L += [f"**[{c.title}]({c.rel})** {DASH} {c.summary or 'the synthesis of the sources below'}", ""]
+        L += block([s.line() for s in sorted(items, key=lambda p: p.slug)],
+                   plural(len(items), "source"))
+
+    if minor:
+        L += ["## Other subjects", "",
+              "Fewer than three sources each, so there is nothing to synthesise yet.", ""]
+        rows = [f"- **{humanise(cat)}** {DASH} {s.line()[2:]}"
+                for cat, items in minor for s in sorted(items, key=lambda p: p.slug)]
+        L += block(rows, plural(len(rows), "source"))
+
+    L += ["---", "", "## People and projects", ""]
+    L += block([e.line() for e in entities], plural(len(entities), "entity").replace("entitys","entities")) if entities else \
+         ["*No entity pages yet. Run `python scripts/synthesis.py` to see what qualifies.*", ""]
+
+    L += ["## Open loops", ""]
+    L += block([p.line() for p in sorted(open_loops, key=lambda x: (x.due or "9999", x.slug))],
+               f"{len(open_loops)} open")
+    if other_loops:
+        L += block([p.line() for p in other_loops], f"{len(other_loops)} archived or someday")
+
+    L += ["## Dates", ""]
+    L += block([p.line() for p in sorted(dates, key=lambda x: x.due or "9999")],
+               plural(len(dates), "dated item"))
+
+    L += ["## Closed", ""]
+    L += block([p.line() for p in closed], plural(len(closed), "closed loop"))
+
+    return "\n".join(L).rstrip() + "\n"
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--stdout", action="store_true", help="print instead of writing")
+    args = ap.parse_args()
+
+    text = build()
+    if args.stdout:
+        print(text)
+        return
+    (VAULT / "index.md").write_text(text, encoding="utf-8")
+    print(f"Wrote {VAULT / 'index.md'} ({len(text.splitlines())} lines)")
+
+
+if __name__ == "__main__":
+    main()

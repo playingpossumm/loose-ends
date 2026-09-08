@@ -1,6 +1,6 @@
 ---
 name: ingest
-description: Compile one uncompiled source from raw/inbox into the wiki and loops — extract claims, write and update pages, link them, extract open loops, flag contradictions, update index.md and log.md. Use when the user says "ingest", "compile", "process my inbox", or asks what is waiting to be compiled.
+description: Compile one uncompiled source from raw/inbox into the wiki and loops — extract claims, write and update pages, link them, extract open loops, flag contradictions, rebuild index.md, and append to log.md. Use when the user says "ingest", "compile", "process my inbox", or asks what is waiting to be compiled.
 ---
 
 # ingest
@@ -90,7 +90,12 @@ Be conservative. A false loop costs the user trust in the brief, and brief preci
 is the metric this project lives or dies by. When unsure, list it for the user rather than
 filing it.
 
-**8. Update `index.md`** with every new page, one line each.
+**8. Rebuild `index.md`** by running `python scripts/build_index.py`. Do not edit it by
+hand — it is generated from the vault and the next run overwrites anything you write there.
+
+Every page you create needs a one-line `summary:` in its frontmatter, because that is what
+the index prints. Write it for someone scanning ninety entries for the one they want: name
+the subject and what the page settles, not what kind of page it is.
 
 **9. Append to `log.md`**, keeping the prefix format exactly so `grep "^## \["` works:
 
