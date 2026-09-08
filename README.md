@@ -363,74 +363,80 @@ has.
 
 ## Updates
 
-Newest first. The reasoning behind each one is in the commit that made it.
+Newest first. The reasoning behind each change is in the commit that made it.
 
 ### 7 September 2026
 
-- **The brief warns when the vault is stale.** Capture is automatic and compilation is not,
-  so the two drift apart and nothing in the output looks any different when they have. A
-  brief written against a nine-day-old vault reads exactly like a current one, which makes
-  it worse than no brief because it is believed.
-  - A line under the opening paragraph states how long since the last compile and how much
-    is waiting, whenever the last compile was seven or more days ago or the inbox is
-    backing up.
-  - It sits at the top. A warning about whether the contents can be trusted is useless
-    after the contents have been read.
-  - `autopilot.py` computes both numbers and hands them to the model, rather than leaving
-    it to do date arithmetic on a file it happens to be reading.
+- **Morning delivery moved to Gmail, decoupling arrival from the laptop.** The brief is
+  written on the schedule as before, but is no longer sent at that moment.
+  - `send_brief.py` mails it to the account with `[BRIEF-QUEUED]` in the subject. A Gmail
+    filter matches that text and archives the message, so it never reaches the inbox.
+  - An Apps Script trigger on Google's servers (`scripts/gmail_scheduler/Code.gs`) runs at
+    07:00 on Saturday and Monday, finds the newest queued message, and re-sends it without
+    the tag. A `brief-released` label marks what has gone out and prevents a second send.
+  - Writing therefore depends on the machine; arrival does not. Gmail's own Schedule send
+    is not exposed to the API, which is why release runs in Apps Script.
+  - The morning pass moved to 06:00, ahead of the release, so a revision replaces the
+    queued copy rather than arriving as a second email.
+- **The brief reports when the vault has not been compiled recently.** Capture is automatic
+  and compilation is not, so the two diverge with no visible signal — a brief written
+  against a nine-day-old vault is indistinguishable from a current one.
+  - A line beneath the opening paragraph gives the interval since the last `ingest` and the
+    number of items waiting, whenever that interval reaches seven days or the inbox exceeds
+    five items, and directs the reader to run `/ingest-all`.
+  - It is positioned above the content, since a qualification on reliability is inert once
+    the content has been read.
+  - `autopilot.py` derives both figures from `log.md` and passes them into the prompt, in
+    preference to leaving date arithmetic to the model.
+- **`/lint` reports entities that met the promotion threshold and were never promoted.**
+  `/ingest` compiles one source at a time and cannot observe cross-source mention counts, so
+  the three-source rule does not fire unaided.
 
-### 31 August 2026, evening
+### 31 August 2026
 
-- **The nudge followed none of the rules the brief follows.** Running one for the first time
-  showed it pasting the opening lines of the loop page into the email — source paths,
-  ranking arguments, and the user narrated in the third person, so one reminder read "His
-  own date, stated 2026-08-31" — then cutting it off at a character count, mid-word.
-  - Loops now carry `title:` and `summary:`, two fields written for a reader rather than
-    for the vault, and the nudge is built from those alone.
-- **Nudges moved from one daily send to two.**
-  - **07:00** carries what is due today and what is overdue, with the working day still in
-    front of it.
-  - **19:30** carries what is due tomorrow, while there is an evening left to prepare in.
-  - A loop overrides the split with `nudge: morning` or `nudge: evening` when its nature
-    disagrees with its date.
-- **The morning's reliability work turned out not to cover the nudge at all.** It was
-  scheduled to run its own script directly, bypassing the network wait, the retries and the
-  failure email, so a laptop that woke before its Wi-Fi killed the reminder in silence. It
-  now runs the same path as everything else.
-- **Overdue items were going to flood the channel.** Projecting the vault forward gave a
-  nudge every single day for thirty days running, eight items deep by the second week. Each
-  item looked reasonable alone, but overdue items accumulate and every one was nudging
-  daily.
-  - An overdue item now nudges on days 1, 3, 7 and 14 past its date, and the day-14 one
-    says it is the last.
-- **The failure email lost its 25 lines of log tail**, which had made a failure look like
-  something to read rather than something to act on.
-
-### 31 August 2026, morning
-
-- **The brief was rewritten after a week of real output.**
-  - Two sections that reported on the system rather than on your work were cut, and a
-    `Don't forget` section took their place to resurface things captured and never returned
-    to.
-  - Entries carry a due date rather than the date they were captured, and anything with a
-    URL is linked from its title.
-  - Every date is absolute. The brief is read across a whole week, so "tomorrow" means
-    something different on Thursday from what it meant on Monday.
-- **Capture began refusing labelled credentials**, after a bank password reached the vault
-  and had to be removed.
+- **Loops gained `title:` and `summary:`, and the nudge is built from those alone.** The
+  nudge previously rendered the head of the loop page, which is written for the vault: it
+  cites sources by path, argues its own ranking, and refers to the user in the third person.
+  One reminder read "His own date, stated 2026-08-31". Output was additionally truncated at
+  a fixed character count, terminating mid-word.
+- **Nudges run in two windows rather than one.**
+  - 07:00 carries items due that day and items overdue.
+  - 19:30 carries items due the following day.
+  - The default split follows the due date; a loop overrides it with `nudge: morning` or
+    `nudge: evening` where the nature of the item and its date disagree.
+- **The nudge was moved onto the same execution path as the brief.** It had been scheduled
+  to invoke `due_check.py` directly, bypassing the network wait, the retries and the failure
+  report, so a machine that resumed before its network was available lost the reminder with
+  no record.
+- **Overdue items nudge on a fixed schedule rather than daily.** Projecting the vault
+  forward produced a nudge on every one of thirty consecutive days, reaching eight items per
+  message in the second week; overdue items accumulate, and each was nudging daily.
+  - An overdue item now nudges on days 1, 3, 7 and 14 past its date. The day-14 message is
+    marked as the last.
+- **The brief was rewritten against a week of real output.**
+  - Two sections reporting on the system rather than on the reader's work were removed. A
+    `Don't forget` section replaced them, resurfacing material captured and not returned to.
+  - Entries carry a due date in place of a capture date, and any entry with a URL is linked
+    from its title.
+  - All dates are absolute. The brief is read across a week, so a relative term denotes a
+    different day depending on when it is read.
+- **Capture rejects labelled credentials before writing to disk**, following a bank password
+  that reached the vault and required removal.
 - **Delivery was rebuilt in layers**, described under [Reliability](#reliability), following
-  a brief that was lost to a laptop that woke before its Wi-Fi did.
+  a brief lost to a machine that resumed before its network was available.
+- **The failure report was reduced** from 25 lines of log tail to the failing stage and the
+  command that resolves it.
 
 ### 30 August 2026
 
-- **Added `/ingest-all`**, which compiles the whole inbox under one approval and can
-  therefore see across sources, so three notes about the same thing produce one loop rather
-  than three.
-- **Added a daily due-date check**, which emails only when something is overdue, due today,
-  or due tomorrow, and stops at 14 days so the brief can force a decision instead.
-- **The brief email began rendering as HTML** rather than raw markdown.
-- **The project was renamed from `second-brain`**, a name shared with thousands of
-  repositories that said nothing about what this one does.
+- **Added `/ingest-all`**, which compiles the inbox under a single approval and can
+  therefore reason across sources, so that several notes on one subject yield one loop
+  rather than several.
+- **Added a daily due-date check**, which sends only when an item is overdue, due that day,
+  or due the following day, and stops at 14 days so the brief can force a decision.
+- **The brief email renders as HTML** in place of raw markdown.
+- **The project was renamed from `second-brain`**, a name shared with several thousand
+  repositories and carrying no information about this one.
 
 ## Terminology
 
