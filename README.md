@@ -64,6 +64,10 @@ stopped and resumed. Until it has run, everything the system produces is generic
 | `/bootstrap` | The interview that fills `mem/`. |
 | `/unsource` | Remove a source and reverse every change it caused. |
 
+`python scripts/synthesis.py` reports which subjects have accumulated enough sources to
+deserve a page of their own and do not have one. `/ingest`, `/ingest-all` and `/lint` run it
+and act on it; run it by hand to see where the wiki is behind.
+
 ## Operation
 
 ```
@@ -351,15 +355,28 @@ Several things are absent deliberately:
 
 ## Status
 
-The system is complete and has been in use for one week. Its central claim, that reminders
+The system is complete and has been in use for two weeks. Its central claim, that reminders
 delivered with the work already attached get acted on where bare reminders do not, is an
 argument rather than a result.
 
-The measure is **nudge precision**: of the loops reported in each period, how many were worth
-reporting. Below roughly 30% the design is wrong. Two further conditions end the project.
-Nothing entering `raw/` for three consecutive weeks means capture is too inconvenient, and
-finding yourself editing the wiki by hand means the compiler has failed at the only job it
-has.
+Two measures, because the first one alone bent the system out of shape.
+
+**Nudge precision.** Of the loops reported in each period, how many were worth reporting.
+Below roughly 30% the design is wrong.
+
+**Synthesis ratio.** Entity and concept pages as a fraction of source pages. On 7 September
+that was 2 pages against 57, and the consequence was visible in use: everything the system
+sent was a deadline, so everything captured became a deadline, and it was experienced as a
+task manager with a wiki attached. A knowledge base that only accumulates source summaries
+answers every question by re-reading them. Below roughly 1 synthesis page per 10 sources,
+the compiler is filing rather than compiling.
+
+Measuring only the first is what produced the imbalance. What is measured is what gets
+built.
+
+Two further conditions end the project. Nothing entering `raw/` for three consecutive weeks
+means capture is too inconvenient, and finding yourself editing the wiki by hand means the
+compiler has failed at the only job it has.
 
 ## Updates
 
@@ -367,6 +384,22 @@ Newest first. The reasoning behind each change is in the commit that made it.
 
 ### 7 September 2026
 
+- **The knowledge half was given a lifecycle.** The vault held 57 source pages, 1 entity
+  page and 1 concept page. Loops had extraction, a brief, nudges, escalation and a close;
+  knowledge had extraction and nothing further, so the only half of the system that ever
+  spoke was the half reporting deadlines.
+  - `scripts/synthesis.py` counts what should be promoted, over data that already exists:
+    names the vault committed to in `mem/`, and the `category:` the compiler writes on every
+    source. `/ingest`, `/ingest-all` and `/lint` act on its output.
+  - The promotion rule had never fired and could not. `/ingest` compiles one source at a
+    time and cannot observe mention counts across the other fifty, so a correct rule stayed
+    unreachable while the source count grew.
+  - The brief gained a `Findings` section: at most one item, never a commitment, qualifying
+    only when two sources disagree, a source contradicts `mem/`, or a claim bears on the
+    week's work. It is omitted when nothing meets the bar, and may never report on the wiki
+    itself.
+  - `Status` gained a second measure, the synthesis ratio. Measuring nudge precision alone
+    is what produced the imbalance.
 - **Morning delivery moved to Gmail, decoupling arrival from the laptop.** The brief is
   written on the schedule as before, but is no longer sent at that moment.
   - `send_brief.py` mails it to the account with `[BRIEF-QUEUED]` in the subject. A Gmail
