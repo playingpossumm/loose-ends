@@ -139,9 +139,8 @@ the item now counts as overdue. Nudges also do not wake a sleeping machine, whic
 deliberate — a daily task that is usually silent is not worth waking a laptop for, so a
 nudge arrives when you next open it.
 
-If they all fail, the system emails you what broke, the last 25 lines of the log, the
-command to run by hand, and what to check, and every attempt appends to `autopilot.log`
-whether or not that mail got out.
+If they all fail, the system emails you what broke and the one command that fixes it, and
+every attempt appends to `autopilot.log` whether or not that mail got out.
 
 If the machine was simply off, nothing is lost and nothing is retried. Windows runs the
 missed task the next time you start the laptop, so the brief arrives late rather than never.
