@@ -358,7 +358,7 @@ Google's supported route to sending on a timer.
 | Resend, Mailgun or SendGrid `send_at` | a third party holds the brief in transit, and it needs an account, an API key and a verified sender |
 | **Queue in Gmail, release with Apps Script** | **chosen** |
 
-**How it works.** `send_brief.py --queue` tags the subject `[BRIEF-QUEUED]` and sets an
+**How it works.** `send_brief.py --queue` tags the subject `[WEEKLY BRIEF]` and sets an
 `X-Brain-Queued` header. A Gmail filter archives anything with that tag, so the night-time
 copy is never seen. `scripts/gmail_scheduler/Code.gs` runs on Google's servers at 07:00 on
 Saturday and Monday, finds the newest tagged message from the last three days, checks the

@@ -40,9 +40,11 @@ REQUIRED = ("BRAIN_SMTP_HOST", "BRAIN_SMTP_USER", "BRAIN_SMTP_PASS", "BRAIN_EMAI
 
 # Subject tag for a queued brief. A Gmail filter matches this text and archives the message;
 # the Apps Script trigger searches for it, strips it, and sends the brief on in the morning.
-# It is matched as a literal string on both sides, so changing it means changing the filter,
-# the script property, and nothing else.
-QUEUE_TAG = "[BRIEF-QUEUED]"
+# It is matched as a literal string on both sides, so changing it means changing three
+# things together: this constant, QUEUE_TAG and SEARCH in scripts/gmail_scheduler/Code.gs,
+# and the Gmail filter itself. Change one of the three and the brief is queued, archived,
+# and never released.
+QUEUE_TAG = "[WEEKLY BRIEF]"
 
 # Words that mean "this section is empty" when they are all a section contains.
 PLACEHOLDER = {

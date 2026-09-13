@@ -182,11 +182,11 @@ exposed neither over SMTP nor through `messages.send` in the Gmail API. Apps Scr
 supported way to have Google send something on a timer.
 
 **1. Tag the message.** Nothing to do — `autopilot.py --weekly` already passes `--queue` to
-`send_brief.py`, which puts `[BRIEF-QUEUED]` in the subject and an `X-Brain-Queued` header on
+`send_brief.py`, which puts `[WEEKLY BRIEF]` in the subject and an `X-Brain-Queued` header on
 the message. A brief sent by hand is untagged and arrives immediately, as before.
 
 **2. Keep the tagged copy out of the inbox.** In Gmail, create a filter with *subject
-contains* `[BRIEF-QUEUED]`, and tick **Skip the Inbox** and **Never send it to Spam**. Without
+contains* `weekly brief`, and tick **Skip the Inbox** and **Never send it to Spam**. Without
 this you see the brief twice: once at night and once in the morning.
 
 **3. Release it in the morning.** At [script.google.com](https://script.google.com) create a
