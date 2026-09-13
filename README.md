@@ -110,7 +110,7 @@ attempt the following morning, a daily capture from Telegram, and the two daily 
 `--nudge-morning` and `--nudge-evening` to move the last two.
 
 The evening run does not put the brief in front of you at night. It mails the brief to
-yourself tagged `[BRIEF-QUEUED]`, a Gmail filter keeps that copy out of the inbox, and an
+yourself tagged `[WEEKLY BRIEF]`, a Gmail filter keeps that copy out of the inbox, and an
 Apps Script trigger running on Google's servers sends it on at 07:00 on Saturday and Monday.
 So the writing depends on your laptop and the arrival does not. Gmail's own Schedule send
 cannot be driven from code — it exists in the interface only — which is why the release runs
@@ -458,7 +458,7 @@ Newest first. The reasoning behind each change is in the commit that made it.
     is what produced the imbalance.
 - **Morning delivery moved to Gmail, decoupling arrival from the laptop.** The brief is
   written on the schedule as before, but is no longer sent at that moment.
-  - `send_brief.py` mails it to the account with `[BRIEF-QUEUED]` in the subject. A Gmail
+  - `send_brief.py` mails it to the account with `[WEEKLY BRIEF]` in the subject. A Gmail
     filter matches that text and archives the message, so it never reaches the inbox.
   - An Apps Script trigger on Google's servers (`scripts/gmail_scheduler/Code.gs`) runs at
     07:00 on Saturday and Monday, finds the newest queued message, and re-sends it without

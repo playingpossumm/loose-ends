@@ -2,7 +2,7 @@
  * Morning delivery for the loose-ends brief.
  *
  * The laptop writes the brief on Friday and Sunday evening and mails it to you with
- * [BRIEF-QUEUED] in the subject. The 06:00 catch-up may queue a revised copy over it; the
+ * [WEEKLY BRIEF] in the subject. The 06:00 catch-up may queue a revised copy over it; the
  * newest tagged message is the one that goes out. A Gmail filter on that text archives it, so it never
  * reaches the inbox. This script runs on Google's servers at 07:00 on Saturday and Monday,
  * finds the queued brief, and sends it on without the tag.
@@ -13,8 +13,11 @@
  * label is also what stops it being sent twice.
  */
 
-var QUEUE_TAG = '[BRIEF-QUEUED]';
-var SEARCH = 'subject:(BRIEF-QUEUED) newer_than:3d -label:brief-released';
+var QUEUE_TAG = '[WEEKLY BRIEF]';
+// Quoted, so Gmail matches the phrase rather than the two words anywhere in a subject.
+// A released brief is titled 'Morning Brief' or 'Weekend Brief' and so cannot match this
+// and be collected again. The X-Brain-Queued check below is the backstop if it ever could.
+var SEARCH = 'subject:"weekly brief" newer_than:3d -label:brief-released';
 var RELEASED_LABEL = 'brief-released';
 
 /** Send the newest queued brief, if there is one. Silent when there is not. */
