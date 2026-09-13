@@ -165,35 +165,41 @@ looking for it.
 
 ### Timing after the title
 
-**Usually nothing.** The date group above the entry already carries the date, so repeating
-it on the title is noise. `#### Thrive Application` under `### Monday 14 September` needs no
-more.
+**No dates after a title. Ever.** The date group above the entry carries the date, and
+repeating it is noise. That includes ranges: `#### GMAP Application Prep — Monday 14 to
+Sunday 27` says nothing the heading above it has not already said.
 
-Add a dash and a timing only when it says something the group heading does not:
-
-| Add it | Because |
+| Wrong | Right |
 |---|---|
-| `#### CV and Portfolio — Saturday 12 to Sunday 13` | it spans days, and sits in a group |
+| `#### GMAP Application Prep — Monday 14 to Sunday 27` | `#### GMAP Application Prep` |
+| `#### GMAP SEA Submission — Saturday 19 to Sunday 20` | `#### GMAP SEA Submission` |
+| `#### CV Update — Sunday 13 September` | `#### CV Update` |
+
+Where a range genuinely matters, the detail line is the place for it, and only when the span
+changes what the reader would do:
+
+```
+#### GMAP SEA Submission
+Management trainee programme, with a logic and numerical test. The window closes Sunday.
+```
+
+Two exceptions, and nothing else:
+
+| Allowed | Because |
+|---|---|
 | `#### How Complex Systems Fail — 20 minutes` | a duration, not a date |
-| `#### Masters Check — due 9 September, 5 days ago` | overdue, and the lateness is the point |
+| `#### Masters Check — due 9 September, 5 days ago` | overdue, where the lateness is the point |
 
-Nothing else.
-
-**Always an absolute date.** The brief covers a week and is read across that week, so a
-relative word means something different on Thursday from what it meant on Monday and forces
-the reader to work out which. Name the day.
+**Dates in the detail line are absolute.** A relative word means something different on
+Thursday from what it meant on Monday, and the brief is read across the week.
 
 | Wrong | Right |
 |---|---|
 | today | Monday 31 August |
 | due tomorrow | due Tuesday 1 September |
 | this weekend | Saturday 5 September |
-| saved 30 August | due 30 November |
-| captured 29 August | 20 minutes |
 
 Day name and date together. The year only when the item falls in a different one.
-
-When something arrived is not a deadline, and the user already knows he saved it.
 
 ### Numbers
 
