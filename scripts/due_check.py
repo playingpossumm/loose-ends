@@ -10,6 +10,12 @@ ignore it, which would also make you ignore the one that matters.
 Items due tomorrow were nudged until 13 September and are not any more. Nudging the day
 before and again on the day is the same message twice, and the second one stops being read.
 
+It is written to the brief's register, set out in .claude/skills/brief/SKILL.md. The two
+arrive in the same week and often name the same item, so a reminder written to different
+rules reads as though a different system sent it. The only text a model writes into a nudge
+is the loop's `summary:` field, which is why the register is enforced on that field: see the
+frontmatter contract in CLAUDE.md.
+
 Like scripts/send_brief.py, it has no recipient argument. The destination is read from
 BRAIN_EMAIL_TO and cannot be overridden.
 
@@ -77,6 +83,11 @@ def body_of(text: str) -> str:
     in the third person, so a reminder built from it read "His own date, stated 2026-08-31".
     No amount of stripping fixes the pronouns, so the compiler now writes a `summary:` line
     addressed to the reader, and this returns that or says nothing at all.
+
+    That field is the one piece of a nudge a model writes, so the brief's writing rules are
+    imposed on it in CLAUDE.md rather than here. Nothing is cleaned up at send time: a
+    summary that repeats its own due date or argues why the item matters goes out as
+    written, and gets fixed in the loop.
     """
     m = SUMMARY.search(text)
     return m.group(1).strip() if m else ""
@@ -86,6 +97,16 @@ def link_of(text: str) -> str:
     """The first URL on the page, so a reminder to read something includes the thing."""
     m = LINK.search(text)
     return next((g for g in m.groups() if g), "") if m else ""
+
+
+def fmt_date(d: date, today: date) -> str:
+    """A date spelled the way the brief spells one: day name, day, month.
+
+    The year only when the item falls outside this one. An ISO date is unambiguous but reads
+    like a log line, and the reader is the same person reading the brief on Monday.
+    """
+    stem = f"{d.strftime('%A')} {d.day} {d.strftime('%B')}"
+    return stem if d.year == today.year else f"{stem} {d.year}"
 
 
 def window_of(text: str, due: date, today: date) -> str:
@@ -176,7 +197,16 @@ def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]
 
 
 def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
-    """Returns subject, plain text, html."""
+    """Returns subject, plain text, html.
+
+    Headings and dates follow the brief: a date is "Sunday 13 September", the em dash after
+    a title is a separator and the only one on the line, and nothing here explains the
+    system's own reasoning back to the reader.
+
+    The HTML uses the same heading levels the brief's stylesheet is built around: h2 for a
+    section, h4 for an entry. h3 is a small grey divider in that stylesheet, so an entry
+    titled with one renders as a caption.
+    """
     # Lead on whatever is late; a passed date outranks one that has only just arrived.
     lead = groups["Overdue"] or groups["Due today"]
     total = sum(len(v) for v in groups.values())
@@ -184,7 +214,9 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
     subject = (f"{prefix}: {lead[0]['title']}"
                + (f" (+{total - 1} more)" if total > 1 else ""))
 
-    text, html = [f"{today.isoformat()}", ""], []
+    # The brief's title line, minus the word "Brief": full day name, full month, year.
+    dateline = f"{today.strftime('%A')}, {today.day} {today.strftime('%B')} {today.year}"
+    text, html = [dateline, ""], [f"<h1>{dateline}</h1>"]
     for name, items in groups.items():
         if not items:
             continue
@@ -192,11 +224,13 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
         text.append(heading.upper())
         html.append(f"<h2>{heading}</h2>")
         for i in items:
-            when = i["due"].isoformat()
             overdue_by = (today - i["due"]).days
-            stamp = (f"{when} ({overdue_by} day{'s' if overdue_by != 1 else ''} ago)"
-                     if overdue_by > 0 else when)
-            last = " " + chr(8212) + " last reminder" if i.get("final") else ""
+            stamp = fmt_date(i["due"], today)
+            if overdue_by > 0:
+                stamp += f", {overdue_by} day{'s' if overdue_by != 1 else ''} ago"
+            # A full stop, not a second dash. One em dash per line, after the title, and
+            # "Sunday 30 August, 14 days ago, last reminder" is three flat clauses.
+            last = ". Last reminder." if i.get("final") else ""
             text += [f"  {i['title']} {chr(8212)} {stamp}{last}"]
             if i["body"]:
                 text.append(f"    {i['body']}")
@@ -204,24 +238,22 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
                 text.append(f"    {i['link']}")
             text.append("")
             head = (f"<a href='{i['link']}'>{i['title']}</a>" if i["link"] else i["title"])
-            when_html = (f"{stamp} <strong>{chr(8212)} last reminder</strong>"
-                         if i.get("final") else stamp)
+            when_html = stamp + (". <strong>Last reminder.</strong>" if i.get("final") else "")
             html.append(
-                f"<h3>{head}</h3><p><span class='when'>{when_html}</span>"
+                f"<h4>{head}</h4><p><span class='when'>{when_html}</span>"
                 + (f"<br>{i['body']}" if i["body"] else "") + "</p>"
             )
         text.append("")
 
     if any(i.get("final") for v in groups.values() for i in v):
-        note = (f"Marked last reminder: {OVERDUE_NAG_DAYS} days overdue, so this is the "
-                f"final nudge. It moves to the brief now, which will ask you to drop it, "
-                f"set a new date, or do it.")
+        note = (f"Last reminder at {OVERDUE_NAG_DAYS} days overdue. "
+                f"The brief takes it from here: drop it, set a new date, or do it.")
         text += [note, ""]
         html.append(f"<p><em>{note}</em></p>")
 
-    text.append("Done? Run /close. Not doing it? /close drops it and records why.")
-    html.append("<p class='foot'>Done? Run <code>/close</code>. "
-                "Not doing it? <code>/close</code> drops it and records why.</p>")
+    text.append("Run /close when it is done, or to drop it with a reason.")
+    html.append("<p class='foot'>Run <code>/close</code> when it is done, "
+                "or to drop it with a reason.</p>")
 
     page = (
         f"<!doctype html><html><head><meta charset='utf-8'>"
