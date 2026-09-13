@@ -48,6 +48,11 @@ twenty minutes and can be resumed. Output is generic until it has run.
 
 ## Architecture
 
+Capture and compilation are separate steps because they have opposite requirements. Capture
+has to be fast enough that you do it without thinking and must never fail, so it records
+without interpreting. Compilation does the reading, and a single source can touch fifteen
+pages.
+
 ```
 capture → raw/ → compile ─┬→ wiki/  → ask
                           │
@@ -55,6 +60,9 @@ capture → raw/ → compile ─┬→ wiki/  → ask
 ```
 
 ### Two stores
+
+Knowledge about the world and knowledge about you fail differently, so they follow different
+rules. `wiki/` can be thrown away and rebuilt; `mem/` cannot be reconstructed by anything.
 
 | | `wiki/` | `mem/` |
 |---|---|---|
@@ -64,6 +72,10 @@ capture → raw/ → compile ─┬→ wiki/  → ask
 | The compiler may | write freely | propose only |
 
 ### Layout
+
+The system and the content are separate repositories, which is what lets the system be public
+while the vault stays private. Versioning the vault on its own makes each compilation a commit
+you can inspect or undo.
 
 ```
 loose-ends/              the system. shareable.
@@ -81,11 +93,15 @@ loose-ends/              the system. shareable.
 
 ### Search
 
-An index file and `grep`. Search sits behind one interface, so replacing it is a
+At a few hundred pages an index file and `grep` are faster and easier to inspect than a vector
+store, and they fail visibly. Search sits behind one interface, so replacing it is a
 substitution rather than a rewrite. A vector store becomes worthwhile above roughly 5,000
 pages.
 
 ## Automation
+
+Nothing pushes you until these are registered, which leaves you remembering to run `/brief`,
+the exact habit it exists to replace.
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
@@ -107,8 +123,10 @@ writing depends on the machine and arrival does not. Setup in
 
 ### Triage
 
-The nightly pass writes some sources without asking and holds the rest. The test is which
-store the plan writes to.
+Compiling every source by hand is friction, and compiling every source automatically risks
+a wrong date. The nightly pass splits the difference: a wrong `wiki/` page costs a
+regeneration, while a wrong date costs a reminder that never arrives, so only the first kind
+is written unattended. The test is which store the plan writes to.
 
 | The plan writes | Then |
 |---|---|
@@ -126,6 +144,9 @@ held.
 
 ### Reliability
 
+The system is free because it runs on your own laptop, which means it only runs when the
+laptop is on. That is the trade for having no server, and these cover it.
+
 - Runs at 19:00, delivered 07:00, so the machine is awake when it matters
 - Three Windows defaults overridden: battery, unplugging, missed runs
 - Waits up to ten minutes for a network before starting
@@ -138,6 +159,9 @@ The middle five cover the nudges. A machine that was off runs its missed tasks a
 startup.
 
 ### Nudges
+
+Silence is the point. A daily message that usually says nothing due trains you to ignore the
+channel, and then the one that matters is ignored with it.
 
 Sent only when a date has passed and the item is still open, on days **1, 3, 7 and 14** past
 it. Day 14 is marked as the last. Items due today and tomorrow appear in the brief, not here.
@@ -155,7 +179,8 @@ A loop sets `nudge: morning` or `nudge: evening` to choose its window.
 | `brain_capture` over MCP | from any other project | one command |
 
 Capture refuses labelled credentials before writing to disk: `password:`, `api key =`, seed
-phrases, PEM private key blocks.
+phrases, PEM private key blocks. The vault is a git repository, and a password is easier to
+never store than to remove.
 
 ### Telegram
 
@@ -169,11 +194,15 @@ Capture only. The bot does not reply.
 
 ## MCP server
 
-Registering it once makes search, read, list loops and capture available from any project.
-The commands that write stay in the project folder. One command, in
+Without it the vault is readable only when its folder is open in Claude Code. Registering it
+once makes search, read, list loops and capture available from any project, while the commands
+that write stay in the project folder, where a plan can be reviewed before it is applied. One command, in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
 ## Escalation
+
+What stops a loop closing is rarely forgetting. It is the cost of starting, so after four
+unanswered appearances the brief stops asking and does the work instead.
 
 A loop that has appeared in four briefs without an answer moves to the head of the brief with
 its closing artifact attached:
@@ -198,6 +227,8 @@ One capability is omitted because it would cost money: asking questions from a p
 the machine is off.
 
 ## Notes
+
+Properties worth knowing before relying on it.
 
 - Markdown in a git repository. Any editor can read it.
 - Every claim cites its source.
