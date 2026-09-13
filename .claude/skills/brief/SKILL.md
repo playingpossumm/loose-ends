@@ -51,29 +51,38 @@ month, four-digit year. Nothing else on the line.
 
 ## Opening
 
-Two or three sentences under the title, before the first section. Name real items and real
-dates; a sentence containing neither is not worth writing.
+**Two sentences. Never three.**
 
-It should give a reason to start, and that comes from stating what the week turns on and what
-finishing it produces — never from encouragement. Lead with the item that matters most, say
-what it unlocks or what it blocks, and let the stakes carry it.
+Lead with what finishes this week, not with what is late. A paragraph that opens on four
+overdue items reads as a charge sheet, and the reader has not reached the list yet.
+
+The first sentence names the work that completes, and what completing it opens up. The
+second names what is still outstanding, briefly, and stops.
 
 ```
-The RAG project is at 75% and one day of technical work finishes it, which clears the rest
-of the week for the CV and portfolio due Sunday 6 September. Kyara is waiting on the GTM
-plan Monday, and Q4 starts in a month with nothing written down. The Jakarta trip takes
-Friday 4 to Sunday 6 September.
+The CV and the personal website both finish this weekend, which clears the run at GMAP
+submission on Friday 18 September. RAG and the masters check are still open from last week.
 ```
 
-Do not encourage, congratulate or exhort. No "you've got this", no "a strong week ahead", no
-exclamation marks, and no adjectives rating the work as big, important or exciting. A week
-described accurately is motivating on its own; a week described enthusiastically is not
-believed, and after three of them the paragraph gets skipped.
+What that replaced was four sentences, eleven dates and no order of importance:
 
-Do not write a sentence whose subject is the report — no "this brief covers", "here is what
-is coming up", "as of today". Do not do arithmetic on the reader's behalf: "six working
-days, three of them away" is a calculation, not a fact, and it belongs nowhere in the brief.
-If nothing is due, say that in one sentence and omit the empty sections.
+```
+RAG passed its date yesterday, Friday 11 September, and the two days to Sunday 13 September
+already hold the CV, the personal website, the brief redesign and agents and subagents.
+Every part of the GMAP preparation is due Thursday 17 September and submission opens Friday
+18 September. The masters check is three days past its third date, and route B has no dates
+of its own until it is done.
+```
+
+Energy comes from brevity and from leading with what is in reach. It never comes from
+adjectives. No "you've got this", no "a strong week ahead", no exclamation marks, and nothing
+rating the work as big, important or exciting.
+
+Do not write a sentence whose subject is the report: no "this brief covers", "here is what is
+coming up", "as of today". Do not do arithmetic for the reader: "six working days, three of
+them away" is a calculation nobody asked for.
+
+If nothing is due, say so in one sentence and omit the empty sections.
 
 ## Staleness, and what is being held
 
@@ -110,20 +119,21 @@ to date; silence is the signal.
 
 ## Structure
 
-Four sections. Two or three are usually empty, and an empty section is omitted
-entirely — `Findings` in particular is absent most weeks.
+Three sections. One or two are usually empty, and an empty section is omitted
+entirely — `Don't forget` is often empty.
 
-Every entry is a level-three heading followed by one or two lines:
+Three heading levels, and they are not interchangeable:
 
+```markdown
+## Now                          the section
+### Monday 14 September         the date group
+#### Thrive Application         the entry
+A CV and a written introduction. The posting names no closing date.
 ```
-### Proper Title — when it is due
 
-One or two lines.
-```
-
-Use `###`, not bold. The heading is what puts space above each entry and keeps its detail
-attached to it; bold text renders as another paragraph and the whole section reads as one
-block.
+Entries are `####`, date groups are `###`, sections are `##`. Headings rather than bold
+text, because the email stylesheet uses the level to space them: without it, title, detail
+and the next title sit the same distance apart and the section reads as one block.
 
 ### Titles
 
@@ -153,9 +163,21 @@ link.
 A reminder to read something that does not include the thing to read is a reminder to go
 looking for it.
 
-### The timing after the dash
+### Timing after the title
 
-A date, a deadline, or how long the thing takes. Nothing else.
+**Usually nothing.** The date group above the entry already carries the date, so repeating
+it on the title is noise. `#### Thrive Application` under `### Monday 14 September` needs no
+more.
+
+Add a dash and a timing only when it says something the group heading does not:
+
+| Add it | Because |
+|---|---|
+| `#### CV and Portfolio — Saturday 12 to Sunday 13` | it spans days, and sits in a group |
+| `#### How Complex Systems Fail — 20 minutes` | a duration, not a date |
+| `#### Masters Check — due 9 September, 5 days ago` | overdue, and the lateness is the point |
+
+Nothing else.
 
 **Always an absolute date.** The brief covers a week and is read across that week, so a
 relative word means something different on Thursday from what it meant on Monday and forces
@@ -171,106 +193,86 @@ the reader to work out which. Name the day.
 
 Day name and date together. The year only when the item falls in a different one.
 
-When the item has no date and no useful duration, drop the dash and the timing and give the
-title alone. When something arrived is not a deadline, and the user already knows he saved
-it.
+When something arrived is not a deadline, and the user already knows he saved it.
 
 ### Numbers
 
 Digits and standard symbols: `75%`, `20 minutes`, `£40`, `3 September`. Never `75 per cent`.
 Spell out only where a digit starts a sentence.
 
-### The four sections
+### Grouping inside a section
+
+`Now` and `Soon` are grouped by date, not listed flat. A date that carries work becomes a
+subheading; everything without a fixed day sits in one group at the end.
 
 ```markdown
-# Morning Brief — Monday, 31 August 2026
+## Now
 
-<Opening paragraph. Two or three sentences, each naming a real item and a real date.>
-<Then the held/staleness line, only if there is something to report.>
+### Monday 14 September
+
+#### Thrive Application
+A CV and a written introduction. The posting names no closing date.
+
+#### Masters Check
+Find the closing date and which documents are needed.
+
+### Across the week
+
+#### CV and Portfolio
+Stage one of the GMAP preparation.
+
+#### Personal Website
+The last of the three portfolio projects.
+```
+
+Date subheadings carry the day and the date, earliest first. The trailing group is titled
+**Across the week** in `Now` and **No fixed date** in `Soon`. Omit it when everything has a
+day.
+
+A date subheading with one item under it is still a date subheading. Do not fold it into the
+trailing group to save a line.
+
+### The three sections
+
+```markdown
+# Morning Brief — Monday, 14 September 2026
+
+<Opening. Two sentences.>
+<Then the held line, only if something is held.>
 
 ## Now
-<This week. Anything due or worked on between today and Sunday, earliest date first.
-
-### Foundation GTM Planning — Monday 31 August
-
-Sit down with Kyara and write it down. Q4 starts in one month.
-
-### RAG Project — due Tuesday 1 September
-
-At 75%. Remaining technical work, plus the UI.
-
-### Masters Applications — Thursday 3 September
-
-Find the closing date. No programme or school recorded yet.
-
-### Jakarta Trip — Friday 4 to Sunday 6 September
-
-Pack Wednesday.
-
-State what it is and when. Not how to do it.>
+<This week, grouped by date. Anything due or worked on between today and Sunday.>
 
 ## Soon
-<The next two to three weeks. Far enough out that nothing is done about it today, close
-enough that it constrains this week.
-
-### AI Projects — 11 September
-
-Pulled forward from mid-to-late September.
-
-### September Purchases — mid-September
-
-Monitor first, then one boardgame. Which boardgame is undecided.>
+<The next two to three weeks, grouped the same way.>
 
 ## Don't forget
-<Things captured and not returned to. These are what the user would otherwise lose, which is
-what the system is for. Rank by how likely they are to be lost.
-
-### [How Complex Systems Fail](https://how.complexsystems.fail/) — 20 minutes
-
-Richard Cook, 18 principles. Unread.
-
-### [Collect UI](https://collectui.com/)
-
-A gallery of interface patterns.
-
-Give the real title, link it if it has a URL, and say what the thing is if the name does not
-carry it. Never say where the file lives, never say a loop produced it, never say when it
-was saved, and never say that no note was attached.>
-
-## Findings
-<At most one item, and usually absent. See the Findings section below for what qualifies.>
+<Only things to read and things to buy. See below.>
 ```
 
-## Findings
+### Don't forget
 
-One item, at most, per brief. It is the only part of the brief that is not a commitment, and
-it exists because a vault that only ever reports what you owe is a deadline tracker with a
-wiki attached.
+**Two kinds of thing, and nothing else:**
 
-Read `wiki/` before writing it. Something qualifies only if it meets one of these:
+- **Something to read.** An article, a paper, a page saved and never opened.
+- **Something to buy.** An item the user said they wanted.
 
-- **Two sources disagree.** State both claims and cite both. This is the strongest kind and
-  nothing else in the system finds it.
-- **A source contradicts `mem/`.** What you recorded about yourself no longer matches what
-  you have since captured.
-- **A claim in the vault bears on something in `Now` or `Soon`.** Not a summary of the
-  source — the claim itself, in one sentence, and why it touches this week's work.
+That is the whole scope. It is the gentle end of the brief, and it exists so a saved article
+does not vanish.
+
+**It is not a place for work.** A decision, an evaluation, something to write, a list to
+confirm: those are tasks. They belong in `Now` or `Soon` under a date, or nowhere.
+
+| Belongs | Does not belong |
+|---|---|
+| An unread article, with its reading time | "Antigravity", because evaluating a tool is a task |
+| A monitor the user said they wanted | "The Five Books List", because confirming a list is a task |
+| A saved paper, unopened | "Coding and Writing Rules Prompt", because that is work |
 
 ```
-## Findings
-
-Cook's third principle is that catastrophe requires multiple failures, and single-cause
-explanations are artefacts of investigation. Your 29 August note on the RAG failure names
-one cause.
+#### [How Complex Systems Fail](https://how.complexsystems.fail/)
+Richard Cook, 18 principles. About 20 minutes.
 ```
-
-**Omit the section when nothing meets the bar.** This will be most weeks, and that is the
-correct outcome. A section that must be filled becomes a section of restated source
-summaries, which is what `Worth knowing` was before it was deleted.
-
-**Never report on the wiki itself.** Not how many pages exist, not how many were written
-this week, not which subjects lack a page. That is housekeeping, it belongs to `/lint`, and
-it was cut from this brief once already.
 
 ## What never appears
 
@@ -285,10 +287,14 @@ Removed because they carried no information:
 - File paths. Anywhere. The user opens the vault to find things, not the brief.
 - "no note on why", "nothing recorded", "untouched since" as a description of what the
   user did or did not do when saving something.
-- Which loop or source an item came from — except in `Findings`, which cites its sources
-  because a claim you cannot check is not a finding.
-- Counts of pages, sources or compiled items. `Findings` carries knowledge, never a
-  description of the vault's own size or activity.
+- Which loop or source an item came from.
+- Counts of pages, sources or compiled items.
+- **A closing sentence arguing why the item matters.** "A verdict closes it." "The reading
+  goal cannot be tracked without it." "Thrive is waiting behind it." The reader knows why
+  their own work matters, and saying it back is the brief padding itself. State what the
+  thing is and when it is due, then stop.
+- **Em dashes inside a detail line.** Use a comma, a colon or a full stop. The dash after a
+  title is a separator, not punctuation, and is the only one in the brief.
 - Counters, `surfaced` values, or any description of how the brief was assembled.
 
 ## Overdue
