@@ -163,10 +163,16 @@ startup.
 Silence is the point. A daily message that usually says nothing due trains you to ignore the
 channel, and then the one that matters is ignored with it.
 
-Sent only when a date has passed and the item is still open, on days **1, 3, 7 and 14** past
-it. Day 14 is marked as the last. Items due today and tomorrow appear in the brief, not here.
+Sent on the day a date arrives, and on days **1, 3, 7 and 14** after it passes while the item
+is still open. Day 14 is marked as the last. Nothing due in the future is nudged; that is the
+brief's job.
 
 A loop sets `nudge: morning` or `nudge: evening` to choose its window.
+
+Nudges are written to the brief's rules. The only model-authored text in one is the loop's
+`summary:` field, so the register is enforced there, in the frontmatter contract in
+[`CLAUDE.md`](CLAUDE.md): no repeat of the due date, which is printed beside the title
+anyway; absolute dates; no em dashes; no clause arguing why the item matters.
 
 ## Capture
 
@@ -247,7 +253,9 @@ Properties worth knowing before relying on it.
 - Brief sections grouped by date. Entries are `####` under `###` date groups.
 - Opening paragraph capped at two sentences.
 - `Don't forget` restricted to things to read and things to buy.
-- Nudges fire only after a date passes. Items due today and tomorrow appear in the brief only.
+- Nudges fire on the due date and on days 1, 3, 7 and 14 after it. Due tomorrow dropped.
+- Nudges written to the brief's register, enforced on the loop `summary:` field. Dates are
+  `Sunday 13 September`, not ISO. Entry titles are `h4`, matching the brief stylesheet.
 - `Findings` section removed.
 - Queue tag renamed to `[WEEKLY BRIEF]`.
 

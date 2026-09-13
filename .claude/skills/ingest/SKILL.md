@@ -84,10 +84,15 @@ Every loop also needs `title:`, the name of the thing in title case, which is wh
 and the nudge print. The `# ` heading may describe the loop; the title names it. "Foundation
 — start go-to-market planning (Monday)" is a heading, "Foundation GTM Planning" is a title.
 
-And `summary:`, a single sentence addressed to the user that stands alone
-in an email. The nudge prints it verbatim and prints nothing without it. Do not describe the
-loop ("the user wants to read this"); say the thing itself ("Richard Cook, 18 principles,
-about 20 minutes. Unread."). The frontmatter contract in `CLAUDE.md` has the full rule.
+And `summary:`, one or two sentences addressed to the user that stand alone in an email. The
+nudge prints it verbatim and prints nothing without it. Do not describe the loop ("the user
+wants to read this"); say the thing itself ("Richard Cook, 18 principles, about 20 minutes.
+Unread.").
+
+Write it the way the brief is written, since it reaches the same reader in the same week:
+absolute dates but never the loop's own due date, which the nudge prints beside the title
+anyway; no em dashes; no closing clause explaining why the item matters. The frontmatter
+contract in `CLAUDE.md` has the full rule and the examples.
 
 Add `nudge: morning` or `nudge: evening` only when the nature of the item disagrees with its
 date. Reading is an evening act whatever the deadline; anything needing an office to be open

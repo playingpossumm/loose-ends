@@ -114,14 +114,37 @@ is not a title: if the loop is about a sheet, a website or an interview, say whi
 **`summary:` is required on every loop.** The nudge email prints it verbatim and prints
 nothing when it is absent. It cannot be assembled from the page body: that body cites its
 sources by path, argues its own ranking, and refers to the user in the third person, all of
-which is correct in the vault and wrong in an email. Write one sentence, in the second
-person, that means something to someone who has not opened the vault.
+which is correct in the vault and wrong in an email.
+
+**Write it in the register the brief uses**, set out in `.claude/skills/brief/SKILL.md`. It
+is the only part of a nudge a model writes, and nothing is cleaned up at send time. The
+brief and the nudge reach the same reader in the same week and often name the same item, so
+a reminder written to different rules reads as though a different system sent it.
+
+One or two sentences, second person, neutral and factual, standing alone for someone who has
+not opened the vault. The brief's rules that bind here:
+
+- **Not the due date.** The nudge prints that beside the title, so repeating it inside the
+  sentence says the same thing twice. A *different* date is information and stays: the
+  programme deadline behind a submission, the day the shares were sold.
+- **Dates are absolute.** `3 September`, never `today`, `this week` or `end of the month`.
+  The reminder is read on a day the compiler cannot know.
+- **No em dashes.** A comma, a colon or a full stop.
+- **No closing clause arguing why it matters.** "A verdict closes it", "you asked to be
+  reminded about this one", "you called it your next project". Say what the thing is and
+  stop.
+- **Nothing about the vault.** No file paths, no `surfaced:` counts, no "moved to its third
+  date", no third person.
+- **Digits.** `75%`, `20 minutes`, `$1,491`. Never `75 per cent`.
 
 | Wrong | Right |
 |---|---|
 | His own date, stated 2026-08-31 | At 75%. Remaining technical work, plus the UI. |
 | See `wiki/sources/2026-08-30-masters.md` | Find the closing date, and which documents an application needs. |
 | The user wants to read this | Richard Cook, 18 principles, about 20 minutes. Unread. |
+| Moved to Sunday 13 September, its third date. Remaining technical work, plus the UI. | At 75%. Remaining technical work, plus the UI. |
+| Prepare a workout for bouldering. You planned it for the weekend of 12-13 September and asked to be reminded this week. | Prepare a workout for bouldering: the exercises, and which days they fall on. |
+| Work out how to use agents and subagents, in the week of 21 September. | Work out how to use agents and subagents. |
 
 **`nudge:` is optional.** Without it, an item due tomorrow is nudged at 19:30 and everything
 else at 07:00. Set it when the nature of the item disagrees with its date: reading is an
