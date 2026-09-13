@@ -1,12 +1,15 @@
-"""Email a reminder on the day something is due.
+"""Email a reminder when a date has passed and the item is still open.
 
-The brief runs on a fixed schedule and reports what is coming. That leaves a gap: an item
-due on Friday is mentioned in Monday's brief, then nothing happens on Friday itself. This
-closes that gap.
+The brief reports what is coming. A nudge asks one question about what has already gone by:
+this was due, it is still open, so is it done?
 
-It runs daily and sends nothing unless something is overdue, due today, or due tomorrow.
-Silence is the normal case. A daily email that usually says "nothing due" trains you to
+It runs daily and sends nothing unless something is past its date. Silence is the normal
+case, and most days are silent. A daily email that usually says "nothing due" trains you to
 ignore it, which would also make you ignore the one that matters.
+
+Items due today and due tomorrow were nudged until 13 September and are not any more. They
+appear in the brief, under their date, and sending them twice taught the reader to skim
+both.
 
 Like scripts/send_brief.py, it has no recipient argument. The destination is read from
 BRAIN_EMAIL_TO and cannot be overridden.
@@ -153,35 +156,36 @@ OVERDUE_NAG_DAYS = max(OVERDUE_STEPS)
 
 
 def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]]:
-    """Overdue, today, tomorrow, restricted to one of the two daily sends.
+    """Overdue only, restricted to one of the two daily sends.
 
-    Nothing further out: the brief covers that.
+    A nudge asks one question: this date has passed and the item is still open, so is it
+    done? Anything not yet due is the brief's job, and sending it twice taught the reader to
+    skim both. Items due today and due tomorrow were carried here until 13 September and are
+    now reported only in the brief.
+
+    Still open is the whole test. The vault has no separate "confirmed done" flag; closing a
+    loop is the confirmation, and `status: open` past its date is what a nudge is for.
     """
     items = [i for i in items if i["window"] == window]
     overdue = [i for i in items if (today - i["due"]).days in OVERDUE_STEPS]
     for i in overdue:
         i["final"] = (today - i["due"]).days == OVERDUE_NAG_DAYS
-    return {
-        "Overdue": sorted(overdue, key=lambda i: i["due"]),
-        "Due today": [i for i in items if i["due"] == today],
-        "Due tomorrow": [i for i in items if i["due"] == today + timedelta(days=1)],
-    }
+    return {"Overdue": sorted(overdue, key=lambda i: i["due"])}
 
 
 def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
     """Returns subject, plain text, html."""
-    counts = {k: len(v) for k, v in groups.items() if v}
-    lead = groups["Overdue"] or groups["Due today"] or groups["Due tomorrow"]
-    label = "Overdue" if groups["Overdue"] else ("Due today" if groups["Due today"] else "Due tomorrow")
-    subject = f"{label}: {lead[0]['title']}" + (f" (+{sum(counts.values()) - 1} more)"
-                                               if sum(counts.values()) > 1 else "")
+    lead = groups["Overdue"]
+    n = len(lead)
+    subject = (f"Still open: {lead[0]['title']}"
+               + (f" (+{n - 1} more)" if n > 1 else ""))
 
     text, html = [f"{today.isoformat()}", ""], []
     for name, items in groups.items():
         if not items:
             continue
-        text.append(f"{name.upper()}")
-        html.append(f"<h2>{name}</h2>")
+        text.append("PAST ITS DATE, STILL OPEN")
+        html.append("<h2>Past its date, still open</h2>")
         for i in items:
             when = i["due"].isoformat()
             overdue_by = (today - i["due"]).days
@@ -210,8 +214,9 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
         text += [note, ""]
         html.append(f"<p><em>{note}</em></p>")
 
-    text.append("Run /close in the project folder to finish one of these.")
-    html.append("<p class='foot'>Run <code>/close</code> in the project folder to finish one.</p>")
+    text.append("Done? Run /close. Not doing it? /close drops it and records why.")
+    html.append("<p class='foot'>Done? Run <code>/close</code>. "
+                "Not doing it? <code>/close</code> drops it and records why.</p>")
 
     page = (
         f"<!doctype html><html><head><meta charset='utf-8'>"

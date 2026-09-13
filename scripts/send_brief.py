@@ -114,11 +114,15 @@ CSS = """
   h1 { font-size:21px; line-height:1.25; margin:0 0 18px; letter-spacing:-.01em; }
   h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#1f6f5c;
        margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid #e8ebee; }
-  /* Each entry is an h3 with one paragraph under it. The gap above the heading has to be
-     clearly larger than the gap between the heading and its own text, or the section reads
-     as one undifferentiated block. */
-  h3 { font-size:15px; margin:28px 0 3px; }
-  h2 + h3 { margin-top:12px; }
+  /* Three levels carry the brief: h2 section, h3 date group, h4 entry. The gap above a
+     heading has to be clearly larger than the gap to its own text, or a section reads as
+     one undifferentiated block. h3 is a divider rather than a title, so it is small and
+     set apart; h4 is the thing the reader scans for. */
+  h3 { font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:#6b7480;
+       margin:26px 0 2px; font-weight:600; }
+  h2 + h3 { margin-top:14px; }
+  h4 { font-size:15px; margin:16px 0 3px; color:#0f172a; }
+  h3 + h4 { margin-top:8px; }
   p { margin:0 0 12px; }
   ul, ol { margin:0 0 12px; padding-left:20px; }
   li { margin-bottom:8px; }
