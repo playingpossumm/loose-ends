@@ -1,15 +1,14 @@
 """Email a reminder when a date has passed and the item is still open.
 
-The brief reports what is coming. A nudge asks one question about what has already gone by:
-this was due, it is still open, so is it done?
+The brief reports what is coming. A nudge covers the day a date arrives and the days after
+it passes: this is due, it is still open, so is it done?
 
-It runs daily and sends nothing unless something is past its date. Silence is the normal
+It runs daily and sends nothing unless something is due today or past its date. Silence is the normal
 case, and most days are silent. A daily email that usually says "nothing due" trains you to
 ignore it, which would also make you ignore the one that matters.
 
-Items due today and due tomorrow were nudged until 13 September and are not any more. They
-appear in the brief, under their date, and sending them twice taught the reader to skim
-both.
+Items due tomorrow were nudged until 13 September and are not any more. Nudging the day
+before and again on the day is the same message twice, and the second one stops being read.
 
 Like scripts/send_brief.py, it has no recipient argument. The destination is read from
 BRAIN_EMAIL_TO and cannot be overridden.
@@ -92,14 +91,13 @@ def link_of(text: str) -> str:
 def window_of(text: str, due: date, today: date) -> str:
     """Which of the two daily sends this item belongs in: morning or evening.
 
-    A reminder is only useful at the hour you can act on it. Something due today needs the
-    working day in front of it, so it goes at 07:00. Something due tomorrow needs an evening
-    of preparation, so it goes at 19:30 while there is still a night to use. Overdue items
-    go in the morning, where the day is longest.
+    A reminder is only useful at the hour you can act on it, so everything defaults to 07:00,
+    where the whole day is still in front of it. Nothing due tomorrow is nudged any more, so
+    the evening send fires only for a loop that asks for it by name.
 
-    The compiler overrides this per loop with `nudge: morning` or `nudge: evening` when the
-    nature of the item disagrees with the date — an article to read is an evening item on
-    any date, and a booking that needs an office to be open is a morning one.
+    The compiler overrides this per loop with `nudge: morning` or `nudge: evening`. An
+    article to read is an evening item on any date; a booking that needs an office to be open
+    is a morning one.
     """
     m = NUDGE.search(text)
     if m:
@@ -156,36 +154,43 @@ OVERDUE_NAG_DAYS = max(OVERDUE_STEPS)
 
 
 def buckets(items: list[dict], today: date, window: str) -> dict[str, list[dict]]:
-    """Overdue only, restricted to one of the two daily sends.
+    """Due today and overdue, restricted to one of the two daily sends.
 
-    A nudge asks one question: this date has passed and the item is still open, so is it
-    done? Anything not yet due is the brief's job, and sending it twice taught the reader to
-    skim both. Items due today and due tomorrow were carried here until 13 September and are
-    now reported only in the brief.
+    A nudge covers the day a date arrives and the days after it passes. Anything still ahead
+    is the brief's job: an item nudged the day before and again on the day is the same
+    message twice, and the second one stops being read.
 
     Still open is the whole test. The vault has no separate "confirmed done" flag; closing a
-    loop is the confirmation, and `status: open` past its date is what a nudge is for.
+    loop is the confirmation, and `status: open` on or past its date is what a nudge is for.
+
+    Due tomorrow was carried here until 13 September and now appears only in the brief.
     """
     items = [i for i in items if i["window"] == window]
     overdue = [i for i in items if (today - i["due"]).days in OVERDUE_STEPS]
     for i in overdue:
         i["final"] = (today - i["due"]).days == OVERDUE_NAG_DAYS
-    return {"Overdue": sorted(overdue, key=lambda i: i["due"])}
+    return {
+        "Due today": [i for i in items if i["due"] == today],
+        "Overdue": sorted(overdue, key=lambda i: i["due"]),
+    }
 
 
 def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
     """Returns subject, plain text, html."""
-    lead = groups["Overdue"]
-    n = len(lead)
-    subject = (f"Still open: {lead[0]['title']}"
-               + (f" (+{n - 1} more)" if n > 1 else ""))
+    # Lead on whatever is late; a passed date outranks one that has only just arrived.
+    lead = groups["Overdue"] or groups["Due today"]
+    total = sum(len(v) for v in groups.values())
+    prefix = "Still open" if groups["Overdue"] else "Due today"
+    subject = (f"{prefix}: {lead[0]['title']}"
+               + (f" (+{total - 1} more)" if total > 1 else ""))
 
     text, html = [f"{today.isoformat()}", ""], []
     for name, items in groups.items():
         if not items:
             continue
-        text.append("PAST ITS DATE, STILL OPEN")
-        html.append("<h2>Past its date, still open</h2>")
+        heading = "Due today" if name == "Due today" else "Past its date, still open"
+        text.append(heading.upper())
+        html.append(f"<h2>{heading}</h2>")
         for i in items:
             when = i["due"].isoformat()
             overdue_by = (today - i["due"]).days
