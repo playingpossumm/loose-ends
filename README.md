@@ -2,28 +2,15 @@
 
 A second brain that records what you know and tracks what you said you would do.
 
-It stores a friend's birthday, an article you found worth keeping, a quote you want held
-verbatim, and a deadline three weeks out. Ask it about any of that later and it answers with
-the source of every claim attached, so you can check the answer rather than trust it.
+It stores what you capture and answers questions about it, citing the source of every claim.
+It also extracts the commitments buried in that material and reports them on a schedule until
+each one is finished or dropped. Those commitments are called **loops**. You never type one;
+they are written during compilation, from material captured for some other reason.
 
-Most systems stop at storage. You put information in, it becomes something you can pull back
-out, and then it dies there because nothing ever acts on it. This one reads what you captured
-and extracts the commitments buried inside it, then reports those back on a schedule until
-each one is finished or deliberately dropped. A periodic brief tells you what is due this
-week, a nudge returns to the article you saved and never opened, and a reminder arrives
-before the document you have to submit is late.
+**Requirements:** Claude Code, and a machine you use most days. No API keys, no server, no
+database, no vector store, no monthly cost.
 
-Those extracted commitments are called **loops**, and you never type one. They are written
-during compilation, from material you captured for some other reason. After a loop has
-appeared four times without an answer it moves to the top of the brief with the work already
-drafted, so what arrives is the message itself rather than a reminder to write it.
-
-**Requirements:** Claude Code, and a machine you use most days. Nothing else — no API keys,
-no database, no server, no vector store, and no monthly cost.
-
----
-
-## Installation
+## Install
 
 ```bash
 git clone https://github.com/playingpossumm/loose-ends.git
@@ -33,8 +20,7 @@ python -m venv .venv
 python scripts/init_vault.py
 ```
 
-The vault should be its own private repository, so that your content has a history and a
-backup independent of the system that reads it:
+Keep the vault as its own private repository:
 
 ```bash
 cd vault && git init && git add -A && git commit -m "empty vault"
@@ -42,168 +28,121 @@ gh repo create my-vault --private --source=. --push
 cd ..
 ```
 
-Open Claude Code in the project root. The commands exist only there, not in `vault/` and not
-in your home directory; type a forward slash to confirm they loaded.
-
-Then run `/bootstrap`. It asks one question at a time about your work, your goals, the
-projects you have running, the people involved in them, and the rules the system must
-follow, and it writes the answers into `mem/`. It takes about twenty minutes, and it can be
-stopped and resumed. Until it has run, everything the system produces is generic.
+Open Claude Code in the project root. The commands exist only there. Then run `/bootstrap`,
+an interview that fills `mem/` with your goals, projects, people and rules. It takes about
+twenty minutes and can be resumed. Output is generic until it has run.
 
 ## Commands
 
 | | |
 |---|---|
 | `/capture` | Record a link, file, note, or the current conversation. |
-| `/ingest` | Compile one source. Shows its plan before writing. |
-| `/ingest-all` | Compile the whole inbox, planned and approved once. |
+| `/ingest` | Compile one source. Shows its plan first. |
+| `/ingest-all` | Drain Telegram, then compile the inbox under one approval. |
 | `/ask` | Answer a question with citations, and state what the vault does not cover. |
-| `/close` | Produce the artifact that finishes one loop, then file the loop. |
+| `/close` | Produce the artifact that finishes a loop, then file it. |
 | `/brief` | Write the periodic report. |
-| `/lint` | Check citations, links, orphan pages, stale claims. Run monthly. |
+| `/lint` | Check citations, links, orphans, stale claims, synthesis gaps. |
 | `/bootstrap` | The interview that fills `mem/`. |
 | `/unsource` | Remove a source and reverse every change it caused. |
 
-`python scripts/synthesis.py` reports which subjects have accumulated enough sources to
-deserve a page of their own and do not have one. `/ingest`, `/ingest-all` and `/lint` run it
-and act on it; run it by hand to see where the wiki is behind.
-
-## Operation
+## Architecture
 
 ```
-capture something  →  /ingest  →  /ask, or wait for the brief  →  /close
+capture → raw/ → compile ─┬→ wiki/  → ask
+                          │
+                          └→ loops/ → brief → nudge → close
 ```
 
-Capture is deliberately separated from compilation, because the two have opposite
-requirements. Capture must be fast enough that you do it without thinking, and it must never
-fail, so it records material without interpreting it — move a file into `vault/raw/inbox/`,
-run `/capture`, click the browser extension, or message the Telegram bot, and all four write
-to the same folder. Compilation is where the reading happens, and a single source can touch
-ten or fifteen pages at once, so it shows you its plan and waits for approval. `/ingest`
-handles one source; `/ingest-all` handles the whole inbox in one pass and can therefore see
-across sources, which matters because three notes about the same thing should produce one
-loop rather than three.
+### Two stores
 
-Compilation no longer waits for you in every case. The nightly pass writes any source whose
-plan touches only `wiki/` and holds the rest, which is described under
-[Triage](#triage). What it holds is reported in the brief as a decision waiting, so nothing
-sits unseen.
+| | `wiki/` | `mem/` |
+|---|---|---|
+| Written by | the compiler | you |
+| Rebuildable from `raw/` | yes | no |
+| A contradiction is | a finding: keep both, record it | an error: reported for you to fix |
+| The compiler may | write freely | propose only |
 
-### Automation
+### Layout
 
-Everything runs without you. Telegram messages are drained into `vault/raw/inbox/` once a
-day and compiled the same evening as far as is safe; browser clippings land there the moment
-you click; the brief is written on your schedule and delivered the next morning with a retry
-behind it; and nudges go out at 07:00 and 19:30, silent unless something is due.
+```
+loose-ends/              the system. shareable.
+├─ .claude/skills/       the nine commands
+├─ mcp/ scripts/ docs/
+├─ CLAUDE.md             the schema the model follows
+├─ .env                  credentials. gitignored.
+└─ vault/                content. gitignored here; a separate private repository.
+   ├─ raw/               what you captured, unchanged. never edited.
+   ├─ wiki/              sources, entities, concepts
+   ├─ loops/             open, dated, closed
+   ├─ mem/               profile, goals, projects, people, rules
+   └─ index.md  log.md   generated catalogue, and a record of what happened
+```
 
-What the nightly pass will not decide for you is described next.
+### Search
 
-Scheduling uses Windows Task Scheduler. Give it the evening **before** the morning you intend
-to read the brief:
+An index file and `grep`. Search sits behind one interface, so replacing it is a
+substitution rather than a rewrite. A vector store becomes worthwhile above roughly 5,000
+pages.
+
+## Automation
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That registers five tasks: the brief on the evening before each day you read it, a second
-attempt the following morning, a daily capture from Telegram, and the two daily nudges. Use
-`--nudge-morning` and `--nudge-evening` to move the last two.
+Five Windows tasks:
 
-The evening run does not put the brief in front of you at night. It mails the brief to
-yourself tagged `[WEEKLY BRIEF]`, a Gmail filter keeps that copy out of the inbox, and an
-Apps Script trigger running on Google's servers sends it on at 07:00 on Saturday and Monday.
-So the writing depends on your laptop and the arrival does not. Gmail's own Schedule send
-cannot be driven from code — it exists in the interface only — which is why the release runs
-in Apps Script; the script is `scripts/gmail_scheduler/Code.gs` and the three setup steps are
-in [docs/setup.md](docs/setup.md).
+| Task | Runs | Does |
+|---|---|---|
+| `Capture` | daily 18:00 | drains Telegram, compiles what triage allows |
+| `WeeklyBrief` | your days, 19:00 | writes the brief, queues it for morning delivery |
+| `BriefCatchup` | next day 06:00 | recovers a failed run, or revises and re-queues |
+| `NudgeMorning` | daily 07:00 | overdue items, silent otherwise |
+| `NudgeEvening` | daily 19:30 | overdue items marked `nudge: evening` |
+
+The brief is written in the evening and delivered at 07:00 by a Gmail Apps Script trigger, so
+writing depends on the machine and arrival does not. Setup in
+[`docs/setup.md`](docs/setup.md).
 
 ### Triage
 
-Compiling used to be the one step that needed a person at a keyboard, because `/ingest-all`
-shows a plan and waits for approval. The consequence was that material accumulated in the
-inbox until someone opened an editor.
-
-The gate is now scoped rather than removed. The test is **which store the plan writes to**,
-which is the two-store distinction applied one step earlier — at the decision of whether to
-write, not only at what may be written.
+The nightly pass writes some sources without asking and holds the rest. The test is which
+store the plan writes to.
 
 | The plan writes | Then |
 |---|---|
-| `wiki/` only | it is written that evening |
-| a dated loop, or a change to a date already recorded | it waits for you |
-| anything in `mem/` | it waits — the compiler may only propose there anyway |
-| a claim contradicting a page already in the vault | it waits |
-| something that reads more than one way | it waits |
+| `wiki/` only | written |
+| a dated loop, or a change to a recorded date | held |
+| anything in `mem/` | held |
+| a claim contradicting an existing page | held |
+| something that reads more than one way | held |
 
-A wrong `wiki/` page costs a regeneration, since `wiki/` rebuilds from `raw/`. A wrong date
-costs a reminder that never arrives, or one about the wrong thing. That asymmetry is the
-whole rule.
+Held sources stay in `raw/inbox/`, so whatever remains after a pass is what waited. The brief
+reports each one with its reason. `/ingest-all` settles them.
 
-The common case is mixed. An article you save is knowledge; "I should read this" is a
-commitment. The source page is written and the loop is held, so you keep what was learned
-and still decide what is owed.
-
-Held sources stay in `raw/inbox/` untouched, so whatever remains after a pass is by
-definition what waited. The brief reports each one and why, and `/ingest-all` settles them.
+Where a source is both knowledge and commitment, the source page is written and the loop is
+held.
 
 ### Reliability
 
-The system is free because it runs on your own laptop, which means it only runs when your
-laptop is on. That is the trade: no server, and therefore no guarantee that the machine is
-awake at the hour a brief or a nudge is due. Six behaviours cover it, each addressing a way
-the one before it fails.
+- Runs at 19:00, delivered 07:00, so the machine is awake when it matters
+- Three Windows defaults overridden: battery, unplugging, missed runs
+- Waits up to ten minutes for a network before starting
+- Stops rather than half-running if the network never arrives
+- Retries each stage, twice for capture and mail, once for the brief
+- Repeats the full pass next morning if the evening failed
+- Emails what broke and the command that fixes it
 
-- **19:00, the evening before you read it, delivered at 07:00.** A morning task has to wake a
-  sleeping laptop, which needs Windows wake timers, and Windows disables those on battery. So
-  the brief is written in the evening and held by Gmail until the morning, which puts the one
-  step that needs the machine at the hour the machine is reliably awake.
-- **Three Windows task defaults overridden.** Tasks otherwise refuse to start on battery,
-  abort when unplugged, and skip a missed run permanently.
-- **Up to ten minutes waiting for a network.** Waking a machine starts the task before Wi-Fi
-  has associated.
-- **A stop rather than a half-run.** Every stage needs a connection and so does the failure
-  email, so continuing would produce nothing but misleading errors.
-- **A retry on each stage**, twice for capture and mail and once for the brief.
-- **The full pass again the next morning**, for any reason at all that the evening run did
-  not complete.
-
-The middle four apply to the nudges as well, since both run through the same script. The
-first and last are specific to the brief, which is weekly and can therefore afford a second
-attempt; a nudge that fails outright is instead picked up by the next morning's run, where
-the item now counts as overdue. Nudges also do not wake a sleeping machine, which is
-deliberate — a daily task that is usually silent is not worth waking a laptop for, so a
-nudge arrives when you next open it.
-
-If they all fail, the system emails you what broke and the one command that fixes it, and
-every attempt appends to `autopilot.log` whether or not that mail got out.
-
-If the machine was simply off, nothing is lost and nothing is retried. Windows runs the
-missed task the next time you start the laptop, so the brief arrives late rather than never.
-
-The morning task has a second job, which is to recover the one thing an evening brief gives
-up. It drains Telegram and resends only when something captured overnight changes what you
-would actually do, such as a new deadline or a loop now resolved, and otherwise sends
-nothing. A normal week therefore produces one email.
+The middle five cover the nudges. A machine that was off runs its missed tasks at next
+startup.
 
 ### Nudges
 
-The brief reports what is coming, but a deadline also needs saying on the day itself. Nudges
-go out twice a day and send nothing at all unless something is due, because a reminder is
-only useful at the hour you can act on it.
+Sent only when a date has passed and the item is still open, on days **1, 3, 7 and 14** past
+it. Day 14 is marked as the last. Items due today and tomorrow appear in the brief, not here.
 
-- **07:00** carries what is due today and what is overdue, so the working day is still in
-  front of it.
-- **19:30** carries what is due tomorrow, while there is still an evening to prepare in.
-
-The split follows the due date by default, and a loop overrides it with `nudge: morning` or
-`nudge: evening` when its nature disagrees. An article to read is an evening item whatever
-its date; a booking that needs an office to be open is a morning one.
-
-The silence between them is the point. A daily message that usually says "nothing due"
-trains you to ignore the channel, and the one that matters is then ignored with the rest. An
-overdue item stops nudging after 14 days and appears only in the brief, where it is put as a
-decision rather than a reminder: drop it, set a new date, or do it now. Reminding
-indefinitely is the same failure by a slower route.
+A loop sets `nudge: morning` or `nudge: evening` to choose its window.
 
 ## Capture
 
@@ -211,348 +150,128 @@ indefinitely is the same failure by a slower route.
 |---|---|---|
 | Move a file into `vault/raw/inbox/` | anything on the machine | none |
 | `/capture` | a link, a note, the current conversation | none |
-| Obsidian Web Clipper | articles from a browser | 15 minutes |
-| Telegram | anything, from a phone | 5 minutes |
+| Obsidian Web Clipper | articles from a browser | 15 min |
+| Telegram | anything, from a phone | 5 min |
 | `brain_capture` over MCP | from any other project | one command |
 
-Capture refuses labelled credentials before writing anything to disk. A message containing
-`password:`, `api key =`, a seed phrase, or a PEM private key block is rejected and nothing
-is stored. The test errs toward refusing, because losing one note costs less than storing one
-password in a git repository.
+Capture refuses labelled credentials before writing to disk: `password:`, `api key =`, seed
+phrases, PEM private key blocks.
 
 ### Telegram
 
-Messaging an assistant from a phone would normally require a server running continuously,
-which is the recurring cost most comparable systems assume. Telegram holds bot messages for
-24 hours, so nothing has to be running at the moment you send:
+Telegram holds bot messages for 24 hours, so nothing needs to be running when you send. The
+daily drain collects them inside that window.
 
-```
-Monday, away from the machine  →  send the bot three links and a note
-Tuesday, at the machine        →  python scripts/telegram_capture.py --once
-                                  four files appear in vault/raw/inbox/
-                               →  /ingest-all
-```
+Accepts text, links, forwarded messages, images and PDFs. Forwarded messages record their
+original sender. Only your own chat id is accepted.
 
-It accepts text, links, forwarded messages, images and PDFs. A forwarded message records its
-original sender, so a claim relayed from someone else is never attributed to you, and only
-your own chat identifier is accepted, so nobody who finds the bot can write into the vault.
-
-This provides capture and not conversation; the bot does not reply. Answering would require a
-model running continuously, which is the one part of this design that would cost money.
+Capture only. The bot does not reply.
 
 ## MCP server
 
-Without the MCP server the vault is readable only when its folder is open in Claude Code.
-Registering it once makes searching, reading, listing open loops and capturing available from
-any project on the machine, while the commands that write stay in the project folder:
-`/ingest`, `/brief`, `/close`, `/lint`, `/unsource` and `/bootstrap`.
-
-The division follows from risk rather than convenience. Reading is safe from any directory,
-so it is exposed everywhere; compiling and deciding stay where the vault is visible and where
-a plan can be reviewed before it is applied. Setup is a single command, documented in
+Registering it once makes search, read, list loops and capture available from any project.
+The commands that write stay in the project folder. One command, in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
 ## Escalation
 
-Every loop carries a count of how many briefs it has appeared in without being answered. The
-count exists because repetition on its own does not change behaviour, and a reminder that has
-been ignored three times is unlikely to succeed on the fourth attempt in the same form. On
-the fourth appearance the loop is promoted to the head of the brief and its closing artifact
-is generated alongside it.
+A loop that has appeared in four briefs without an answer moves to the head of the brief with
+its closing artifact attached:
 
-- If you owe someone a message, it arrives written, drawing on facts the vault already holds
-  about them and about what you promised.
-- If you recorded a deadline or a birthday, it arrives as a calendar entry, ready to paste.
-- If you saved a document and never opened it, it arrives summarised closely enough to judge
-  without opening the file.
-- If you left a question undecided, it arrives with the options, and with what your notes
-  record about each of them.
+| Loop | What arrives |
+|---|---|
+| You owe someone a message | the message, written |
+| A deadline or birthday | the calendar entry |
+| An unread document | a summary |
+| An undecided question | the options, and what your notes say about each |
 
-The premise throughout is that what prevents a loop from closing is rarely forgetting, and
-usually the cost of starting.
-
-The system drafts and it does not send. The single script that transmits mail accepts no
-recipient argument: the destination is read once from configuration, and passing another one
-is a syntax error rather than a policy violation. No code path exists by which a message
-reaches a third party.
+The system drafts and does not send. `send_brief.py` takes no recipient argument; the
+destination is read once from configuration.
 
 ## Cost
 
-Nothing in the system carries a recurring charge. Compiling and answering run on a Claude
-Code subscription you already hold. Storage is markdown files on disk and search is an index
-file and `grep`, so neither is a service. Phone capture uses Telegram's bot API, the brief
-goes out through your own email account, the MCP server is local and starts only when
-something asks for it, and Obsidian, which is optional, is free.
+Nothing recurring. Compiling and answering run on an existing Claude Code subscription.
+Storage is files on disk, search is `grep`, phone capture is Telegram's free bot API, mail
+goes through your own account, and the MCP server is local.
 
-Comparable systems assume a server at $7 to $24 a month, an API budget of roughly $15 to $40
-a month at moderate volume, or a hosted vector database.
+One capability is omitted because it would cost money: asking questions from a phone while
+the machine is off.
 
-One capability is omitted because it would cost money, which is asking questions from a phone
-while the machine is off. Capture from a phone works and is free; answering does not.
+## Notes
 
-## Architecture
+- Markdown in a git repository. Any editor can read it.
+- Every claim cites its source.
+- `/unsource` removes a source and every change it caused. `git revert` does not solve this,
+  because later correct edits sit on top of the incorrect ones.
+- No folder taxonomy. Pages exist because a source created them.
+- Files stay on the machine.
+- Portable with work: the vault is markdown and the scripts are plain Python. The nine
+  commands are prose instruction files, so moving to another agent means translating those.
+- Not included: task entry, a vector store, a web interface, a continuously running process,
+  sending messages, writing to a calendar, unattended writes to `mem/` or to a date.
 
-```
-capture → raw/ → compile ─┬→ wiki/  → ask
-                          │
-                          └→ loops/ → brief → close
-```
+## Changelog
 
-### Storage model
+### 2026-09-13
+- Brief sections grouped by date. Entries are `####` under `###` date groups.
+- Opening paragraph capped at two sentences.
+- `Don't forget` restricted to things to read and things to buy.
+- Nudges fire only after a date passes. Items due today and tomorrow appear in the brief only.
+- `Findings` section removed.
+- Queue tag renamed to `[WEEKLY BRIEF]`.
 
-The vault is divided into two stores, which are treated differently because they fail
-differently. `wiki/` holds what the compiler has written from material you captured, and
-because it can be rebuilt from `raw/` in full, the compiler writes into it without asking.
-`mem/` holds what you have told the system about yourself, and nothing can reconstruct it if
-it is lost, so the compiler may only propose changes there and never apply them.
+### 2026-09-08
+- Nightly pass compiles sources whose plan touches only `wiki/`, holds the rest. See Triage.
+- `/ingest-all` drains Telegram before planning.
+- `index.md` generated from `summary:` fields rather than hand-maintained.
 
-| | `wiki/` — what you read | `mem/` — who you are |
-|---|---|---|
-| Written by | the compiler | you |
-| Rebuildable from `raw/` | yes | no |
-| A contradiction is | a finding: keep both, record it | an error: report it, you fix it |
-| The compiler may | write freely | propose only |
+### 2026-09-07
+- Morning delivery moved to a Gmail Apps Script trigger. Writing depends on the machine,
+  arrival does not.
+- Brief reports how long since the last compile and how much is waiting.
+- `/lint` reports entities and concepts past the promotion threshold with no page.
+- `scripts/synthesis.py` counts promotion candidates from `mem/` names and `category:` values.
 
-The distinction extends to how contradiction is handled. Two articles that disagree
-constitute a finding, and both are kept with the conflict recorded. A stated goal that
-contradicts a stated commitment is an error, and it is reported for you to resolve rather
-than quietly reconciled. Systems that collapse these two cases into one produce output that
-grows vaguer the more they hold.
+### 2026-08-31
+- Loops carry `title:` and `summary:`. Nudges are built from those fields only.
+- Nudges split into 07:00 and 19:30 windows.
+- Overdue nudges fire on days 1, 3, 7 and 14 rather than daily.
+- Brief dates are absolute. Entries carry a due date, not a capture date.
+- Capture rejects labelled credentials.
+- Delivery retries, waits for a network, and reports failures.
 
-### Directory layout
+### 2026-08-30
+- Added `/ingest-all`.
+- Added the daily due-date check.
+- Brief email renders as HTML.
+- Renamed from `second-brain`.
 
-```
-loose-ends/              the system. shareable.
-├─ .claude/skills/       the nine commands
-├─ mcp/ scripts/ docs/
-├─ CLAUDE.md             the schema the model follows
-├─ .env                  credentials. ignored by git.
-└─ vault/                content. ignored here; a separate private repository.
-   ├─ raw/ wiki/ loops/ mem/ briefs/
-   └─ index.md  log.md   the catalogue, and a record of what happened
-```
+## Docs
 
-The vault holds four folders, in a strict order of authority. `raw/` holds what you captured,
-unchanged, and is never edited. `wiki/` holds the compiled pages and can be rebuilt from
-`raw/` at any time. `loops/` holds open, closed and dated items, all written by the compiler.
-`mem/` holds your profile, goals, projects, people and rules, and is the one folder you write
-yourself.
-
-Separating the system from the vault is what allows the system to be public while the content
-stays private. Versioning the vault on its own means that each compilation is a commit you
-can inspect, and one you can undo.
-
-### Search
-
-At a few hundred pages, an index file and `grep` are faster, cheaper and easier to inspect
-than a vector store, and they fail in ways you can see. Search sits behind a single interface,
-so replacing it later is a substitution rather than a rewrite. Vector search becomes
-worthwhile somewhere above 5,000 pages.
-
-## Properties
-
-**The files are yours.** Markdown in a git repository, readable by any text editor.
-
-**Claims are checkable.** Every claim cites its source, so you can verify it instead of
-trusting it.
-
-**Compilation reverses.** `/unsource` removes a source and every change it caused. This
-matters because compiling one source writes to ten or fifteen pages, and `git revert` does
-not solve it: later correct edits sit on top of the incorrect ones. Published descriptions of
-this pattern state the problem and offer no remedy.
-
-**There is no filing system to maintain.** No folder taxonomy and no tags to keep consistent.
-Pages exist because a source created them, and the structure comes from citations.
-
-**It is private by default.** Files stay on the machine. Content passes through the model when
-you ask it to read something, as in any conversation, but the store is local.
-
-**It is portable, with some work.** The vault is markdown and the scripts are plain Python, so
-neither needs Claude. The MCP server speaks a standard protocol and works with any client
-that supports it. The nine commands are the part written for Claude Code, and they are prose
-instruction files rather than code, so moving to another agent means renaming `CLAUDE.md` to
-whatever that agent reads and translating those nine files. Your content is never the thing
-that has to move.
-
-Several things are absent deliberately:
-
-- **Task entry.** You never type a task. Loops come from material captured for other reasons,
-  and a system that requires task entry is a task manager.
-- **A vector store or graph database.** Justified above 100,000 pages, not hundreds.
-- **A web interface.** Claude Code operates it and Obsidian reads it.
-- **A continuously running process.** A weekly schedule does not need one.
-- **Unattended writes to `mem/` or to a date.** The nightly pass compiles knowledge on its
-  own and holds anything with a consequence. That boundary is the design, not a limitation
-  waiting to be lifted.
-- **Sending messages, and writing to a calendar.** The system drafts and produces the entry.
-  You send it and you create it.
-
-## Status
-
-The system is complete and has been in use for two weeks. Its central claim, that reminders
-delivered with the work already attached get acted on where bare reminders do not, is an
-argument rather than a result.
-
-Two measures, because the first one alone bent the system out of shape.
-
-**Nudge precision.** Of the loops reported in each period, how many were worth reporting.
-Below roughly 30% the design is wrong.
-
-**Synthesis ratio.** Entity and concept pages as a fraction of source pages. On 7 September
-that was 2 pages against 57, and the consequence was visible in use: everything the system
-sent was a deadline, so everything captured became a deadline, and it was experienced as a
-task manager with a wiki attached. A knowledge base that only accumulates source summaries
-answers every question by re-reading them. Below roughly 1 synthesis page per 10 sources,
-the compiler is filing rather than compiling.
-
-Measuring only the first is what produced the imbalance. What is measured is what gets
-built.
-
-Two further conditions end the project. Nothing entering `raw/` for three consecutive weeks
-means capture is too inconvenient, and finding yourself editing the wiki by hand means the
-compiler has failed at the only job it has.
-
-## Updates
-
-Newest first. The reasoning behind each change is in the commit that made it.
-
-### 8 September 2026
-
-- **The nightly pass now compiles what cannot go wrong, and holds the rest.** Compiling was
-  the last step needing a person at a keyboard, so material accumulated in the inbox until
-  someone opened an editor.
-  - The approval gate was scoped rather than removed. A plan touching only `wiki/` is written
-    that evening, because `wiki/` rebuilds from `raw/` and a wrong page there costs a
-    regeneration. A plan touching a dated loop, an existing date, `mem/`, or a claim already
-    recorded waits, because a wrong date costs a reminder that never arrives. Described under
-    [Triage](#triage).
-  - Where a source is knowledge and commitment at once, the source page is written and the
-    loop is held.
-  - Held sources stay in `raw/inbox/` untouched, so whatever remains after a pass is by
-    definition what waited. No new state, and the brief reports each one with the reason.
-- **`/ingest-all` drains Telegram before it plans.** It compiled whatever was already in the
-  inbox, and Telegram messages arrive there only when the drain runs, so a note sent an hour
-  earlier was silently excluded while the run reported success.
-- **`index.md` is generated rather than hand-maintained.** It was a flat list of sixty-one
-  sources in compile order. Sources now group under the subject they belong to, using the
-  `category:` the compiler already writes, and each subject leads with its concept page.
-  Index drift is no longer a possible fault, so `/lint` checks for missing summaries instead.
-
-### 7 September 2026
-
-- **The knowledge half was given a lifecycle.** The vault held 57 source pages, 1 entity
-  page and 1 concept page. Loops had extraction, a brief, nudges, escalation and a close;
-  knowledge had extraction and nothing further, so the only half of the system that ever
-  spoke was the half reporting deadlines.
-  - `scripts/synthesis.py` counts what should be promoted, over data that already exists:
-    names the vault committed to in `mem/`, and the `category:` the compiler writes on every
-    source. `/ingest`, `/ingest-all` and `/lint` act on its output.
-  - The promotion rule had never fired and could not. `/ingest` compiles one source at a
-    time and cannot observe mention counts across the other fifty, so a correct rule stayed
-    unreachable while the source count grew.
-  - The brief gained a `Findings` section: at most one item, never a commitment, qualifying
-    only when two sources disagree, a source contradicts `mem/`, or a claim bears on the
-    week's work. It is omitted when nothing meets the bar, and may never report on the wiki
-    itself.
-  - `Status` gained a second measure, the synthesis ratio. Measuring nudge precision alone
-    is what produced the imbalance.
-- **Morning delivery moved to Gmail, decoupling arrival from the laptop.** The brief is
-  written on the schedule as before, but is no longer sent at that moment.
-  - `send_brief.py` mails it to the account with `[WEEKLY BRIEF]` in the subject. A Gmail
-    filter matches that text and archives the message, so it never reaches the inbox.
-  - An Apps Script trigger on Google's servers (`scripts/gmail_scheduler/Code.gs`) runs at
-    07:00 on Saturday and Monday, finds the newest queued message, and re-sends it without
-    the tag. A `brief-released` label marks what has gone out and prevents a second send.
-  - Writing therefore depends on the machine; arrival does not. Gmail's own Schedule send
-    is not exposed to the API, which is why release runs in Apps Script.
-  - The morning pass moved to 06:00, ahead of the release, so a revision replaces the
-    queued copy rather than arriving as a second email.
-- **The brief reports when the vault has not been compiled recently.** Capture is automatic
-  and compilation is not, so the two diverge with no visible signal — a brief written
-  against a nine-day-old vault is indistinguishable from a current one.
-  - A line beneath the opening paragraph gives the interval since the last `ingest` and the
-    number of items waiting, whenever that interval reaches seven days or the inbox exceeds
-    five items, and directs the reader to run `/ingest-all`.
-  - It is positioned above the content, since a qualification on reliability is inert once
-    the content has been read.
-  - `autopilot.py` derives both figures from `log.md` and passes them into the prompt, in
-    preference to leaving date arithmetic to the model.
-- **`/lint` reports entities that met the promotion threshold and were never promoted.**
-  `/ingest` compiles one source at a time and cannot observe cross-source mention counts, so
-  the three-source rule does not fire unaided.
-
-### 31 August 2026
-
-- **Loops gained `title:` and `summary:`, and the nudge is built from those alone.** The
-  nudge previously rendered the head of the loop page, which is written for the vault: it
-  cites sources by path, argues its own ranking, and refers to the user in the third person.
-  One reminder read "His own date, stated 2026-08-31". Output was additionally truncated at
-  a fixed character count, terminating mid-word.
-- **Nudges run in two windows rather than one.**
-  - 07:00 carries items due that day and items overdue.
-  - 19:30 carries items due the following day.
-  - The default split follows the due date; a loop overrides it with `nudge: morning` or
-    `nudge: evening` where the nature of the item and its date disagree.
-- **The nudge was moved onto the same execution path as the brief.** It had been scheduled
-  to invoke `due_check.py` directly, bypassing the network wait, the retries and the failure
-  report, so a machine that resumed before its network was available lost the reminder with
-  no record.
-- **Overdue items nudge on a fixed schedule rather than daily.** Projecting the vault
-  forward produced a nudge on every one of thirty consecutive days, reaching eight items per
-  message in the second week; overdue items accumulate, and each was nudging daily.
-  - An overdue item now nudges on days 1, 3, 7 and 14 past its date. The day-14 message is
-    marked as the last.
-- **The brief was rewritten against a week of real output.**
-  - Two sections reporting on the system rather than on the reader's work were removed. A
-    `Don't forget` section replaced them, resurfacing material captured and not returned to.
-  - Entries carry a due date in place of a capture date, and any entry with a URL is linked
-    from its title.
-  - All dates are absolute. The brief is read across a week, so a relative term denotes a
-    different day depending on when it is read.
-- **Capture rejects labelled credentials before writing to disk**, following a bank password
-  that reached the vault and required removal.
-- **Delivery was rebuilt in layers**, described under [Reliability](#reliability), following
-  a brief lost to a machine that resumed before its network was available.
-- **The failure report was reduced** from 25 lines of log tail to the failing stage and the
-  command that resolves it.
-
-### 30 August 2026
-
-- **Added `/ingest-all`**, which compiles the inbox under a single approval and can
-  therefore reason across sources, so that several notes on one subject yield one loop
-  rather than several.
-- **Added a daily due-date check**, which sends only when an item is overdue, due that day,
-  or due the following day, and stops at 14 days so the brief can force a decision.
-- **The brief email renders as HTML** in place of raw markdown.
-- **The project was renamed from `second-brain`**, a name shared with several thousand
-  repositories and carrying no information about this one.
+| | |
+|---|---|
+| [`docs/setup.md`](docs/setup.md) | Obsidian, MCP, email, Telegram, scheduling |
+| [`docs/walkthrough.md`](docs/walkthrough.md) | Full setup with a worked example |
+| [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
+| [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |
+| [`docs/comparison.md`](docs/comparison.md) | Against GBrain, llm-wiki and others |
+| [`docs/writing-style.md`](docs/writing-style.md) | The register used throughout |
 
 ## Terminology
 
 | Term | Meaning |
 |---|---|
-| **vault** | The folder holding your content: `vault/`. A separate private git repository. |
-| **capture** | Recording something without interpreting it. Fast, and it never fails. |
-| **compile** | Reading a captured item and writing pages and loops from it. What `/ingest` and `/ingest-all` do. |
-| **held** | A source the nightly pass declined to compile without you, because it would touch a date, a loop, `mem/`, or a claim already recorded. It stays in the inbox and the brief reports it. |
-| **source** | One captured item, and the page written from it. |
-| **loop** | Something you stated and did not resolve. You do not type these; they are extracted during compilation. |
-| **surfaced** | The count on each loop of how many times it has appeared in a brief without an answer. At four it is promoted. |
-| **brief** | The periodic report. What is due, what is coming, and what you captured and forgot. |
-| **nudge** | A short email sent on the day a loop is due, at 07:00 or 19:30. Silent otherwise. |
-| **close** | Producing the artifact that finishes a loop, then marking it done, dropped, or deferred. |
-| **unsource** | Removing a source and reversing every change it caused across every page. |
-
-## Further reading
-
-| | |
-|---|---|
-| [`docs/walkthrough.md`](docs/walkthrough.md) | Full setup, with a worked example of a month of use |
-| [`docs/setup.md`](docs/setup.md) | Obsidian, MCP, email, Telegram, scheduling |
-| [`docs/comparison.md`](docs/comparison.md) | Against GBrain, llm-wiki and others, including where they are better |
-| [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
-| [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |
-| [`docs/writing-style.md`](docs/writing-style.md) | The register everything here is written in, as a prompt you can reuse |
+| **vault** | `vault/`, a separate private git repository holding your content |
+| **capture** | Recording something without interpreting it |
+| **compile** | Reading a captured item and writing pages and loops from it. What `/ingest` does. |
+| **source** | One captured item, and the page written from it |
+| **loop** | Something you stated and did not resolve, extracted during compilation |
+| **held** | A source the nightly pass declined to compile without you |
+| **surfaced** | How many briefs a loop has appeared in without an answer. At four it escalates. |
+| **brief** | The periodic report |
+| **nudge** | A reminder sent after a date passes |
+| **close** | Producing the artifact that finishes a loop, then filing it |
+| **unsource** | Removing a source and reversing every change it caused |
 
 ## License
 
