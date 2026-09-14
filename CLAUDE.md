@@ -146,10 +146,9 @@ not opened the vault. The brief's rules that bind here:
 | Prepare a workout for bouldering. You planned it for the weekend of 12-13 September and asked to be reminded this week. | Prepare a workout for bouldering: the exercises, and which days they fall on. |
 | Work out how to use agents and subagents, in the week of 21 September. | Work out how to use agents and subagents. |
 
-**`nudge:` is optional.** Without it, an item due tomorrow is nudged at 19:30 and everything
-else at 07:00. Set it when the nature of the item disagrees with its date: reading is an
-evening act whatever the deadline, and anything needing an office to be open is a morning
-one.
+**`nudge:` is optional.** Everything is nudged at 07:00 unless this says otherwise. Set it
+when the nature of the item disagrees with its date, since reading is an evening act whatever
+the deadline and anything needing an office to be open is a morning one.
 
 ## Non-negotiable rules
 

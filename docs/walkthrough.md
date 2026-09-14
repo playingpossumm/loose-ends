@@ -180,20 +180,27 @@ what it does.
 ### Week 3, Saturday, by email
 
 ```
-Week of 2026-09-12
+# Weekend Brief — Saturday, 19 September 2026
+
+The retrieval survey has now been in four briefs, so its section 4
+summary is attached rather than asked for again. Sarah's birthday
+falls on Thursday 24 September.
 
 ## Now
-Read the retrieval survey. Fourth appearance since 12 August.
-38 pages; section 4 is the relevant part, covering BM25 and vector
-fusion. The remaining 30 pages are benchmark tables.
-Decide: read section 4, schedule it, or drop it.
+
+### Overdue
+
+#### Retrieval Survey — due 12 August, 38 days ago
+Section 4 covers BM25 and vector fusion and is the part you wanted.
+The other 30 pages are benchmark tables. Drop it, set a new date, or
+read the summary now.
 
 ## Soon
-Sarah's birthday, 19 September. No calendar entry exists.
 
-## Worth knowing
-The survey contradicts your reranking notes on latency, unresolved
-since 25 August.
+### Thursday 24 September
+
+#### Sarah's Birthday
+You said in August you wanted to send something.
 ```
 
 You did not request this. It arrives on schedule.
@@ -267,14 +274,15 @@ Give it the evening **before** the morning you read the brief. A morning task on
 laptop depends on Windows wake timers, which Windows disables on battery; the run then waits
 until you next open the machine. In the evening it is already awake.
 
-Four tasks:
+Five tasks:
 
 | When | What |
 |---|---|
-| 18:00 daily | drain Telegram into the inbox |
-| 19:00, your days | write the brief and email it |
-| 08:00, the next morning | recover a failed run, or fold in overnight material that changes something |
-| 19:30 daily | email if something is overdue, due today, or due tomorrow — silent otherwise |
+| 18:00 daily | drain Telegram into the inbox, and compile what triage allows |
+| 19:00, your days | write the brief and queue it for the morning |
+| 06:00, the next morning | recover a failed run, or fold in overnight material that changes something |
+| 07:00 daily | email what is due today and what is overdue, silent otherwise |
+| 19:30 daily | the same, for loops marked `nudge: evening` |
 
 The morning run sends nothing on a normal week. It exists for the evening having failed, and
 for material arriving overnight that changes what you would do.
