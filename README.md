@@ -1,9 +1,11 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img src="assets/logo.svg" alt="loose-ends — records what you know, tracks what you said you would do" width="600">
+    <img src="assets/logo.svg" alt="loose ends" width="440">
   </picture>
 </p>
+
+<p align="center">A second brain that records what you know and tracks what you said you would do.</p>
 
 You send it articles, notes, files and conversations, and it reads each one, writes a page for
 it, and answers questions about anything it has read, citing the page that every claim came
