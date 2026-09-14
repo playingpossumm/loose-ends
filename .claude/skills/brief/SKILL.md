@@ -87,7 +87,7 @@ If nothing is due, say so in one sentence and omit the empty sections.
 ## Staleness, and what is being held
 
 Anything still in `raw/inbox/` when the brief is written was **held on purpose**, not
-forgotten. The nightly pass compiles every source whose plan touches only `wiki/`, and holds
+forgotten. The daily pass compiles every source whose plan touches only `wiki/`, and holds
 anything that would write a dated loop, change a date already recorded, touch `mem/`,
 contradict an existing claim, or that reads more than one way. What remains is what needs a
 person.
@@ -104,10 +104,10 @@ most consequential. A held source with a date in it goes first, because that is 
 waiting costs something.
 
 Separately, check `log.md` for the most recent `ingest` entry. If it is **seven or more days
-old**, the nightly pass has not been running at all, which is a different fault:
+old**, the daily pass has not been running at all, which is a different fault:
 
 ```
-*Nothing has compiled for 9 days. The nightly pass may not be running — check
+*Nothing has compiled for 9 days. The daily pass may not be running — check
 autopilot.log.*
 ```
 
@@ -157,7 +157,7 @@ what he meant, and offer to drop it.
 link.
 
 ```
-### [How Complex Systems Fail](https://how.complexsystems.fail/) — 20 minutes
+#### [How Complex Systems Fail](https://how.complexsystems.fail/) — 20 minutes
 ```
 
 A reminder to read something that does not include the thing to read is a reminder to go
@@ -305,14 +305,24 @@ Removed because they carried no information:
 
 ## Overdue
 
-An item more than 14 days past its date goes at the top of `Now` with three options and
-nothing else:
+An item more than 14 days past its date goes at the top of `Now`, under an `### Overdue`
+group that sits above the date groups, with three options and nothing else:
 
-```
-### Foundation GTM Planning — due Monday 31 August, 23 days ago
+```markdown
+## Now
 
+### Overdue
+
+#### Foundation GTM Planning — due Monday 31 August, 23 days ago
 Drop it, set a new date, or do it now.
+
+### Monday 14 September
+
+#### Thrive Application
+...
 ```
+
+`Overdue` takes the place of a date group, so the entry stays a `####` like every other one.
 
 The daily due check stops reminding at 14 days so this can take over. Do not soften it and
 do not carry it silently. An item nobody has acted on for three weeks is dead or mis-dated;

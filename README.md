@@ -244,6 +244,15 @@ which is given in
 
 ## Changelog
 
+### 2026-09-14
+- Logo added, taken from the projects page it already appears on.
+- README sections dropped: Escalation, Cost, Notes.
+- `send_brief.py` no longer carries the decide-now subject suffix, removed when the brief
+  lost that section.
+- `Code.gs` reads `Session.getEffectiveUser()`. Under a time-driven trigger `getActiveUser()`
+  returns an empty string, which released the brief to nobody and reported success.
+- Brief escalations sit under an `### Overdue` group so the entry stays a `####`.
+
 ### 2026-09-13
 - Brief sections grouped by date. Entries are `####` under `###` date groups.
 - Opening paragraph capped at two sentences.
@@ -289,6 +298,7 @@ which is given in
 | [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
 | [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |
 | [`docs/comparison.md`](docs/comparison.md) | Against GBrain, llm-wiki and others |
+| [`docs/gbrain-verdict.md`](docs/gbrain-verdict.md) | Why GBrain was not used as the foundation |
 | [`docs/writing-style.md`](docs/writing-style.md) | The register used throughout |
 
 ## Terminology

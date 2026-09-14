@@ -35,7 +35,10 @@ function releaseBrief() {
   }
 
   var subject = message.getSubject().replace(QUEUE_TAG, '').trim();
-  var to = Session.getActiveUser().getEmail();
+  // getEffectiveUser, not getActiveUser. Under a time-driven trigger there is no active
+  // user and getActiveUser().getEmail() returns an empty string, which sends the release
+  // to nobody and reports success.
+  var to = Session.getEffectiveUser().getEmail();
 
   GmailApp.sendEmail(to, subject, message.getPlainBody(), {
     htmlBody: message.getBody(),

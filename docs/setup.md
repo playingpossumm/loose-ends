@@ -132,14 +132,14 @@ The script sends the most recent file in `briefs/` to exactly one address — th
 `BRAIN_EMAIL_TO`. There is no recipient argument, deliberately: the vault drafts emails to
 other people, and no code path exists that could transmit one.
 
-It goes out flagged **high priority** (`Importance: High` and the `X-Priority` headers), and
-when the brief has an unresolved decide-now section the subject gains `· decisions waiting`
-so you can see it in the list without opening it.
+It goes out flagged **high priority**, with the `Importance: High` and `X-Priority` headers
+set. The subject is the brief's own H1, so the inbox line matches the page and reads
+`Morning Brief — Monday, 14 September 2026`, or `Weekend Brief` at weekends.
 
-A caveat worth knowing: Outlook, Apple Mail and Thunderbird show priority flags; **Gmail
-largely ignores them** — its importance markers are algorithmic. If you read mail in Gmail
-and want these to stand out reliably, add a filter: *from* your own address, *subject
-contains* `Loose ends —`, action *star it* or *apply a label*.
+Outlook, Apple Mail and Thunderbird show priority flags, but **Gmail largely ignores them**
+because its importance markers are algorithmic. If you read mail in Gmail and want these to
+stand out reliably, add a filter on *from* your own address and *subject contains* `Brief`,
+with the action set to star it or apply a label.
 
 ### Make it push you — this is the step that matters
 
@@ -161,14 +161,15 @@ That registers five Windows tasks:
 |---|---|---|
 | `SecondBrain-WeeklyBrief` | drains Telegram, writes the brief via `/brief`, mails it tagged for morning release | your chosen days, 19:00 |
 | `SecondBrain-BriefCatchup` | the next morning, before the release: recovers a failed run, or folds in overnight material that changes something | the following mornings, 06:00 |
-| `SecondBrain-Capture` | drains Telegram into the inbox | daily, 18:00 |
+| `SecondBrain-Capture` | drains Telegram into the inbox, and compiles what triage allows | daily, 18:00 |
 | `SecondBrain-NudgeMorning` | emails what is due today and what is overdue; silent otherwise | daily, 07:00 |
-| `SecondBrain-NudgeEvening` | emails what is due tomorrow; silent otherwise | daily, 19:30 |
+| `SecondBrain-NudgeEvening` | the same, for loops marked `nudge: evening`; silent otherwise | daily, 19:30 |
 
-Move the last two with `--nudge-morning` and `--nudge-evening`. The split exists because a
-reminder is only useful at the hour you can act on it: what is due today needs the working
-day in front of it, and what is due tomorrow needs an evening to prepare in. A loop overrides
-its window with `nudge: morning` or `nudge: evening` in its frontmatter.
+Move the last two with `--nudge-morning` and `--nudge-evening`. Everything arrives at 07:00
+by default, with the working day still in front of it, because a reminder is only useful at
+the hour you can act on it. A loop moves itself to 19:30 with `nudge: evening` in its
+frontmatter when its nature disagrees with that, since reading is an evening act whatever the
+deadline.
 
 ### Morning delivery — Gmail holds it until 07:00
 
@@ -211,7 +212,7 @@ a revision arrives as a second email, which is what it always did.
 
 **What this buys.** The brief arrives at seven on your phone whether the laptop is open, shut
 or in a bag, because Google does the sending. What it does not cover is the laptop being off
-all Friday and Sunday evening — no evening run means nothing queued, and the 08:00 catch-up
+all Friday and Sunday evening — no evening run means nothing queued, and the 06:00 catch-up
 then writes and sends directly.
 
 ### Why a scheduled brief or nudge still arrives
@@ -281,7 +282,7 @@ What they *do* handle, because the installer overrides Windows' laptop-hostile d
 | You unplug mid-run | keeps going — Windows aborts by default |
 
 So a Friday evening spent away from your desk means nothing is queued, and the brief arrives
-whenever the machine next opens — the 08:00 catch-up sends it directly rather than queuing it
+whenever the machine next opens — the 06:00 catch-up sends it directly rather than queuing it
 for a morning that has already passed. Late, not lost. Once the evening run has happened, the
 arrival time no longer depends on the laptop at all. The only way to get it exactly on time regardless is a machine that never sleeps,
 which is the ~$10-15/mo this project deliberately avoids.

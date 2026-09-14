@@ -1,7 +1,8 @@
-# second-brain — architecture Q&A
+# Architecture Q&A
 
-Status: **open**. Answer inline under each question. Nothing gets built until this
-is closed and a project summary is agreed.
+Closed 2026-08-22, and the system was built from the answers below. Kept as a record of
+what was asked before anything was written, and of which defaults were chosen. Where an
+answer here disagrees with the README, the README is current and this is the history.
 
 Inputs digested: 6 sources — 2 popularizations (#1, #2), 1 pattern spec (#4,
 Karpathy's llm-wiki gist), 1 production system README (#3, GBrain), 1 prompt-based

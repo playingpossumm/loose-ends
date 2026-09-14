@@ -46,13 +46,6 @@ REQUIRED = ("BRAIN_SMTP_HOST", "BRAIN_SMTP_USER", "BRAIN_SMTP_PASS", "BRAIN_EMAI
 # and never released.
 QUEUE_TAG = "[WEEKLY BRIEF]"
 
-# Words that mean "this section is empty" when they are all a section contains.
-PLACEHOLDER = {
-    "none", "nothing", "nil", "empty", "n/a", "na", "no", "not", "yet", "so", "far",
-    "this", "week", "there", "is", "are", "any", "items", "to", "decide", "new",
-}
-
-
 def load_env() -> dict[str, str]:
     """Read .env from the repo root — config lives with the system, not the content."""
     env = dict(os.environ)
@@ -71,29 +64,6 @@ def latest_brief() -> Path:
     if not briefs:
         sys.exit("No briefs yet. Run /brief in the vault first.")
     return briefs[-1]
-
-
-def has_decisions(body: str) -> bool:
-    """True if the brief's decide-now section has anything in it.
-
-    Matched loosely on purpose — the brief is written by a model, so the heading may be
-    '## Decide now', 'DECIDE NOW', or similar. A section holding only a placeholder like
-    '(none)' does not count.
-    """
-    lines = body.splitlines()
-    for i, line in enumerate(lines):
-        if re.match(r"^\s*#*\s*decide[ -]now\b", line.strip(), re.I):
-            rest = []
-            for nxt in lines[i + 1:]:
-                if re.match(r"^\s*#{1,3}\s+\w", nxt):   # next section starts
-                    break
-                rest.append(nxt.strip())
-            content = " ".join(x for x in rest if x)
-            # Word-based, not punctuation-based: the model writes placeholders in prose
-            # ("*(none yet)*", "nothing this week"), and stripping symbols alone misses them.
-            words = set(re.findall(r"[a-z/]+", content.lower()))
-            return bool(words) and not words <= PLACEHOLDER
-    return False
 
 
 def strip_frontmatter(text: str) -> str:
