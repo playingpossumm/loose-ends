@@ -49,8 +49,8 @@ delay" is a failure; the email itself is the deliverable.
 
 **5b. When the item is long overdue.** If the brief escalated this because it is more than
 14 days past its date, do not produce a large artifact by default. Ask which of the three it
-is, whether to drop it, re-date it or do it now, and only build the artifact for the third. Writing a
-detailed plan for something the user is about to drop wastes both of your time.
+is, whether to drop it, re-date it or do it now, and only build the artifact for the third.
+Writing a detailed plan for something the user is about to drop wastes both of your time.
 
 Record the reason when dropping. "Dropped 22 Sep: the deadline passed and the project moved
 on" is worth keeping; a bare `status: killed` is not.
