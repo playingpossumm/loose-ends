@@ -2,10 +2,13 @@
 
 A second brain that records what you know and tracks what you said you would do.
 
-It stores what you capture and answers questions about it, citing the source of every claim.
-It also extracts the commitments buried in that material and reports them on a schedule until
-each one is finished or dropped. Those commitments are called **loops**. You never type one;
-they are written during compilation, from material captured for some other reason.
+You send it articles, notes, files and conversations. It reads each one, writes a page for it,
+and answers questions about anything it has read, citing the page every claim came from.
+
+It also picks out what you said you would do and never closed, then emails it back on a
+schedule until you finish or drop it. Those are **loops**: an article you saved and never
+opened, a deadline mentioned once in passing, a message you owe someone. You never type one.
+They come out of material you captured for some other reason.
 
 **Requirements:** Claude Code, and a machine you use most days. No API keys, no server, no
 database, no vector store, no monthly cost.
@@ -75,9 +78,9 @@ compiler is not allowed to write there and proposes instead.
 
 ### Layout
 
-The system and the content are separate repositories, which is what lets the system be public
-while the vault stays private. Versioning the vault on its own makes each compilation a commit
-you can inspect or undo.
+Two repositories. This one holds the system and no content; `vault/` is a separate private one,
+gitignored here. Each compilation is a commit in the vault, so you can read the diff of what a
+source changed and revert it if it was wrong.
 
 ```
 loose-ends/              the system. shareable.
@@ -167,8 +170,8 @@ A task only runs while the laptop is on, so the schedule assumes it will sometim
 - Repeats the full pass next morning if the evening failed
 - Emails what broke and the command that fixes it
 
-The middle five cover the nudges. A machine that was off runs its missed tasks at next
-startup.
+The nudges get the same network wait, the same retries and the same failure email. A machine
+that was off runs its missed tasks at next startup.
 
 ### Nudges
 
@@ -193,6 +196,10 @@ absolute dates; no em dashes; no clause arguing why the item matters.
 
 ## Capture
 
+Five ways in, all writing the same thing: one markdown file in `raw/inbox/` holding the text,
+where it came from and when. Nothing is read until compilation, so capture cannot fail on a
+source it does not understand.
+
 | Method | Use | Setup |
 |---|---|---|
 | Move a file into `vault/raw/inbox/` | anything on the machine | none |
@@ -207,19 +214,19 @@ never store than to remove.
 
 ### Telegram
 
-Telegram holds bot messages for 24 hours, so nothing needs to be running when you send. The
-daily drain collects them inside that window.
+Send anything to your own bot from a phone and the 18:00 drain files it that evening. Telegram
+holds bot messages for 24 hours, so nothing has to be running at the moment you send.
 
-Accepts text, links, forwarded messages, images and PDFs. Forwarded messages record their
-original sender. Only your own chat id is accepted.
+Takes text, links, forwarded messages, images and PDFs. A forwarded message records who
+originally sent it. Only your own chat id is accepted.
 
 Capture only. The bot does not reply.
 
 ## MCP server
 
-Without it the vault is readable only when its folder is open in Claude Code. Registering it
-once makes search, read, list loops and capture available from any project, while the commands
-that write stay in the project folder, where a plan can be reviewed before it is applied. One command, in
+Register it once and `brain_search`, `brain_read`, `brain_loops` and `brain_capture` work from
+any project, not only from this folder. The commands that write stay here, where you can read
+a plan before it is applied. One command, in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
 ## Escalation
@@ -244,12 +251,12 @@ Nothing recurring. Compiling and answering run on an existing Claude Code subscr
 Storage is files on disk, search is `grep`, phone capture is Telegram's free bot API, mail
 goes through your own account, and the MCP server is local.
 
-One capability is omitted because it would cost money: asking questions from a phone while
-the machine is off.
+Asking questions from a phone while the machine is off is the one thing not included. It would
+need a hosted API, which is the only part of this that cannot be free.
 
 ## Notes
 
-Properties worth knowing before relying on it.
+What it is made of, and what it does not do.
 
 - Markdown in a git repository. Any editor can read it.
 - Every claim cites its source.
@@ -320,10 +327,10 @@ Properties worth knowing before relying on it.
 | **compile** | Reading a captured item and writing pages and loops from it. What `/ingest` does. |
 | **source** | One captured item, and the page written from it |
 | **loop** | Something you stated and did not resolve, extracted during compilation |
-| **held** | A source the nightly pass declined to compile without you |
+| **held** | A source the daily pass declined to compile without you |
 | **surfaced** | How many briefs a loop has appeared in without an answer. At four it escalates. |
 | **brief** | The periodic report |
-| **nudge** | A reminder sent after a date passes |
+| **nudge** | A reminder sent on a loop's due date, and on days 1, 3, 7 and 14 after it |
 | **close** | Producing the artifact that finishes a loop, then filing it |
 | **unsource** | Removing a source and reversing every change it caused |
 
