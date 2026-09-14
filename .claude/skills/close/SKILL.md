@@ -1,6 +1,6 @@
 ---
 name: close
-description: Close an open loop — produce the artifact that resolves it (a drafted email, event details, a summary, a decision) and mark it done, killed, or someday. Use when the user says "close this", "draft that email", "help me deal with X", or picks something from a brief.
+description: Close an open loop by producing the artifact that resolves it (a drafted email, event details, a summary, a decision) and mark it done, killed, or someday. Use when the user says "close this", "draft that email", "help me deal with X", or picks something from a brief.
 ---
 
 # close
@@ -10,7 +10,7 @@ little; this is where the system earns its place.
 
 ## How to write
 
-Neutral, plain, direct — a reference article, not an essay. Follow Orwell's rules: no
+Neutral and plain, a reference article rather than an essay. Follow Orwell's rules: no
 familiar figures of speech, no long word where a short one works, cut every word that can
 go, active over passive, everyday English over jargon. Give numbers where you have them.
 No throat-clearing, no closing remark.
@@ -27,13 +27,13 @@ this.
 **3. Gather context.** `mem/profile.md` for voice and working style, `mem/people.md` if a
 person is involved, and any `wiki/` pages the loop touches. Cite what you use.
 
-**4. Produce the artifact — in full, not described.**
+**4. Produce the artifact, in full rather than described.**
 
 | Loop | Produce |
 |---|---|
 | owes someone an email or message | the drafted message, subject line included, ready to paste |
 | a date or deadline | event title, date, time, and the details to paste in |
-| something unread | a summary of the actual source — what it says, whether it still matters |
+| something unread | a summary of the actual source, what it says and whether it still matters |
 | an undecided decision | the options, what the vault knows about each, and a recommendation |
 | a task with no obvious artifact | the smallest concrete next action, written out |
 
@@ -42,20 +42,20 @@ delay" is a failure; the email itself is the deliverable.
 
 **5. Ask what to do with the loop:**
 
-- **done** — move to `loops/closed/`, `status: done`
-- **killed** — move to `loops/closed/`, `status: killed`, record why
-- **someday** — stays open, `status: someday`, stops appearing weekly
-- **still open** — leave it, reset `surfaced: 0` since it has now been acted on
+- **done** moves it to `loops/closed/` with `status: done`
+- **killed** moves it to `loops/closed/` with `status: killed`, and records why
+- **someday** leaves it open with `status: someday`, and it stops appearing weekly
+- **still open** leaves it as it is and resets `surfaced: 0`, since it has now been acted on
 
 **5b. When the item is long overdue.** If the brief escalated this because it is more than
 14 days past its date, do not produce a large artifact by default. Ask which of the three it
-is — drop, re-date, or do it now — and only build the artifact for the third. Writing a
+is, whether to drop it, re-date it or do it now, and only build the artifact for the third. Writing a
 detailed plan for something the user is about to drop wastes both of your time.
 
 Record the reason when dropping. "Dropped 22 Sep: the deadline passed and the project moved
 on" is worth keeping; a bare `status: killed` is not.
 
-**6. File the artifact** if it is worth keeping — a summary belongs in `wiki/synthesis/`, a
+**6. File the artifact** if it is worth keeping, since a summary belongs in `wiki/synthesis/` and a
 sent message does not. Ask if unsure.
 
 **7. Log:** `## [YYYY-MM-DD] close | <loop> — <outcome>`

@@ -1,11 +1,11 @@
 ---
 name: ingest
-description: Compile one uncompiled source from raw/inbox into the wiki and loops — extract claims, write and update pages, link them, extract open loops, flag contradictions, rebuild index.md, and append to log.md. Use when the user says "ingest", "compile", "process my inbox", or asks what is waiting to be compiled.
+description: Compile one uncompiled source from raw/inbox into the wiki and loops. Extracts claims, writes and updates pages, links them, extracts open loops, flags contradictions, rebuilds index.md, and appends to log.md. Use when the user says "ingest", "compile", "process my inbox", or asks what is waiting to be compiled.
 ---
 
 # ingest
 
-Compile **one** source at a time. This is the irreversible step in the system — everything
+Compile **one** source at a time. This is the irreversible step in the system, since everything
 else can be redone from `raw/`, but a bad compile spreads across many pages before anyone
 notices. Work carefully and stay inside the caps.
 
@@ -13,7 +13,7 @@ When run unattended, apply the triage in
 [`../ingest-all/SKILL.md`](../ingest-all/SKILL.md#what-writes-itself-and-what-waits): a
 source whose plan touches only `wiki/` may be written without asking; anything touching a
 date, a loop, `mem/`, or an existing claim waits for the reader. When run with a person
-present, show the plan and ask as before — the triage exists to make unattended compiling
+present, show the plan and ask as before, because the triage exists to make unattended compiling
 safe, not to stop you approving things yourself.
 
 Read [CLAUDE.md](../../../CLAUDE.md) first if you have not this session. Its rules override
@@ -24,34 +24,34 @@ anything here.
 **1. Pick the source.** Named by the user, or the oldest `status: uncompiled` file in
 `raw/inbox/`. If several are waiting, say how many and compile one.
 
-**2. Read it fully — including anything it points at.**
+**2. Read it fully, including anything it points at.**
 
 Check the frontmatter before you start:
 
 | Field | What it means for you |
 |---|---|
-| `attachment:` | **The markdown is only a stub. Open the file it names** — that is the real source. A Telegram-captured PDF or photo has its text in the attachment, not the page. |
+| `attachment:` | **The markdown is only a stub. Open the file it names**, because that is the real source. A Telegram-captured PDF or photo has its text in the attachment, not the page. |
 | `origin: telegram (forwarded from X)` | X sent this, the user relayed it. Attribute claims to X, not to the user. This distinction matters and is easy to lose. |
 | `kind: image` | View the image itself, not only any transcription beside it. |
-| `sent:` vs `captured:` | When they said it vs when it was filed. Use `sent:` for anything time-sensitive — a forwarded message can arrive days late. |
+| `sent:` vs `captured:` | When they said it vs when it was filed. Use `sent:` for anything time-sensitive, since a forwarded message can arrive days late. |
 
 **3. Orient before writing.** Read `index.md`, then every existing page plausibly related.
-You cannot flag a contradiction against a page you did not read — this step is what makes
+You cannot flag a contradiction against a page you did not read, so this step is what makes
 step 6 work, and skipping it is the most common way this system silently degrades.
 
 **4. Extract, and show your work.** Before writing anything, list for the user:
 - key claims, each with its locator in the source
 - entities mentioned (people, tools, papers, projects, concepts)
-- **open loops** — see below
+- **open loops**, see below
 - contradictions with existing pages
 - which pages you intend to create or update
 
 Stop here if the plan touches more than 15 pages. Ask.
 
 **5. Write.**
-- `wiki/sources/<id>.md` — one page for this source: what it is, what it claims, why it
-  matters.
-- `wiki/entities/`, `wiki/concepts/` — create or update. **Run
+- `wiki/sources/<id>.md`, one page for this source, covering what it is, what it claims
+  and why it matters.
+- `wiki/entities/` and `wiki/concepts/`, created or updated. **Run
   `python scripts/synthesis.py` and promote whatever it lists.** You compile one source at
   a time and cannot see mention counts across the other fifty; the script counts them for
   you, from names already in `mem/` and from the `category:` you write on every source.
@@ -68,7 +68,7 @@ Stop here if the plan touches more than 15 pages. Ask.
 **6. Contradictions.** Never overwrite. Keep both claims with dates and sources, mark the
 section, and log it. Resolution belongs to the human.
 
-**7. Loops — this is the part that matters most.** Scan for anything stated but unresolved:
+**7. Loops, the part that matters most.** Scan for anything stated but unresolved:
 
 | Signal | Example |
 |---|---|
@@ -103,7 +103,7 @@ is the metric this project lives or dies by. When unsure, list it for the user r
 filing it.
 
 **8. Rebuild `index.md`** by running `python scripts/build_index.py`. Do not edit it by
-hand — it is generated from the vault and the next run overwrites anything you write there.
+hand, since it is generated from the vault and the next run overwrites anything you write there.
 
 Every page you create needs a one-line `summary:` in its frontmatter, because that is what
 the index prints. Write it for someone scanning ninety entries for the one they want: name
@@ -125,8 +125,8 @@ opened, contradictions flagged.
 
 - **One source per run.** Batch compilation hides mistakes.
 - **Max 15 pages touched.** Over that, stop and ask.
-- **Every claim cites a source and a locator.** No exceptions, including claims from images
-  — cite the image.
+- **Every claim cites a source and a locator.** No exceptions, including claims from images,
+  which are cited as the image.
 - **Never write `mem/`.** If the source implies something about the user's goals,
   preferences, or projects, propose it at the end and let them decide.
 - **`raw/` is immutable** apart from the `status:` field.

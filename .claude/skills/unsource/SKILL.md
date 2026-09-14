@@ -1,6 +1,6 @@
 ---
 name: unsource
-description: Remove a source from the vault and revert its influence across every page it touched — decompilation. Use when a source turns out to be wrong, unreliable, or must be deleted, or when the user says "remove that source", "that article was wrong", "undo that ingest".
+description: Remove a source from the vault and revert its influence across every page it touched, which is decompilation. Use when a source turns out to be wrong, unreliable, or must be deleted, or when the user says "remove that source", "that article was wrong", "undo that ingest".
 ---
 
 # unsource
@@ -9,7 +9,7 @@ Compilation spreads one source across many pages. A bad source touches fifteen p
 anyone notices, and none of the published write-ups of this pattern offer a way back. This
 is the way back.
 
-It is also the deletion mechanism — removing information about a person means removing every
+It is also the deletion mechanism, since removing information about a person means removing every
 page their source touched, which is the same operation.
 
 ## Why not just `git revert`
@@ -21,7 +21,7 @@ requires every page to record the source ids that shaped it.
 ## Procedure
 
 **1. Identify.** Resolve the user's description to a `sources/` page and its raw id. If
-ambiguous, list candidates and ask — unsourcing the wrong thing is expensive.
+ambiguous, list candidates and ask, because unsourcing the wrong thing is expensive.
 
 **2. Find the blast radius.** `grep` the vault for the source id. Every page with it in
 `sources:`, every citation pointing at it, every loop extracted from it. Read `log.md` for
@@ -63,5 +63,5 @@ finds mechanically.
 - **Never silently drop a claim that other sources also support.** Check before removing.
 - **Leave a trace.** A page that lost content records that it did. Invisible deletion is how
   a knowledge base starts quietly lying.
-- Prefer marking over destroying when the user's intent is ambiguous — say what you did and
-  let them escalate.
+- Prefer marking over destroying when the user's intent is ambiguous, and say what you did so they
+  can escalate.

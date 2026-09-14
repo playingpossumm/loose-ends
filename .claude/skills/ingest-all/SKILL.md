@@ -1,12 +1,12 @@
 ---
 name: ingest-all
-description: Compile every uncompiled source in raw/inbox in one pass — plan the whole batch first, approve once, then write. Use when the user says "ingest all", "compile everything", "clear the inbox", or when several sources are waiting and compiling them one at a time is just friction.
+description: Compile every uncompiled source in raw/inbox in one pass, planning the whole batch first, approving once, then writing. Use when the user says "ingest all", "compile everything", "clear the inbox", or when several sources are waiting and compiling them one at a time is just friction.
 ---
 
 # ingest-all
 
 Same work as `/ingest`, done across the whole inbox with **one approval instead of one per
-source**. Everything in [`../ingest/SKILL.md`](../ingest/SKILL.md) still applies — the rules
+source**. Everything in [`../ingest/SKILL.md`](../ingest/SKILL.md) still applies, and the rules
 about citation, provenance, contradictions and loops are not relaxed because there are more
 files.
 
@@ -25,7 +25,7 @@ python scripts/telegram_capture.py --once
 
 `/ingest-all` compiles what is in `raw/inbox/`, and Telegram messages only land there when
 that script runs. Without this step, "compile everything" silently means "compile everything
-that arrived before the last scheduled drain" — so a note sent from your phone an hour ago
+that arrived before the last scheduled drain", so a note sent from your phone an hour ago
 is missed, and the run reports success anyway.
 
 `--weekly` already drains before writing the brief, for the same reason. Draining twice
@@ -38,7 +38,7 @@ Not every source carries the same risk, so not every source needs the same appro
 the whole batch first, as always, then split it.
 
 The test is **which store the plan writes to**, which is the two-store distinction in
-`CLAUDE.md` applied one step earlier — at the decision of whether to write, not only at what
+`CLAUDE.md` applied one step earlier, at the decision of whether to write rather than only at what
 may be written.
 
 | The plan writes | Stakes | Then |
@@ -46,7 +46,7 @@ may be written.
 | `wiki/` only | rebuildable from `raw/` at any time | **write it** |
 | a loop carrying a date | a nudge fires, or fails to fire | **hold** |
 | a change to a date already recorded | the same, and it overrides something you set | **hold** |
-| anything in `mem/` | nothing can reconstruct it | **hold** — you may only propose there anyway |
+| anything in `mem/` | nothing can reconstruct it | **hold**, you may only propose there anyway |
 | a claim contradicting a page in the vault | both must be kept and the conflict recorded | **hold** |
 | more than one reading of what the source means | a guess becomes a fact once written | **hold** |
 
@@ -81,7 +81,7 @@ learning nothing that persists.
 ## Procedure
 
 **1. List what is waiting.** Every file in `raw/inbox/` with `status: uncompiled`, oldest
-first. Say how many. If more than 10, do the oldest 10 and say the rest are still queued —
+first. Say how many. If more than 10, do the oldest 10 and say the rest are still queued, since
 a batch too large to read the plan for is a batch nobody actually approves.
 
 **2. Read them all, and orient once.** Read `index.md` and the existing pages that any of
@@ -113,7 +113,7 @@ compiling cannot do:
 - **Duplicate loops.** Three notes about boardgames should produce one loop, not three.
   Say which you are merging.
 - **Entity promotion.** A name appearing across several sources in the batch may cross the
-  three-mention threshold now. Promote it — mention that you are.
+  three-mention threshold now. Promote it, and say that you are.
 - **Sources that contradict each other**, not only ones contradicting the existing wiki.
 
 **4. Wait for approval.** Do not write before it. One approval for the batch is the point;
@@ -122,7 +122,7 @@ zero approvals is not.
 **5. Compile in order**, applying `/ingest`'s rules to each. Report a line per source as you
 go, so a long batch shows progress rather than going silent.
 
-**6. Stop mid-batch and ask** if any of these happen — do not push through:
+**6. Stop mid-batch and ask** if any of these happen, rather than pushing through:
 
 - a source would touch more than 15 pages on its own
 - a source is unreadable, or its `attachment:` is missing
@@ -134,7 +134,7 @@ about beats a finished one that quietly went wrong.
 
 **7. Update `index.md` once** at the end, not per source.
 
-**8. Append one log entry per source** — the log is a per-source record and batching must
+**8. Append one log entry per source**, because the log is a per-source record and batching must
 not collapse it, or `/unsource` loses the trail:
 
 ```
@@ -152,7 +152,7 @@ opened, loops merged, contradictions flagged, anything held back.
 
 ## When not to use this
 
-**The first ten sources of a new vault.** Compile those one at a time — you are still
+**The first ten sources of a new vault.** Compile those one at a time, because you are still
 learning whether the compiler reads your material the way you would, and per-source approval
 is how you find that out. Batch once you trust it.
 
@@ -166,6 +166,6 @@ Everything in `/ingest` holds. Emphatically:
 - **Every claim cites a source and a locator.** More files is not a reason to get loose.
 - **Never write `mem/`.** Propose at the end; the human decides.
 - **`raw/` stays immutable** apart from `status:`.
-- **Be conservative about loops** — a batch is where false loops multiply fastest, and
+- **Be conservative about loops.** A batch is where false loops multiply fastest, and
   brief precision is the metric this project lives on. When unsure, list it rather than
   filing it.
