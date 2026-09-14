@@ -2,13 +2,15 @@
 
 A second brain that records what you know and tracks what you said you would do.
 
-You send it articles, notes, files and conversations. It reads each one, writes a page for it,
-and answers questions about anything it has read, citing the page every claim came from.
+You send it articles, notes, files and conversations, and it reads each one, writes a page for
+it, and answers questions about anything it has read, citing the page that every claim came
+from.
 
-It also picks out what you said you would do and never closed, then emails it back on a
-schedule until you finish or drop it. Those are **loops**: an article you saved and never
-opened, a deadline mentioned once in passing, a message you owe someone. You never type one.
-They come out of material you captured for some other reason.
+It also picks out whatever you said you would do and never closed, then emails it back to you
+on a schedule until you either finish it or drop it. Those are the **loops** in the name, and
+they are things like an article you saved and never opened, a deadline mentioned once in
+passing, or a message you still owe someone. You never type one yourself, because they come
+out of material you captured for some entirely different reason.
 
 **Requirements:** Claude Code, and a machine you use most days. No API keys, no server, no
 database, no vector store, no monthly cost.
@@ -31,9 +33,10 @@ gh repo create my-vault --private --source=. --push
 cd ..
 ```
 
-Open Claude Code in the project root. The commands exist only there. Then run `/bootstrap`,
-an interview that fills `mem/` with your goals, projects, people and rules. It takes about
-twenty minutes and can be resumed. Output is generic until it has run.
+Open Claude Code in the project root, which is the only place the commands exist, and then run
+`/bootstrap`. That is an interview filling `mem/` with your goals, projects, people and rules,
+and it takes about twenty minutes, though you can stop partway through and resume later. Until
+it has run, everything the system writes back to you is generic.
 
 ## Commands
 
@@ -51,11 +54,11 @@ twenty minutes and can be resumed. Output is generic until it has run.
 
 ## Architecture
 
-Capture and compilation are two steps. Capture writes what you send straight to `raw/` without
-reading it, so it takes a second and cannot fail on something it does not understand.
-Compilation reads that file later: it writes a page for the source, updates every existing
-page the source touches, and opens a loop for anything you said you would do. One source can
-touch up to fifteen pages.
+Anything you send goes through two separate steps, capture and then compilation. Capture
+writes it straight into `raw/` without reading it, so it finishes in a second and cannot fail
+on a source it does not understand. Compilation reads that file later, writing a page for the source, updating every
+existing page the source touches, and opening a loop for anything you said you would do, which
+for a single source can come to as many as fifteen pages.
 
 ```
 capture → raw/ → compile ─┬→ wiki/  → ask
@@ -65,9 +68,10 @@ capture → raw/ → compile ─┬→ wiki/  → ask
 
 ### Two stores
 
-`wiki/` holds what you have read. Delete it and a recompile of `raw/` rebuilds it exactly.
-`mem/` holds your goals, projects, people and rules, which nothing can reconstruct, so the
-compiler is not allowed to write there and proposes instead.
+`wiki/` holds what you have read, and you can delete the whole of it knowing that a recompile
+of `raw/` will rebuild it exactly. `mem/` holds your goals, projects, people and rules, none of
+which can be reconstructed from anything else, so the compiler is never allowed to write there
+and proposes changes for you to accept instead.
 
 | | `wiki/` | `mem/` |
 |---|---|---|
@@ -78,9 +82,10 @@ compiler is not allowed to write there and proposes instead.
 
 ### Layout
 
-Two repositories. This one holds the system and no content; `vault/` is a separate private one,
-gitignored here. Each compilation is a commit in the vault, so you can read the diff of what a
-source changed and revert it if it was wrong.
+The system and the content live in two repositories, this public one holding none of your
+content and `vault/` being a separate private repository that is gitignored here. Every
+compilation lands as a commit in the vault, so you can read the diff of what a source changed
+and revert it when it turns out to be wrong.
 
 ```
 loose-ends/              the system. shareable.
@@ -98,28 +103,28 @@ loose-ends/              the system. shareable.
 
 ### Search
 
-Two mechanisms, both reading files on disk. `index.md` is a generated catalogue: every page
-with its one-line summary, grouped by subject. A question is matched against that first, which
-narrows a few hundred pages to a handful. `grep` then reads the full text of those pages for
-anything the summary did not say.
+Two mechanisms work together, both of them reading plain files on disk. The first is
+`index.md`, a generated catalogue listing every page with its one-line summary and grouped by
+subject, which a question is matched against to narrow a few hundred pages down to a handful.
+`grep` then reads the full text of those few pages for anything the summaries did not say.
 
-Both sit behind one interface, so a vector store can replace them by changing one file. At a
-few hundred pages there is nothing to gain from doing so.
+Both sit behind a single interface, so replacing them with a vector store means changing one
+file, though at a few hundred pages there is nothing to gain from doing so.
 
 ## Automation
 
-`/brief` writes a brief when you ask for one. The schedule below sends one without being
-asked, which is the point: remembering to run `/brief` is the habit the brief exists to
-replace.
+`/brief` writes a brief whenever you ask for one, and the schedule below sends one without
+being asked, which matters because remembering to run `/brief` is the exact habit the brief
+exists to replace.
 
-There is no server and no API key. Everything runs as a Windows task on your own laptop,
-which is what makes it free and is why the safeguards below exist.
+With no server and no API key anywhere in this, everything runs as a Windows task on your own
+laptop, which is what makes it free and also why the safeguards further down are necessary.
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That is the base case used here. It registers five tasks:
+That is the base case used here, and it registers the five tasks below.
 
 | Task | Runs | Does |
 |---|---|---|
@@ -129,18 +134,18 @@ That is the base case used here. It registers five tasks:
 | `NudgeMorning` | daily 07:00 | due today and overdue |
 | `NudgeEvening` | daily 19:30 | the same, for loops marked `nudge: evening` |
 
-So a brief arrives **Saturday 07:00 and Monday 07:00**. It is written the evening before, held
-out of the inbox overnight by a Gmail filter, and released in the morning by an Apps Script
-trigger, so writing depends on the laptop being on and arrival does not. Setup in
-[`docs/setup.md`](docs/setup.md).
+A brief therefore arrives at **07:00 on Saturday and 07:00 on Monday**, having been written
+the evening before, held out of the inbox overnight by a Gmail filter, and released the next
+morning by an Apps Script trigger, which means that writing depends on the laptop being on
+while arrival does not, and the setup for all of it is in [`docs/setup.md`](docs/setup.md).
 
-Every day and time above is an argument to `install_schedule.py`. Run it again with different
-ones and the five tasks are replaced.
+Every day and time above is an argument to `install_schedule.py`, so running it again with
+different values replaces all five tasks.
 
 ### Triage
 
-The daily 18:00 pass compiles what it safely can without you and leaves the rest. It plans
-each source first, then decides from what the plan would write:
+The daily 18:00 pass compiles what it can safely handle without you and leaves everything else
+alone, planning each source first and then deciding from what that plan would write.
 
 | The plan writes | Then |
 |---|---|
@@ -150,55 +155,57 @@ each source first, then decides from what the plan would write:
 | a claim contradicting an existing page | held |
 | something that reads more than one way | held |
 
-A wrong `wiki/` page costs a regeneration. A wrong date costs a reminder that never arrives,
-so dates wait for you.
+A wrong `wiki/` page only costs a regeneration, whereas a wrong date costs a reminder that
+never arrives, which is why anything touching a date waits for you.
 
-Held sources stay in `raw/inbox/`, so whatever is still sitting there after a pass is what
-waited. The brief lists each one and why. `/ingest-all` clears them.
-
-A source that is both knowledge and commitment splits: the page is written, the loop is held.
+Held sources stay where they are in `raw/inbox/`, so whatever is still sitting there after a
+pass is exactly what waited, and the brief lists each one along with the reason it waited.
+Running `/ingest-all` clears the backlog whenever you are ready to go through it.
 
 ### Reliability
 
 A task only runs while the laptop is on, so the schedule assumes it will sometimes miss.
 
 - Runs at 19:00, delivered 07:00, so the machine is awake when it matters
-- Three Windows defaults overridden: battery, unplugging, missed runs
+- Overrides the three Windows defaults that would skip a run on battery, on unplugging, or
+  after a miss
 - Waits up to ten minutes for a network before starting
 - Stops rather than half-running if the network never arrives
 - Retries each stage, twice for capture and mail, once for the brief
 - Repeats the full pass next morning if the evening failed
 - Emails what broke and the command that fixes it
 
-The nudges get the same network wait, the same retries and the same failure email. A machine
-that was off runs its missed tasks at next startup.
+The nudges get the same network wait, the same retries and the same failure email, and a
+machine that was switched off will run its missed tasks at the next startup.
 
 ### Nudges
 
-A short email that sends the thing back to you: the article you saved and never opened, with
-its link; the date you set and have not closed. Otherwise a vault is where saved things go to
-accumulate.
+A nudge is a short email that sends the thing itself back to you, whether that is the article
+you saved and never opened, with its link attached, or the date you set and have not closed
+out. Without it a vault is simply where saved things go to accumulate.
 
-One goes out on the day a date arrives, then on days **1, 3, 7 and 14** after it passes while
-the item is still open. Day 14 is marked as the last. Nothing due in the future appears; that
-is the brief's job.
+One goes out on the day a date arrives and then on days **1, 3, 7 and 14** after it passes,
+for as long as the item is still open, with day 14 marked as the last one you will get.
+Nothing due in the future ever appears here, since that is the brief's job.
 
-Most days it sends nothing, which is deliberate. A daily message that usually says nothing due
-trains you to ignore the channel, and then the one that matters is ignored with it.
+Most days it sends nothing at all, which is deliberate, because a daily message that usually
+says nothing due trains you to ignore the channel and then the one that matters gets ignored
+along with it.
 
-A loop sets `nudge: morning` or `nudge: evening` to pick its window, so reading arrives at
-19:30 and anything needing an office open arrives at 07:00.
+A loop can pick its own window with `nudge: morning` or `nudge: evening`, so that reading
+arrives at 19:30 and anything needing an office to be open arrives at 07:00.
 
-A nudge follows the brief's writing rules. The only model-authored text in one is the loop's
-`summary:` field, so the register is enforced there, in the frontmatter contract in
-[`CLAUDE.md`](CLAUDE.md): no repeat of the due date, which is printed beside the title anyway;
-absolute dates; no em dashes; no clause arguing why the item matters.
+Nudges follow the same writing rules as the brief, and since the only model-authored text in
+one is the loop's `summary:` field, those rules are enforced on that field by the frontmatter
+contract in [`CLAUDE.md`](CLAUDE.md), which bars repeating the due date that is printed beside
+the title anyway, bars relative dates and em dashes, and bars any clause arguing why the item
+matters.
 
 ## Capture
 
-Five ways in, all writing the same thing: one markdown file in `raw/inbox/` holding the text,
-where it came from and when. Nothing is read until compilation, so capture cannot fail on a
-source it does not understand.
+There are five ways in and all of them write the same thing, a single markdown file in
+`raw/inbox/` holding the text, where it came from and when it arrived. Nothing is read until
+compilation, so capture cannot fail on a source it does not understand.
 
 | Method | Use | Setup |
 |---|---|---|
@@ -208,32 +215,34 @@ source it does not understand.
 | Telegram | anything, from a phone | 5 min |
 | `brain_capture` over MCP | from any other project | one command |
 
-Capture refuses labelled credentials before writing to disk: `password:`, `api key =`, seed
-phrases, PEM private key blocks. The vault is a git repository, and a password is easier to
-never store than to remove.
+Before anything reaches disk, capture refuses labelled credentials such as `password:`,
+`api key =`, seed phrases and PEM private key blocks, because the vault is a git repository
+and a password is far easier to never store than it is to remove afterwards.
 
 ### Telegram
 
-Send anything to your own bot from a phone and the 18:00 drain files it that evening. Telegram
-holds bot messages for 24 hours, so nothing has to be running at the moment you send.
+Send anything to your own bot from a phone and the 18:00 drain files it that same evening,
+which works because Telegram holds bot messages for 24 hours and nothing has to be running at
+the moment you send.
 
-Takes text, links, forwarded messages, images and PDFs. A forwarded message records who
-originally sent it. Only your own chat id is accepted.
-
-Capture only. The bot does not reply.
+It takes text, links, forwarded messages, images and PDFs, recording who originally sent a
+forwarded message, and it accepts messages from your own chat id only, capturing whatever you
+send without ever replying to it.
 
 ## MCP server
 
-Register it once and `brain_search`, `brain_read`, `brain_loops` and `brain_capture` work from
-any project, not only from this folder. The commands that write stay here, where you can read
-a plan before it is applied. One command, in
+Register it once and `brain_search`, `brain_read`, `brain_loops` and `brain_capture` become
+available from any project rather than only from this folder, while the commands that write
+stay here, where you can read a plan before it is applied. Registering it takes one command,
+which is given in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
 
 ## Escalation
 
 A loop that has appeared in four briefs without an answer moves to the head of the next one
-with its closing artifact already attached. What stops a loop closing is rarely forgetting, it
-is the cost of starting, so the brief stops asking and does the work:
+with its closing artifact already attached, because what stops a loop closing is rarely
+forgetting but the cost of starting, so at that point the brief stops asking and does the work
+instead.
 
 | Loop | What arrives |
 |---|---|
@@ -242,32 +251,33 @@ is the cost of starting, so the brief stops asking and does the work:
 | An unread document | a summary |
 | An undecided question | the options, and what your notes say about each |
 
-The system drafts and does not send. `send_brief.py` takes no recipient argument; the
-destination is read once from configuration.
+Everything here is drafted and nothing is ever sent, and `send_brief.py` takes no recipient
+argument at all, reading its single destination once from configuration.
 
 ## Cost
 
-Nothing recurring. Compiling and answering run on an existing Claude Code subscription.
-Storage is files on disk, search is `grep`, phone capture is Telegram's free bot API, mail
-goes through your own account, and the MCP server is local.
+There is nothing recurring to pay, because compiling and answering run on a Claude Code
+subscription you already have, storage is files on disk, search is `grep`, phone capture uses
+Telegram's free bot API, mail goes through your own account, and the MCP server runs locally.
 
-Asking questions from a phone while the machine is off is the one thing not included. It would
-need a hosted API, which is the only part of this that cannot be free.
+The one thing not included is asking questions from a phone while the machine is off, which
+would need a hosted API and is the only part of this that could not have been free.
 
 ## Notes
 
 What it is made of, and what it does not do.
 
-- Markdown in a git repository. Any editor can read it.
-- Every claim cites its source.
-- `/unsource` removes a source and every change it caused. `git revert` does not solve this,
-  because later correct edits sit on top of the incorrect ones.
-- No folder taxonomy. Pages exist because a source created them.
-- Files stay on the machine.
-- Portable with work: the vault is markdown and the scripts are plain Python. The nine
-  commands are prose instruction files, so moving to another agent means translating those.
-- Not included: task entry, a vector store, a web interface, a continuously running process,
-  sending messages, writing to a calendar, unattended writes to `mem/` or to a date.
+- Markdown in a git repository, readable in any editor you already use.
+- Every claim cites the source it came from.
+- `/unsource` removes a source along with every change it caused, which `git revert` cannot
+  do, because later correct edits sit on top of the incorrect ones.
+- No folder taxonomy, since a page exists only because some source created it.
+- Everything stays on the machine.
+- Portable with some work, in that the vault is markdown and the scripts are plain Python,
+  though the nine commands are prose instruction files and moving to another agent would mean
+  translating all of them.
+- Nothing here does task entry, a vector store, a web interface, a continuously running
+  process, sending messages, writing to a calendar, or unattended writes to `mem/` or a date.
 
 ## Changelog
 
