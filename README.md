@@ -56,9 +56,9 @@ it has run, everything the system writes back to you is generic.
 
 Anything you send goes through two separate steps, capture and then compilation. Capture
 writes it straight into `raw/` without reading it, so it finishes in a second and cannot fail
-on a source it does not understand. Compilation reads that file later, writing a page for the source, updating every
-existing page the source touches, and opening a loop for anything you said you would do, which
-for a single source can come to as many as fifteen pages.
+on a source it does not understand. Compilation reads that file later, writing a page for the
+source, updating every existing page the source touches, and opening a loop for anything you
+said you would do.
 
 ```
 capture → raw/ → compile ─┬→ wiki/  → ask
@@ -68,10 +68,10 @@ capture → raw/ → compile ─┬→ wiki/  → ask
 
 ### Two stores
 
-`wiki/` holds what you have read, and you can delete the whole of it knowing that a recompile
-of `raw/` will rebuild it exactly. `mem/` holds your goals, projects, people and rules, none of
-which can be reconstructed from anything else, so the compiler is never allowed to write there
-and proposes changes for you to accept instead.
+`wiki/` holds what you have read, and since every page in it was written from something in
+`raw/`, recompiling rebuilds the whole store exactly as it was. `mem/` holds your goals,
+projects, people and rules, which nothing can rebuild, so the compiler is never allowed to
+write there and proposes changes for you to accept instead.
 
 | | `wiki/` | `mem/` |
 |---|---|---|
@@ -82,10 +82,9 @@ and proposes changes for you to accept instead.
 
 ### Layout
 
-The system and the content live in two repositories, this public one holding none of your
-content and `vault/` being a separate private repository that is gitignored here. Every
-compilation lands as a commit in the vault, so you can read the diff of what a source changed
-and revert it when it turns out to be wrong.
+Your own knowledge and memory go into `vault/`, a private repository you set up separately and
+which is gitignored here. Every compilation lands as a commit in it, so you can read the diff
+of what a source changed and revert it when it turns out to be wrong.
 
 ```
 loose-ends/              the system. shareable.
@@ -180,13 +179,14 @@ machine that was switched off will run its missed tasks at the next startup.
 
 ### Nudges
 
-A nudge is a short email that sends the thing itself back to you, whether that is the article
-you saved and never opened, with its link attached, or the date you set and have not closed
-out. Without it a vault is simply where saved things go to accumulate.
+A nudge is a short deadline reminder arriving on the exact day something is due, and it sends
+the thing itself back to you rather than only naming it, so an article you saved and never
+opened comes with its link attached. Without it a vault is simply where saved things go to
+accumulate.
 
-One goes out on the day a date arrives and then on days **1, 3, 7 and 14** after it passes,
-for as long as the item is still open, with day 14 marked as the last one you will get.
-Nothing due in the future ever appears here, since that is the brief's job.
+One goes out on the due date, then again on days **1, 3, 7 and 14** after it passes for as
+long as the item is still open, with day 14 marked as the last one you will get. Nothing due
+in the future ever appears here, since that is the brief's job.
 
 Most days it sends nothing at all, which is deliberate, because a daily message that usually
 says nothing due trains you to ignore the channel and then the one that matters gets ignored
@@ -236,48 +236,6 @@ available from any project rather than only from this folder, while the commands
 stay here, where you can read a plan before it is applied. Registering it takes one command,
 which is given in
 [`docs/setup.md`](docs/setup.md#4-reach-it-from-your-other-projects-recommended).
-
-## Escalation
-
-A loop that has appeared in four briefs without an answer moves to the head of the next one
-with its closing artifact already attached, because what stops a loop closing is rarely
-forgetting but the cost of starting, so at that point the brief stops asking and does the work
-instead.
-
-| Loop | What arrives |
-|---|---|
-| You owe someone a message | the message, written |
-| A deadline or birthday | the calendar entry |
-| An unread document | a summary |
-| An undecided question | the options, and what your notes say about each |
-
-Everything here is drafted and nothing is ever sent, and `send_brief.py` takes no recipient
-argument at all, reading its single destination once from configuration.
-
-## Cost
-
-There is nothing recurring to pay, because compiling and answering run on a Claude Code
-subscription you already have, storage is files on disk, search is `grep`, phone capture uses
-Telegram's free bot API, mail goes through your own account, and the MCP server runs locally.
-
-The one thing not included is asking questions from a phone while the machine is off, which
-would need a hosted API and is the only part of this that could not have been free.
-
-## Notes
-
-What it is made of, and what it does not do.
-
-- Markdown in a git repository, readable in any editor you already use.
-- Every claim cites the source it came from.
-- `/unsource` removes a source along with every change it caused, which `git revert` cannot
-  do, because later correct edits sit on top of the incorrect ones.
-- No folder taxonomy, since a page exists only because some source created it.
-- Everything stays on the machine.
-- Portable with some work, in that the vault is markdown and the scripts are plain Python,
-  though the nine commands are prose instruction files and moving to another agent would mean
-  translating all of them.
-- Nothing here does task entry, a vector store, a web interface, a continuously running
-  process, sending messages, writing to a calendar, or unattended writes to `mem/` or a date.
 
 ## Changelog
 
@@ -338,7 +296,7 @@ What it is made of, and what it does not do.
 | **source** | One captured item, and the page written from it |
 | **loop** | Something you stated and did not resolve, extracted during compilation |
 | **held** | A source the daily pass declined to compile without you |
-| **surfaced** | How many briefs a loop has appeared in without an answer. At four it escalates. |
+| **surfaced** | How many briefs a loop has appeared in without being acted on |
 | **brief** | The periodic report |
 | **nudge** | A reminder sent on a loop's due date, and on days 1, 3, 7 and 14 after it |
 | **close** | Producing the artifact that finishes a loop, then filing it |
