@@ -1,6 +1,9 @@
-# loose-ends
-
-A second brain that records what you know and tracks what you said you would do.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo.svg" alt="loose-ends — records what you know, tracks what you said you would do" width="600">
+  </picture>
+</p>
 
 You send it articles, notes, files and conversations, and it reads each one, writes a page for
 it, and answers questions about anything it has read, citing the page that every claim came

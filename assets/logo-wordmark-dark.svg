@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 176" width="520" height="176" role="img" aria-label="loose-ends">
+  <title>loose-ends</title>
+  <rect width="520" height="176" fill="#0d1117"/>
+  <text x="56" y="96" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="62" fill="#ededed" letter-spacing="-1.4">loose-ends</text>
+  <path d="M 58 118 L 392 118" fill="none" stroke="#ededed" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="404" y1="118" x2="414" y2="118" stroke="#ededed" stroke-width="2" stroke-linecap="round" opacity="0.55"/><line x1="421" y1="118" x2="429" y2="118" stroke="#ededed" stroke-width="2" stroke-linecap="round" opacity="0.43"/><line x1="438" y1="118" x2="444" y2="118" stroke="#ededed" stroke-width="2" stroke-linecap="round" opacity="0.31"/><line x1="455" y1="118" x2="459" y2="118" stroke="#ededed" stroke-width="2" stroke-linecap="round" opacity="0.19"/>
+  <text x="58" y="150" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-size="15" fill="#8b949e" letter-spacing="0.2">records what you know, tracks what you said you would do</text>
+</svg>
