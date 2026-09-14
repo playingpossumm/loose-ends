@@ -5,8 +5,9 @@ description: Answer a question from the vault with synthesised prose, citations,
 
 # ask
 
-Answer the question, do not hand back a list of pages. The answer is the deliverable. A ranked list of five files the user then has to read
-themselves is a search engine, and they already have one.
+Answer the question, do not hand back a list of pages. The answer is the deliverable. A
+ranked list of five files the user then has to read themselves is a search engine, and they
+already have one.
 
 ## How to write
 

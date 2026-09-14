@@ -2,7 +2,7 @@
 
 ## 0. Two repositories, one folder
 
-This repository holds the **system** — skills, MCP server, scripts, docs — and is meant to be
+This repository holds the **system**, skills, MCP server, scripts, docs, and is meant to be
 shareable. Your **content** lives in `vault/`, which this repo ignores entirely and which is
 its own separate private repository.
 
@@ -15,7 +15,7 @@ loose-ends/            the system. shareable.
    └─ raw/ wiki/ loops/ mem/ briefs/  index.md  log.md
 ```
 
-You open the outer folder in Claude Code — that is where the skills load from — and
+You open the outer folder in Claude Code, which is where the skills load from, and
 everything the skills write goes into `vault/`.
 
 After cloning:
@@ -35,7 +35,7 @@ with, and everything you have ever captured.
 <wherever you cloned it>
 ```
 
-Project skills only load when this folder is the working directory — the outer one, not
+Project skills only load when this folder is the working directory, the outer one, not
 `vault/`. Opening Claude Code anywhere else gives you no `/capture`, no `/ingest`. Confirm
 with `/capture`: if it does not autocomplete, you are in the wrong directory.
 
@@ -44,14 +44,14 @@ twenty minutes; you can stop and resume. Until it runs, every answer is generic.
 
 ## 2. Obsidian (optional, recommended)
 
-Obsidian is a **viewer**. Nothing in the pipeline needs it running — that dependency is what
-makes most published setups of this pattern fragile.
+Obsidian is a **viewer**. Nothing in the pipeline needs it running, and requiring it to run
+is what makes most published setups of this pattern fragile.
 
-1. Install from [obsidian.md](https://obsidian.md) — free.
+1. Install from [obsidian.md](https://obsidian.md), free.
 2. *Open folder as vault* → the `vault/` subfolder. Not "create new vault".
 3. Graph view shows the shape of what you have built, and which pages are orphans.
 
-### Web Clipper — the highest-value fifteen minutes here
+### Web Clipper: the highest-value fifteen minutes here
 
 The browser extension turns articles, Twitter threads, and PDFs into markdown in one click.
 It solves your main capture path with no pipeline code.
@@ -67,14 +67,14 @@ It solves your main capture path with no pipeline code.
 
 `/brief` works today. Run it at the end of the week and read what comes out.
 
-Do this before automating anything. You will learn what belongs in the brief — and, more
-usefully, what does not — and that is much easier to adjust while you are still running it
+Do this before automating anything. You will learn what belongs in the brief, and, more
+usefully, what does not, and that is much easier to adjust while you are still running it
 yourself. Email delivery is step 5, once you know the thing is worth delivering.
 
 ## 4. Reach it from your other projects (recommended)
 
 Without this, the vault is readable only when Claude Code is open in this folder. With it, the
-vault is available in every project you work in — your memory follows you instead of
+vault is available in every project you work in, so your memory follows you instead of
 waiting in a directory.
 
 The MCP server is built and tested. Inside this folder it works already via `.mcp.json`.
@@ -90,7 +90,7 @@ Six tools, all read-mostly:
 
 | Tool | Does |
 |---|---|
-| `brain_index` | the catalogue — what exists at all |
+| `brain_index` | the catalogue, what exists at all |
 | `brain_search` | ranked search with matching lines |
 | `brain_read` | one page in full |
 | `brain_loops` | what is still outstanding |
@@ -98,7 +98,7 @@ Six tools, all read-mostly:
 | `brain_recent` | last N things that happened |
 
 The only tool that writes is `brain_capture`, and it only ever appends a new file to
-`raw/inbox/`. Nothing over MCP can edit or delete anything — compilation stays inside the
+`raw/inbox/`. Nothing over MCP can edit or delete anything, so compilation stays inside the
 vault where you can see it. Paths are checked against the vault root, so a traversal attempt
 is refused rather than served.
 
@@ -109,7 +109,7 @@ If you move the folder, re-run the command above with the new path.
 Loops and reminders go out by email. Phone capture is Telegram's job (step 6); the two
 channels do different things on purpose.
 
-1. Copy `.env.example` to `.env` and fill it in. `.env` is gitignored — never commit it.
+1. Copy `.env.example` to `.env` and fill it in. `.env` is gitignored, never commit it.
 2. Gmail needs an **App Password**, not your account password. Go to
    **myaccount.google.com/apppasswords**.
 
@@ -128,7 +128,7 @@ channels do different things on purpose.
 .venv\Scripts\python.exe scripts/send_brief.py
 ```
 
-The script sends the most recent file in `briefs/` to exactly one address — the one in
+The script sends the most recent file in `briefs/` to exactly one address, the one in
 `BRAIN_EMAIL_TO`. There is no recipient argument, deliberately: the vault drafts emails to
 other people, and no code path exists that could transmit one.
 
@@ -141,7 +141,7 @@ because its importance markers are algorithmic. If you read mail in Gmail and wa
 stand out reliably, add a filter on *from* your own address and *subject contains* `Brief`,
 with the action set to star it or apply a label.
 
-### Make it push you — this is the step that matters
+### Make it push you: this is the step that matters
 
 Everything above still requires you to *remember*, which is the exact habit the brief exists
 to replace. This is what closes that gap:
@@ -151,7 +151,7 @@ python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
 **Give it the evening before the morning you read the brief.** A morning task on a sleeping
-laptop depends on Windows wake timers, which Windows disables on battery — the run then
+laptop depends on Windows wake timers, which Windows disables on battery, so the run
 waits until you next open the machine, possibly hours after it was useful. In the evening the
 machine is already awake and online.
 
@@ -171,7 +171,7 @@ the hour you can act on it. A loop moves itself to 19:30 with `nudge: evening` i
 frontmatter when its nature disagrees with that, since reading is an evening act whatever the
 deadline.
 
-### Morning delivery — Gmail holds it until 07:00
+### Morning delivery: Gmail holds it until 07:00
 
 The evening run exists so the brief is written while the machine is awake. On its own it also
 *delivers* in the evening, which puts a Monday brief in your inbox at some point on Sunday
@@ -182,7 +182,7 @@ Gmail's own Schedule send cannot do this: it exists in the Gmail interface only,
 exposed neither over SMTP nor through `messages.send` in the Gmail API. Apps Script is the
 supported way to have Google send something on a timer.
 
-**1. Tag the message.** Nothing to do — `autopilot.py --weekly` already passes `--queue` to
+**1. Tag the message.** Nothing to do, `autopilot.py --weekly` already passes `--queue` to
 `send_brief.py`, which puts `[WEEKLY BRIEF]` in the subject and an `X-Brain-Queued` header on
 the message. A brief sent by hand is untagged and arrives immediately, as before.
 
@@ -193,7 +193,7 @@ this you see the brief twice: once at night and once in the morning.
 **3. Release it in the morning.** At [script.google.com](https://script.google.com) create a
 project, paste `scripts/gmail_scheduler/Code.gs` into it, and run `setUpTriggers` once from
 the editor. It asks for permission to send mail as you, then installs two weekly triggers,
-Saturday and Monday at 07:00. Set the project's time zone to your own under Project Settings —
+Saturday and Monday at 07:00. Set the project's time zone to your own under Project Settings:
 the file `scripts/gmail_scheduler/appsscript.json` carries `Asia/Jakarta`.
 
 Run `testRelease` from the editor to check the wiring rather than waiting for Saturday.
@@ -207,12 +207,12 @@ deleted, and if nothing is queued it does nothing and says so in its log.
 asks whether anything that arrived overnight changes what you would do. Because that is an
 hour before the release, a revision is **re-queued** rather than sent: Gmail picks the newest
 tagged message at 07:00, so you get one corrected brief instead of last night's followed by an
-update. If the catch-up runs late — a shut laptop at six — the release has already happened and
+update. If the catch-up runs late, a shut laptop at six, the release has already happened and
 a revision arrives as a second email, which is what it always did.
 
 **What this buys.** The brief arrives at seven on your phone whether the laptop is open, shut
 or in a bag, because Google does the sending. What it does not cover is the laptop being off
-all Friday and Sunday evening — no evening run means nothing queued, and the 06:00 catch-up
+all Friday and Sunday evening, no evening run means nothing queued, and the 06:00 catch-up
 then writes and sends directly.
 
 ### Why a scheduled brief or nudge still arrives
@@ -244,20 +244,20 @@ It does one of three things:
 
 | Last night | Behaviour |
 |---|---|
-| failed, nothing queued | full pass, sends **directly** — the release window is minutes away and a `/brief` run can overrun it |
+| failed, nothing queued | full pass, sends **directly**, the release window is minutes away and a `/brief` run can overrun it |
 | queued, nothing arrived overnight | drains Telegram, sends nothing; the 07:00 release delivers what was written |
 | queued, something arrived | asks whether it changes what you would do; if it does, revises and **re-queues**, so the 07:00 release carries the revision |
 
 A fixed "resend if anything is new" rule would mean a second email most mornings, since
 material arrives most evenings. Items sitting uncompiled are explicitly not a reason to
-resend — the existing brief already counts them.
+resend, the existing brief already counts them.
 
 `--catchup-time` moves it; `--no-catchup` skips it. Keep it before the Apps Script release
-hour — `RELEASE_HOUR` in `autopilot.py` is what decides whether a revision is re-queued or
+hour, `RELEASE_HOUR` in `autopilot.py` is what decides whether a revision is re-queued or
 sent, and it must match the triggers in `Code.gs`.
 
 `--nudge-morning` and `--nudge-evening` move the two nudges; `--no-due-check` skips both.
-Neither calls a model — they read the vault and send — so they are fast, but they are not
+Neither calls a model, they read the vault and send, so they are fast, but they are not
 network-free: sending is the whole job. This file claimed otherwise until 31 August, and the
 nudge was scheduled outside the retry path on the strength of that claim, so a laptop that
 woke before its Wi-Fi lost the reminder in silence.
@@ -265,7 +265,7 @@ woke before its Wi-Fi lost the reminder in silence.
 All of them run whether or not Claude Code is open. `--cadence` takes `daily`, `weekly`, or
 `fortnightly`. Re-run the command any time to change it; `--remove` stops all of them.
 
-`scripts/autopilot.py` is what every task calls — it drives Claude Code headlessly with
+`scripts/autopilot.py` is what every task calls. It drives Claude Code headlessly with
 `--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
 appends to `autopilot.log`.
 
@@ -278,13 +278,14 @@ What they *do* handle, because the installer overrides Windows' laptop-hostile d
 | | |
 |---|---|
 | Laptop asleep at the scheduled time | the run happens **when you next open it** (`StartWhenAvailable`) |
-| On battery | runs anyway — Windows blocks this by default |
-| You unplug mid-run | keeps going — Windows aborts by default |
+| On battery | runs anyway, Windows blocks this by default |
+| You unplug mid-run | keeps going, Windows aborts by default |
 
 So a Friday evening spent away from your desk means nothing is queued, and the brief arrives
-whenever the machine next opens — the 06:00 catch-up sends it directly rather than queuing it
+whenever the machine next opens, the 06:00 catch-up sends it directly rather than queuing it
 for a morning that has already passed. Late, not lost. Once the evening run has happened, the
-arrival time no longer depends on the laptop at all. The only way to get it exactly on time regardless is a machine that never sleeps,
+arrival time no longer depends on the laptop at all. The only way to get it exactly on time
+regardless is a machine that never sleeps,
 which is the ~$10-15/mo this project deliberately avoids.
 
 Check it:  `schtasks /query /tn SecondBrain-WeeklyBrief`
@@ -293,7 +294,7 @@ Force it:  `schtasks /run /tn SecondBrain-WeeklyBrief`
 ## 6. Telegram capture from your phone (optional)
 
 Send things to the brain from anywhere. Telegram queues bot updates for 24 hours, so
-**nothing needs to be running when you send** — you message the bot, and next time you open
+**nothing needs to be running when you send**, you message the bot, and next time you open
 your laptop the backlog drains into `raw/inbox/`.
 
 Telegram rather than WhatsApp on purpose: the bot API is official and free, where every
@@ -310,7 +311,7 @@ or needs a $10-15/mo always-on host.
 ```
 
    Put the printed `BRAIN_TELEGRAM_CHAT_ID` into `.env`. Messages from any other chat are
-   ignored — without this, anyone who found your bot could write into your vault.
+   ignored, without this, anyone who found your bot could write into your vault.
 4. Then whenever you sit down:
 
 ```
@@ -324,7 +325,7 @@ decision to leave transcription out of scope.
 `--watch` keeps polling if you want it live while you work.
 
 **It captures only.** Asking questions from your phone needs a model on the other end, which
-is the part that needs OpenClaw or an API budget — see the note in `decisions.md`.
+is the part that needs OpenClaw or an API budget. See the note in `decisions.md`.
 
 ## What is automatic and what is not
 
@@ -332,30 +333,30 @@ Worth being precise about, because it is the easiest thing to get wrong:
 
 | Step | Automatic? |
 |---|---|
-| Telegram message → `raw/inbox/` | **yes** — daily 18:00, and again before each brief |
+| Telegram message → `raw/inbox/` | **yes**, daily 18:00, and again before each brief |
 | Web Clipper → `raw/inbox/` | **yes**, the moment you click |
-| `raw/inbox/` → compiled pages and loops | **no** — you run `/ingest` |
+| `raw/inbox/` → compiled pages and loops | **no**, you run `/ingest` |
 | Writing and emailing the brief | **yes**, on your schedule |
 
 Capture is automated; **compilation is not**, on purpose. `/ingest` is the one irreversible
-step — it rewrites ten to fifteen pages at once — so it shows you a plan and waits. Fire it
+step, it rewrites ten to fifteen pages at once, so it shows you a plan and waits. Fire it
 off unattended and a misread source spreads before anyone notices.
 
 The safety net: the weekly brief counts what is sitting uncompiled and tells you, so nothing
 can quietly rot in the inbox. If something has been waiting more than two weeks, it says so
 directly.
 
-To compile, open Claude Code in this folder and run `/ingest` — once per source.
+To compile, open Claude Code in this folder and run `/ingest`, once per source.
 
 ## Daily use
 
 | Command | When |
 |---|---|
-| `/capture` | anything worth keeping — a link, a PDF, a thought, this conversation |
+| `/capture` | anything worth keeping, a link, a PDF, a thought, this conversation |
 | `/ingest` | compile one waiting source |
 | `/ingest-all` | clear the whole inbox in one pass |
 | `/ask` | any question the brain might know |
-| `/close` | deal with one open loop — get the drafted email, summary, or next action |
+| `/close` | deal with one open loop, get the drafted email, summary, or next action |
 | `/brief` | weekly |
 | `/lint` | monthly, or before a brief |
 | `/unsource` | a source turned out to be wrong |
@@ -363,7 +364,7 @@ To compile, open Claude Code in this folder and run `/ingest` — once per sourc
 ## First real session
 
 The six benchmark sources you gave me are the best possible first corpus: you know the
-content, so you can judge the output, and they genuinely contradict each other — Karpathy
+content, so you can judge the output, and they genuinely contradict each other, Karpathy
 says an index file is enough, GBrain says you need a vector graph. That contradiction should
 surface on the first compile. If it does not, the compiler needs work.
 
@@ -371,7 +372,7 @@ Capture them into `raw/inbox/`, then `/ingest` them one at a time.
 
 ## A note on repository size
 
-Binary sources — PDFs and images — are committed alongside the markdown, because provenance
+Binary sources, PDFs and images, are committed alongside the markdown, because provenance
 breaks if the original disappears. This is fine at personal scale. If the repo passes a few
 hundred megabytes, move binaries to git-lfs rather than gitignoring them; an uncitable
 source is worse than a large repo.

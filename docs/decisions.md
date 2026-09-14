@@ -13,11 +13,11 @@ Answers to `architecture-qa.md`, round 1. Open items marked **OPEN**.
 | B1 | Own notes, LLM transcripts, Twitter saves, PDFs. |
 | B2 | **No existing corpus.** Volume unknown. Domain is side jobs and hobbies, with some main-job overlap. |
 | B3 | Start empty, compile forward. |
-| B4 | Images are first-class, **and must remain auditable** — a task or summary derived from an image must trace back to that image. |
+| B4 | Images are first-class, **and must remain auditable**, a task or summary derived from an image must trace back to that image. |
 | C5 | Voice notes: no. |
 | D5 | Frontmatter looks fine; **add category and owning folder**. Details deferred. |
 | E1 | **Weekly** cadence, not daily. |
-| E3 | Idempotent, but a repeat encounter **implies the information is important** — treat re-ingest as a salience signal, not just a no-op. |
+| E3 | Idempotent, but a repeat encounter **implies the information is important**, treat re-ingest as a salience signal, not just a no-op. |
 | E5 | Human writes wiki pages rarely. |
 | F1 | Delegated. |
 | H1 | **`rag-project` is not reused. This project is independent.** |
@@ -33,7 +33,7 @@ Answers to `architecture-qa.md`, round 1. Open items marked **OPEN**.
 - **A2 + M2 settle section M.** Eval drops from a research harness to a lightweight
   operational check. See M1 candidates below.
 - **A1 changes the core object model.** Neither A1 example is a knowledge query. Both are
-  *open loops* — something stated that never resolved. See `loops/` below.
+  *open loops*, something stated that never resolved. See `loops/` below.
 
 ## The reframe
 
@@ -55,33 +55,33 @@ is backwards.
 *infers* loops from material captured for other reasons, and you react weekly. If it ever
 requires deliberate task entry, it has become the thing A3 excluded.
 
-## M1 — candidate claims (pick one headline)
+## M1: candidate claims (pick one headline)
 
 | Claim | Measurable how | Cost to measure |
 |---|---|---|
-| **Nudge precision** — of loops surfaced, how many were worth surfacing | one click per item, weekly | ~nil |
-| Loop recall — of intents actually expressed, how many were caught | hand-label one month of raw | moderate |
-| Citation validity — every claim traces to a real source locator | fully automated | nil |
+| **Nudge precision**, of loops surfaced, how many were worth surfacing | one click per item, weekly | ~nil |
+| Loop recall, of intents actually expressed, how many were caught | hand-label one month of raw | moderate |
+| Citation validity, every claim traces to a real source locator | fully automated | nil |
 | Link integrity / orphan rate | fully automated | nil |
 
 *Recommended: **nudge precision** as the headline, citation validity as an automated guard.*
 
-## P3 — abandonment conditions
+## P3: abandonment conditions
 
 Kill or rethink if any of these hold:
 
-1. Nothing enters `raw/` for three consecutive weeks — capture friction is fatal
+1. Nothing enters `raw/` for three consecutive weeks, capture friction is fatal
    regardless of how good the compiler is.
-2. Weekly brief precision drops below ~30% — an ignored brief is worse than no brief.
-3. You start maintaining the wiki by hand — the compiler has failed and you have rebuilt
+2. Weekly brief precision drops below ~30%, an ignored brief is worse than no brief.
+3. You start maintaining the wiki by hand. The compiler has failed and you have rebuilt
    the filing cabinet.
 4. Cost exceeds the N1 ceiling without proportional value.
 
-## GBrain — verdict: **no**
+## GBrain: verdict: **no**
 
 See `docs/gbrain-verdict.md`.
 
-## Locked — round 2
+## Locked: round 2
 
 | # | Decision |
 |---|---|
@@ -91,7 +91,7 @@ See `docs/gbrain-verdict.md`.
 | Brief | **Pushed** to the user, not left in a file to be found. |
 | Nudges | Open loops **re-surface every week**. See escalation note below. |
 | C1 | WhatsApp as **both** capture inbox and query surface. |
-| L | **No confidentiality constraint** — all material is the user's own to keep. Simplifies section L considerably. |
+| L | **No confidentiality constraint**, all material is the user's own to keep. Simplifies section L considerably. |
 
 ## Vault layout
 
@@ -131,14 +131,14 @@ material gets there is unlimited and can grow without touching the pipeline.
 | Drag-and-drop into `raw/inbox/` | anything on the laptop | works day one, zero setup |
 | Obsidian Web Clipper | Twitter saves, articles | best value per minute of setup |
 | `/capture` in Claude Code | LLM transcripts, mid-session thoughts | free, and nothing else builds this |
-| OneDrive-synced `raw/inbox/` | phone capture | **sync the inbox subfolder only**, never the vault root — OneDrive and `.git` conflict badly |
-| WhatsApp → OpenClaw | phone, lowest friction | needs an always-on host — see conflict below |
+| OneDrive-synced `raw/inbox/` | phone capture | **sync the inbox subfolder only**, never the vault root, OneDrive and `.git` conflict badly |
+| WhatsApp → OpenClaw | phone, lowest friction | needs an always-on host. See conflict below |
 
 ## Unresolved conflict: always-on
 
 Subscription-only and WhatsApp are in tension. Compilation and brief *generation* run fine
 on the subscription (interactively, or as a scheduled Claude Code routine). But WhatsApp as
-a live capture inbox and query surface needs OpenClaw running 24/7 — a closed laptop means
+a live capture inbox and query surface needs OpenClaw running 24/7, a closed laptop means
 a dead assistant. That requires a small VPS (~$5/mo), a Pi, or an always-on desktop.
 
 Everything else on the list runs at ~$0. WhatsApp is the only item that does not.
@@ -147,46 +147,46 @@ Everything else on the list runs at ~$0. WhatsApp is the only item that does not
 
 "Every week, forever" as stated has a failure mode that is also abandonment condition #2: a
 loop ignored twelve weeks running trains you to skim past the whole brief. Proposed
-refinement — it does return every week, but after 4 unacknowledged appearances it is
+refinement. It does return every week, but after 4 unacknowledged appearances it is
 promoted to a **decide-now** block at the top of the brief: kill it, schedule it, or
 demote it to someday. Still weekly, with a forcing function.
 
-## Locked — round 3
+## Locked: round 3
 
 | # | Decision |
 |---|---|
 | Calendar | **Advise only.** The brief says the event does not exist; you make it. No OAuth write scope. |
 | WhatsApp | **Deferred.** Revisit once the system is in daily use and the ~$5/mo always-on host is earned. |
-| Nudge escalation | **Accepted** — weekly return, promoted to a decide-now block after 4 unacknowledged appearances. |
+| Nudge escalation | **Accepted**, weekly return, promoted to a decide-now block after 4 unacknowledged appearances. |
 | OneDrive inbox sync | **Dropped.** No phone capture in v1. Capture is laptop-only: drag-drop, Web Clipper, `/capture`. |
 | Brief delivery | Scheduled Claude Code routine → **email**. The only push channel needing no always-on host. |
 
-Nothing open. Specification is closed — see [`../README.md`](../README.md).
+Nothing open. Specification is closed. See [`../README.md`](../README.md).
 
-## Locked — round 4 (tooling)
+## Locked: round 4 (tooling)
 
 | # | Decision |
 |---|---|
-| **D4 reversed** | **Repo and vault are the same folder.** The original split (private vault, shareable code) assumed a confidentiality boundary that round 2 removed — the repo is already private, single-user, all material the user's own. Merging them means skills load automatically on opening the folder, everything is versioned together, and the Windows skill-copy problem never arises. |
+| **D4 reversed** | **Repo and vault are the same folder.** The original split (private vault, shareable code) assumed a confidentiality boundary that round 2 removed. The repo is already private, single-user, all material the user's own. Merging them means skills load automatically on opening the folder, everything is versioned together, and the Windows skill-copy problem never arises. |
 | Skills location | `.claude/skills/` inside the repo. Project-scoped, version-controlled, no install step. |
-| Third-party llm-wiki plugins | **Not installed.** Same reasoning as the GBrain verdict — they implement the generic pattern and would fight the `loops/` layer, the two-store split, and decompilation. |
+| Third-party llm-wiki plugins | **Not installed.** Same reasoning as the GBrain verdict, they implement the generic pattern and would fight the `loops/` layer, the two-store split, and decompilation. |
 | Built-in skills used | `schedule` (weekly brief), `update-config` (permissions and hooks), `code-review` / `simplify` (once there is code). |
 | Installed user skills | All 17 are design/animation packs. **None relevant.** No action. |
 
-Written this round: `CLAUDE.md` (the vault schema — build step 1), `.claude/skills/capture`
-(step 2), `.claude/skills/ingest` (step 4). Remaining skills — `/brief`, `/ask`, `/lint`,
-`/unsource` — are written at their build steps, not speculatively.
+Written this round: `CLAUDE.md` (the vault schema, build step 1), `.claude/skills/capture`
+(step 2), `.claude/skills/ingest` (step 4). Remaining skills, `/brief`, `/ask`, `/lint`,
+`/unsource`, are written at their build steps, not speculatively.
 
-## Locked — round 5 (the offering, corrected)
+## Locked: round 5 (the offering, corrected)
 
 Loops were promoted to the spine of the project on the strength of two examples in A1. That
 was an over-read. **Correction: the offering is the memory layer itself, and it is all four
-of these at once** — none subordinate:
+of these at once**, none subordinate:
 
-1. **Never start from zero** — any session, project, or agent already knows you.
-2. **One archive you can interrogate** — everything scattered, consolidated, citable.
-3. **Reachable from anywhere** — not locked in one folder or one tool.
-4. **It compounds** — connections form across time.
+1. **Never start from zero**, any session, project, or agent already knows you.
+2. **One archive you can interrogate**, everything scattered, consolidated, citable.
+3. **Reachable from anywhere**, not locked in one folder or one tool.
+4. **It compounds**, connections form across time.
 
 Loops remain wanted, as a **capability of** the memory rather than the reason for it.
 
@@ -201,20 +201,20 @@ conflated two very different things:
 | Phone, away from the laptop | OpenClaw on an always-on host | ~$5/mo | step 10 | step 11, still deferred |
 
 Most of pillar 3's value is in the first row and costs nothing. A vault reachable only when
-Claude Code is open in its own folder is a folder, not a memory layer — which means the
+Claude Code is open in its own folder is a folder, not a memory layer, which means the
 current state fails pillar 3 outright, and pillars 1 and 2 partially (the memory cannot
 reach you while you work in your other projects).
 
 Rewritten this round: README spine, `docs/comparison.md` positioning.
 
-## Locked — round 6 (the differentiator)
+## Locked: round 6 (the differentiator)
 
 **"Never start from zero" is dropped as a separate pillar.** It overlapped with the archive
-pillar — from the user's side, "knows who I am" and "knows what I read" are one thing. Merged
+pillar, from the user's side, "knows who I am" and "knows what I read" are one thing. Merged
 into **one memory you can interrogate**, which now explicitly covers `mem/` as well as
 `wiki/`.
 
-**Replaced by: it closes loops.** Not just noticing what you said you would do — arriving
+**Replaced by: it closes loops.** Not just noticing what you said you would do, arriving
 with the work already started.
 
 | Loop | Artifact produced |
@@ -232,7 +232,7 @@ GBrain will say Alice owes you a security review; it will not write the follow-u
 Nothing is sent. Nothing is written to a calendar. Nothing is posted. The system produces
 the artifact and hands it over.
 
-**Enforced by holding no credentials that could do otherwise** — not by an instruction in a
+**Enforced by holding no credentials that could do otherwise**, not by an instruction in a
 skill file. This follows the "keys, not prompts" rule from source #2 and keeps the earlier
 scope decisions intact (A3: no task management; calendar: advise only).
 
@@ -246,14 +246,14 @@ scope decisions intact (A3: no task management; calendar: advise only).
 Added this round: `.claude/skills/close`. Updated: `/brief` now produces closing artifacts
 for every decide-now item, and drafts are exempt from the ten-line cap.
 
-## Locked — round 7 (reach)
+## Locked: round 7 (reach)
 
-**MCP server built** — `mcp/server.py`, Python 3.12, `mcp==2.0.0`. Note the SDK renamed
+**MCP server built**, `mcp/server.py`, Python 3.12, `mcp==2.0.0`. Note the SDK renamed
 `FastMCP` to `MCPServer` in 2.0; code is written against the installed API, not the older
 pattern found in most tutorials.
 
 Six tools: `brain_index`, `brain_search`, `brain_read`, `brain_loops`, `brain_capture`,
-`brain_recent`. Verified end to end over stdio — initialize handshake, `tools/list`,
+`brain_recent`. Verified end to end over stdio, initialize handshake, `tools/list`,
 `tools/call`.
 
 **Design choices:**
@@ -265,13 +265,13 @@ Six tools: `brain_index`, `brain_search`, `brain_read`, `brain_loops`, `brain_ca
   filename match 12x a body hit, since a page named for a term is usually *about* it.
 - **`raw/` searched last.** The wiki is compiled understanding; raw is the fallback.
 - **Write surface is one tool.** `brain_capture` appends to `raw/inbox/`. Nothing over MCP
-  edits or deletes — compilation stays inside the vault under supervision.
+  edits or deletes, compilation stays inside the vault under supervision.
 - **Path traversal refused**, not sanitised. Tested.
 
 Project scope works via `.mcp.json`; user scope needs one `claude mcp add` command, in
 `docs/setup.md`. Build step 10 done; WhatsApp is now step 11 and covers only phone reach.
 
-## Locked — round 8 (channel split)
+## Locked: round 8 (channel split)
 
 **Email and WhatsApp do different jobs.** Previously both were vaguely "reach"; now split by
 what each medium is actually good at:
@@ -279,11 +279,11 @@ what each medium is actually good at:
 | Channel | Job |
 |---|---|
 | **Email** | loops, reminders, the weekly brief, and the drafted artifacts that close them |
-| **WhatsApp** | capture on the move, and quick retrieval — "what do I know about X" |
+| **WhatsApp** | capture on the move, and quick retrieval, "what do I know about X" |
 
-Rationale: email is asynchronous and archival — a nudge sits in the inbox until dealt with,
+Rationale: email is asynchronous and archival. A nudge sits in the inbox until dealt with,
 and a drafted email lands in the one place you would send it from. WhatsApp is synchronous
-and conversational — right for *save this* and quick lookups, wrong for a weekly brief that
+and conversational, right for *save this* and quick lookups, wrong for a weekly brief that
 the next message buries.
 
 This reverses the round-7 suggestion of scheduled-routine + push notification. Push is
@@ -291,7 +291,7 @@ ephemeral; a nudge that vanishes is not a nudge.
 
 ### The credential problem, and the fix
 
-Email means SMTP, which means the project holds its first secret — threatening the property
+Email means SMTP, which means the project holds its first secret, threatening the property
 that made "drafts only" self-enforcing rather than a promise.
 
 **`scripts/send_brief.py` has no recipient parameter.** Destination comes from
@@ -303,7 +303,7 @@ third parties remain non-transmissible because no code path sends to an arbitrar
 Built this round: `scripts/send_brief.py`, `.env.example`. Tested: missing-config path,
 dry-run render, and redirection refusal.
 
-## Locked — round 9 (Telegram over WhatsApp)
+## Locked: round 9 (Telegram over WhatsApp)
 
 **WhatsApp is dropped as the phone channel. Telegram replaces it.**
 
@@ -311,14 +311,14 @@ Investigated properly rather than assumed:
 
 | | WhatsApp | Telegram |
 |---|---|---|
-| API | Baileys — unofficial, reverse-engineered | official Bot API |
+| API | Baileys, unofficial, reverse-engineered | official Bot API |
 | Ban risk | real and unpredictable, even for personal use | none |
 | OpenClaw's default | Baileys (Cloud API only a feature request) | official |
 | Offline queue | 14 days, linked-device session expires | 24 hours |
 | Cost to run properly | $10-15/mo VPS | free |
 
 The decisive finding: **OpenClaw uses Baileys by default**, so adopting OpenClaw does not
-avoid the ban risk — it ships it. Correcting an earlier estimate: a VPS is $7-24/mo, not
+avoid the ban risk, it ships it. Correcting an earlier estimate: a VPS is $7-24/mo, not
 ~$5, and OpenClaw wants 2 vCPU / 4 GB.
 
 **Capture is deferred, and that is the whole trick.** Telegram queues bot updates for 24h,
@@ -328,7 +328,7 @@ the backlog whenever you next open the laptop. No host, no subscription, no risk
 **Security:** only `BRAIN_TELEGRAM_CHAT_ID` is accepted. Anyone can find a bot; without the
 check, anyone could write to the vault.
 
-**Stdlib only** — `urllib`, no `requests`. A script that runs unattended should not break
+**Stdlib only**, `urllib`, no `requests`. A script that runs unattended should not break
 when a dependency does.
 
 ### Deliberately not built: query from phone
@@ -341,7 +341,7 @@ is now free; revisit query once there is evidence of reaching for it.
 Built this round: `scripts/telegram_capture.py`. Tested: text, links, forwards with
 provenance, photos, PDFs, voice-note fallback, empty messages, filename collisions.
 
-## Locked — round 10 (morning delivery)
+## Locked: round 10 (morning delivery)
 
 **The brief is written on Friday and Sunday evening and delivered at 07:00 on Saturday and
 Monday.** Writing and delivery were one act until now, so the evening run put a Monday brief
@@ -354,7 +354,7 @@ Google's supported route to sending on a timer.
 
 | Option | Rejected because |
 |---|---|
-| Send from the laptop at 07:00 instead | moves the failure rather than removing it — a shut laptop at seven delays the mail to whenever it opens |
+| Send from the laptop at 07:00 instead | moves the failure rather than removing it, a shut laptop at seven delays the mail to whenever it opens |
 | Resend, Mailgun or SendGrid `send_at` | a third party holds the brief in transit, and it needs an account, an API key and a verified sender |
 | **Queue in Gmail, release with Apps Script** | **chosen** |
 
@@ -366,7 +366,7 @@ header, sends it on without the tag, and labels the queued copy `brief-released`
 go twice.
 
 **What it buys and what it does not.** Arrival no longer depends on the laptop: Google
-delivers whether the machine is open, shut or in a bag. Writing still does — no evening run
+delivers whether the machine is open, shut or in a bag. Writing still does, no evening run
 means nothing queued, and the 08:00 catch-up then sends directly rather than queuing for a
 morning that has passed. That is the correct fallback, since a brief nobody queued is better
 late than absent.
@@ -392,7 +392,7 @@ is the one delivered at seven and only one email arrives. `Code.gs` labels every
 it matched rather than only the one it sent, so the superseded copy cannot resurface.
 
 **Three fallbacks are unchanged.** A catch-up that runs late finds the brief already released
-and sends the revision as a second email. A catch-up that finds nothing queued — the evening
-never ran — writes and sends directly, because a `/brief` run can overrun the hour. And a
+and sends the revision as a second email. A catch-up that finds nothing queued, the evening
+never ran, writes and sends directly, because a `/brief` run can overrun the hour. And a
 laptop shut at six neither wakes nor blocks the release: the brief written last night still
 goes out at seven.

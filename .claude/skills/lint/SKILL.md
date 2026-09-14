@@ -62,7 +62,8 @@ Concepts referenced but never compiled. Questions the vault could not answer thi
 
 ## Fix vs. report
 
-**Fix silently:** a stale index (rebuild it), frontmatter fields derivable from context, broken links where
+**Fix silently:** a stale index (rebuild it), frontmatter fields derivable from context,
+broken links where
 the target obviously renamed, `surfaced:` counters.
 
 **Report only, never touch:** contradictions, staleness, orphans, coverage gaps, anything in

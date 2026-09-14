@@ -2,12 +2,12 @@
 
 Six write-ups were used as benchmarks for this project, plus the wider category of
 Obsidian-based personal knowledge systems. This document says plainly what is new here, what
-was borrowed, and where the alternatives are better — because a comparison that only flatters
+was borrowed, and where the alternatives are better, because a comparison that only flatters
 the thing you built is not worth writing down.
 
 ## The short version
 
-This is the same *category* as the others — a persistent personal memory layer — and it does
+This is the same *category* as the others, a persistent personal memory layer, and it does
 not pretend otherwise. Everyone here wants the same four things: you never start from zero,
 one archive you can interrogate, reachable wherever you work, and understanding that
 compounds.
@@ -19,11 +19,11 @@ What differs is the combination of guarantees underneath:
 - **Compilation is reversible.** A source can be removed and its influence reverted across
   every page it touched. Nothing else in the comparison offers this.
 - **Commitments persist, and arrive half-done.** Others surface open items when asked; here
-  they are tracked objects with a status, an ignore-counter, and an escalation rule — and
+  they are tracked objects with a status, an ignore-counter, and an escalation rule, and
   the nudge comes with the artifact that closes it. This is the real dividing line: every
   other system in the comparison ends at *telling you*. **They store; this one is built to
   make you act.**
-- **Reach is agent-agnostic by design** — an MCP server over plain markdown, not a plugin
+- **Reach is agent-agnostic by design**, an MCP server over plain markdown, not a plugin
   bound to one editor or one vendor.
 
 None of those is a new idea in isolation. The claim is that the four together, at a scale
@@ -38,7 +38,7 @@ Only four things. Everything else on this page was assembled from prior work.
 
 ### 1. Loops as first-class, persisted objects
 
-Others surface open items *at query time*, derived on demand. GBrain does this well — ask it
+Others surface open items *at query time*, derived on demand. GBrain does this well. Ask it
 about a meeting and it will tell you what is still outstanding. But that is a derivation, not
 a tracked object: nothing persists, nothing counts how long it has been ignored, and nothing
 comes back on its own.
@@ -48,7 +48,7 @@ to the source that produced it, and an escalation rule. It survives sessions. It
 weekly whether or not you ask. After four ignored appearances it is promoted to a
 decide-now block: kill it, schedule it, or demote it.
 
-The motivating case — *"I said I wanted to learn this, filed the PDF, never read it"* — is
+The motivating case, *"I said I wanted to learn this, filed the PDF, never read it"*, is
 not a question anyone would think to ask a knowledge base. That is exactly why it needs to
 be pushed rather than queried.
 
@@ -60,7 +60,7 @@ having on its own; loops are what you can do once it is.
 Tracking a commitment is cheap and nobody's differentiator. What none of the six do is
 **remove the friction that kept the loop open in the first place.**
 
-A loop you have ignored four times does not need a fifth reminder — the reminder was never
+A loop you have ignored four times does not need a fifth reminder. The reminder was never
 the bottleneck. So the brief hands you the drafted email in your own voice with the vault's
 context already in it, or the event details ready to paste, or a summary of the PDF so you
 can decide whether you still care without reopening it.
@@ -68,14 +68,14 @@ can decide whether you still care without reopening it.
 GBrain will tell you that Alice owes you a security review and you owe her pricing. It will
 not write the follow-up. That is the gap this fills.
 
-**Drafts only** — nothing is sent, nothing is written to a calendar, and that boundary holds
+**Drafts only.** Nothing is sent, nothing is written to a calendar, and that boundary holds
 because the system has no credentials that could do otherwise. The judgement of whether to
 send stays where it belongs.
 
 ### 2. Decompilation
 
 Compilation spreads one source across ten to fifteen pages. Source #1 states the problem
-outright — *"a bad source in a compiler has touched fifteen pages before you notice"* — and
+outright, *"a bad source in a compiler has touched fifteen pages before you notice"*, and
 offers no remedy. None of the six do.
 
 `/unsource` is the remedy. Because every page records the source ids that shaped it,
@@ -91,16 +91,16 @@ operation as removing a bad source.
 Most systems have both a knowledge base and some profile file. Few treat them as
 categorically different things.
 
-|  | `wiki/` — world knowledge | `mem/` — self knowledge |
+|  | `wiki/`, world knowledge | `mem/`, self knowledge |
 |---|---|---|
 | Author | the model | you |
 | Rebuildable from `raw/` | yes | **no** |
-| Contradictions are | findings — flag, keep both | bugs — surface, human fixes |
+| Contradictions are | findings, flag, keep both | bugs, surface, human fixes |
 | Compiler may | write freely | **propose only, never write** |
 
 The consequence that matters: a contradiction between two articles is interesting and gets
 preserved. A contradiction between your stated goal and your actual commitments is a problem
-and gets escalated. Same word, two entirely different mechanisms — and conflating them is
+and gets escalated. Same word, two entirely different mechanisms, and conflating them is
 what makes these systems feel vague.
 
 ### 4. The brief is the product
@@ -123,7 +123,7 @@ dishonest.
 | Compile-at-ingest rather than derive-at-query | Karpathy, llm-wiki |
 | `index.md` as catalogue, `log.md` greppable and append-only | Karpathy, llm-wiki |
 | `CLAUDE.md` as the schema that makes the model a disciplined maintainer | Karpathy, llm-wiki |
-| Gap analysis — every answer states what is *not* known | GBrain |
+| Gap analysis, every answer states what is *not* known | GBrain |
 | Synthesised answer with citations, not a ranked page list | GBrain |
 | Typed relations between entities | GBrain (concept only; no graph DB here) |
 | One-question-at-a-time bootstrap interview | @aiedge_ prompt OS |
@@ -150,7 +150,7 @@ The most capable system in the comparison, and built for a different job.
 | Open commitments | derived at query time | persisted, counted, escalated |
 | Remove a bad source | not offered | `/unsource` |
 
-GBrain is a VC's institutional memory — it enriches people and companies, prepares you for
+GBrain is a VC's institutional memory. It enriches people and companies, prepares you for
 meetings, and scales to a team. Its `+31.4 points P@5` graph advantage is real *at its scale*.
 At a few hundred pages that machinery is overhead: grep is faster, cheaper, and debuggable by
 reading it.
@@ -160,11 +160,11 @@ project does not have, and lacks the one layer this project is for.
 
 ### vs. Karpathy's llm-wiki
 
-Not a competitor — the direct ancestor. It is an idea file, explicitly abstract, meant to be
+Not a competitor, the direct ancestor. It is an idea file, explicitly abstract, meant to be
 handed to an agent that then builds a specific version with you. This is one such version.
 
 Divergences: it has no notion of tracked commitments; it is query-driven where this is
-push-driven; it does not address removing a source. On retrieval it is followed exactly —
+push-driven; it does not address removing a source. On retrieval it is followed exactly:
 it says an index file suffices at ~100 sources, and at this scale that is right.
 
 ### vs. Obsidian + Claude tutorials
@@ -180,7 +180,7 @@ consequence.
 
 ### vs. prompt-based operating systems (@aiedge_ and similar)
 
-A structured profile of you — `PROFILE.md`, `GOALS.md`, `PROJECTS.md`, `RULES.md` — built by
+A structured profile of you, `PROFILE.md`, `GOALS.md`, `PROJECTS.md`, `RULES.md`, built by
 interview. Excellent at what it does, and its discipline was adopted wholesale into `mem/`.
 
 It is a *context layer*, not a knowledge base: there is no `raw/`, no compilation, no
@@ -189,8 +189,8 @@ have I read". This project runs it as one of two stores rather than the whole sy
 
 ### vs. generic PKM (PARA, Zettelkasten, packaged skill sets)
 
-Packaged Obsidian skill sets — 40-plus commands, PARA folders, progressive summarisation,
-semantic search — are more featureful than the seven commands here.
+Packaged Obsidian skill sets, 40-plus commands, PARA folders, progressive summarisation,
+semantic search, are more featureful than the seven commands here.
 
 They impose a filing taxonomy, which is the thing that historically rots: the maintenance
 burden is what kills personal wikis, and a taxonomy adds to it. There is no PARA here and no
@@ -201,16 +201,16 @@ rather than from a folder scheme you have to maintain.
 
 ## Where the alternatives are better
 
-- **GBrain** — vastly more capable at scale, has multi-user ACLs, autonomous enrichment,
+- **GBrain**, vastly more capable at scale, has multi-user ACLs, autonomous enrichment,
   measured retrieval benchmarks, and years of production use. If the corpus ever passes
   ~5,000 pages, revisit.
-- **Anything with an always-on host** — including OpenClaw — can *answer* you from your
+- **Anything with an always-on host**, including OpenClaw, can *answer* you from your
   phone. This can only *receive* from your phone. See below; that gap is deliberate but it
   is a real one.
-- **Packaged skill sets** — dozens of ready commands and cross-agent support (Claude, Codex,
+- **Packaged skill sets**, dozens of ready commands and cross-agent support (Claude, Codex,
   Gemini). This has seven commands and is shaped for Claude Code.
-- **The tutorials** — an evening to set up, no custom skills to maintain.
-- **Karpathy's pattern** — more portable precisely because it is abstract. This is one
+- **The tutorials**, an evening to set up, no custom skills to maintain.
+- **Karpathy's pattern**, more portable precisely because it is abstract. This is one
   opinionated instantiation, and opinions age.
 
 The case for building this anyway: none of them notices that you said you would read
@@ -222,7 +222,7 @@ something, twice, and then didn't. That is the one thing this is for.
 
 Every system here that reaches your phone assumes a host listening around the clock. OpenClaw
 is explicit about it; GBrain runs a 24/7 daemon. That is the $7–24/mo most of these quietly
-require, and for WhatsApp specifically it is worse — OpenClaw's default transport is Baileys,
+require, and for WhatsApp specifically it is worse. OpenClaw's default transport is Baileys,
 an unofficial reverse-engineered library that can get your number banned without warning.
 
 This project avoids the cost by giving up synchronicity. **Telegram queues bot updates for 24
@@ -234,12 +234,12 @@ backlog drains next time you open your laptop.
 | Send from your phone | yes | yes |
 | Get an answer back | yes | **no** |
 | Cost | $7–24/mo | free |
-| Account risk (WhatsApp route) | ban possible | n/a — Telegram's API is official |
+| Account risk (WhatsApp route) | ban possible | n/a, Telegram's API is official |
 
 **The honest trade:** capture from anywhere is free, answers from anywhere are not. Answering
 needs a model running somewhere, and no amount of cleverness removes that. Capture is the more
-valuable half — it is what keeps the vault fed, and an unfed vault is the most common way
-these systems die — so it is the half worth having for free.
+valuable half. It is what keeps the vault fed, and an unfed vault is the most common way
+these systems die, so it is the half worth having for free.
 
 If asking-from-phone turns out to matter, nothing needs redesigning: the vault already speaks
 MCP, so an always-on host becomes one more client rather than a rewrite.
