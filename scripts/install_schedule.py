@@ -16,12 +16,12 @@ Five tasks are registered:
   <name>-Capture        drains Telegram into the inbox and compiles what is safe to
                         compile without asking, daily
   <name>-NudgeMorning   07:00, daily: what is due today, and what is overdue
-  <name>-NudgeEvening   19:30, daily: what is due tomorrow
+  <name>-NudgeEvening   19:30, daily: the same, for loops marked `nudge: evening`
 
-Both nudges are silent unless something is due. A reminder is only useful at the hour you
-can act on it, so what is due today arrives with the working day in front of it and what is
-due tomorrow arrives with an evening left to prepare in. A loop overrides the split with
-`nudge: morning` or `nudge: evening` when its nature disagrees with its date.
+Both nudges are silent unless something is due or past its date. A reminder is only useful
+at the hour you can act on it, so everything arrives at 07:00 with the working day in front
+of it. A loop moves itself to 19:30 with `nudge: evening` when its nature disagrees with
+that: reading is an evening act whatever the deadline.
 
 Schedule the brief for the EVENING BEFORE the morning you read it. A morning task on a
 sleeping laptop depends on Windows wake timers, which Windows disables on battery, so the
