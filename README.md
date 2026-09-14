@@ -38,7 +38,7 @@ twenty minutes and can be resumed. Output is generic until it has run.
 |---|---|
 | `/capture` | Record a link, file, note, or the current conversation. |
 | `/ingest` | Compile one source. Shows its plan first. |
-| `/ingest-all` | Drain Telegram, then compile the inbox under one approval. |
+| `/ingest-all` | Compile every source waiting, under one approval. Drains Telegram first. |
 | `/ask` | Answer a question with citations, and state what the vault does not cover. |
 | `/close` | Produce the artifact that finishes a loop, then file it. |
 | `/brief` | Write the periodic report. |
@@ -48,10 +48,11 @@ twenty minutes and can be resumed. Output is generic until it has run.
 
 ## Architecture
 
-Capture and compilation are separate steps because they have opposite requirements. Capture
-has to be fast enough that you do it without thinking and must never fail, so it records
-without interpreting. Compilation does the reading, and a single source can touch fifteen
-pages.
+Capture and compilation are two steps. Capture writes what you send straight to `raw/` without
+reading it, so it takes a second and cannot fail on something it does not understand.
+Compilation reads that file later: it writes a page for the source, updates every existing
+page the source touches, and opens a loop for anything you said you would do. One source can
+touch up to fifteen pages.
 
 ```
 capture → raw/ → compile ─┬→ wiki/  → ask
@@ -61,8 +62,9 @@ capture → raw/ → compile ─┬→ wiki/  → ask
 
 ### Two stores
 
-Knowledge about the world and knowledge about you fail differently, so they follow different
-rules. `wiki/` can be thrown away and rebuilt; `mem/` cannot be reconstructed by anything.
+`wiki/` holds what you have read. Delete it and a recompile of `raw/` rebuilds it exactly.
+`mem/` holds your goals, projects, people and rules, which nothing can reconstruct, so the
+compiler is not allowed to write there and proposes instead.
 
 | | `wiki/` | `mem/` |
 |---|---|---|
@@ -93,59 +95,69 @@ loose-ends/              the system. shareable.
 
 ### Search
 
-At a few hundred pages an index file and `grep` are faster and easier to inspect than a vector
-store, and they fail visibly. Search sits behind one interface, so replacing it is a
-substitution rather than a rewrite. A vector store becomes worthwhile above roughly 5,000
-pages.
+Two mechanisms, both reading files on disk. `index.md` is a generated catalogue: every page
+with its one-line summary, grouped by subject. A question is matched against that first, which
+narrows a few hundred pages to a handful. `grep` then reads the full text of those pages for
+anything the summary did not say.
+
+Both sit behind one interface, so a vector store can replace them by changing one file. At a
+few hundred pages there is nothing to gain from doing so.
 
 ## Automation
 
-Nothing pushes you until these are registered, which leaves you remembering to run `/brief`,
-the exact habit it exists to replace.
+`/brief` writes a brief when you ask for one. The schedule below sends one without being
+asked, which is the point: remembering to run `/brief` is the habit the brief exists to
+replace.
+
+There is no server and no API key. Everything runs as a Windows task on your own laptop,
+which is what makes it free and is why the safeguards below exist.
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-Five Windows tasks:
+That is the base case used here. It registers five tasks:
 
 | Task | Runs | Does |
 |---|---|---|
 | `Capture` | daily 18:00 | drains Telegram, compiles what triage allows |
-| `WeeklyBrief` | your days, 19:00 | writes the brief, queues it for morning delivery |
-| `BriefCatchup` | next day 06:00 | recovers a failed run, or revises and re-queues |
-| `NudgeMorning` | daily 07:00 | overdue items, silent otherwise |
-| `NudgeEvening` | daily 19:30 | overdue items marked `nudge: evening` |
+| `WeeklyBrief` | Fri and Sun 19:00 | writes the brief, queues it for the morning |
+| `BriefCatchup` | Sat and Mon 06:00 | reruns a failed evening, or revises and re-queues |
+| `NudgeMorning` | daily 07:00 | due today and overdue |
+| `NudgeEvening` | daily 19:30 | the same, for loops marked `nudge: evening` |
 
-The brief is written in the evening and delivered at 07:00 by a Gmail Apps Script trigger, so
-writing depends on the machine and arrival does not. Setup in
+So a brief arrives **Saturday 07:00 and Monday 07:00**. It is written the evening before, held
+out of the inbox overnight by a Gmail filter, and released in the morning by an Apps Script
+trigger, so writing depends on the laptop being on and arrival does not. Setup in
 [`docs/setup.md`](docs/setup.md).
+
+Every day and time above is an argument to `install_schedule.py`. Run it again with different
+ones and the five tasks are replaced.
 
 ### Triage
 
-Compiling every source by hand is friction, and compiling every source automatically risks
-a wrong date. The nightly pass splits the difference: a wrong `wiki/` page costs a
-regeneration, while a wrong date costs a reminder that never arrives, so only the first kind
-is written unattended. The test is which store the plan writes to.
+The daily 18:00 pass compiles what it safely can without you and leaves the rest. It plans
+each source first, then decides from what the plan would write:
 
 | The plan writes | Then |
 |---|---|
-| `wiki/` only | written |
-| a dated loop, or a change to a recorded date | held |
+| `wiki/` only | compiled |
+| a dated loop, or a change to a date already recorded | held |
 | anything in `mem/` | held |
 | a claim contradicting an existing page | held |
 | something that reads more than one way | held |
 
-Held sources stay in `raw/inbox/`, so whatever remains after a pass is what waited. The brief
-reports each one with its reason. `/ingest-all` settles them.
+A wrong `wiki/` page costs a regeneration. A wrong date costs a reminder that never arrives,
+so dates wait for you.
 
-Where a source is both knowledge and commitment, the source page is written and the loop is
-held.
+Held sources stay in `raw/inbox/`, so whatever is still sitting there after a pass is what
+waited. The brief lists each one and why. `/ingest-all` clears them.
+
+A source that is both knowledge and commitment splits: the page is written, the loop is held.
 
 ### Reliability
 
-The system is free because it runs on your own laptop, which means it only runs when the
-laptop is on. That is the trade for having no server, and these cover it.
+A task only runs while the laptop is on, so the schedule assumes it will sometimes miss.
 
 - Runs at 19:00, delivered 07:00, so the machine is awake when it matters
 - Three Windows defaults overridden: battery, unplugging, missed runs
@@ -160,19 +172,24 @@ startup.
 
 ### Nudges
 
-Silence is the point. A daily message that usually says nothing due trains you to ignore the
-channel, and then the one that matters is ignored with it.
+A short email that sends the thing back to you: the article you saved and never opened, with
+its link; the date you set and have not closed. Otherwise a vault is where saved things go to
+accumulate.
 
-Sent on the day a date arrives, and on days **1, 3, 7 and 14** after it passes while the item
-is still open. Day 14 is marked as the last. Nothing due in the future is nudged; that is the
-brief's job.
+One goes out on the day a date arrives, then on days **1, 3, 7 and 14** after it passes while
+the item is still open. Day 14 is marked as the last. Nothing due in the future appears; that
+is the brief's job.
 
-A loop sets `nudge: morning` or `nudge: evening` to choose its window.
+Most days it sends nothing, which is deliberate. A daily message that usually says nothing due
+trains you to ignore the channel, and then the one that matters is ignored with it.
 
-Nudges are written to the brief's rules. The only model-authored text in one is the loop's
+A loop sets `nudge: morning` or `nudge: evening` to pick its window, so reading arrives at
+19:30 and anything needing an office open arrives at 07:00.
+
+A nudge follows the brief's writing rules. The only model-authored text in one is the loop's
 `summary:` field, so the register is enforced there, in the frontmatter contract in
-[`CLAUDE.md`](CLAUDE.md): no repeat of the due date, which is printed beside the title
-anyway; absolute dates; no em dashes; no clause arguing why the item matters.
+[`CLAUDE.md`](CLAUDE.md): no repeat of the due date, which is printed beside the title anyway;
+absolute dates; no em dashes; no clause arguing why the item matters.
 
 ## Capture
 
@@ -207,11 +224,9 @@ that write stay in the project folder, where a plan can be reviewed before it is
 
 ## Escalation
 
-What stops a loop closing is rarely forgetting. It is the cost of starting, so after four
-unanswered appearances the brief stops asking and does the work instead.
-
-A loop that has appeared in four briefs without an answer moves to the head of the brief with
-its closing artifact attached:
+A loop that has appeared in four briefs without an answer moves to the head of the next one
+with its closing artifact already attached. What stops a loop closing is rarely forgetting, it
+is the cost of starting, so the brief stops asking and does the work:
 
 | Loop | What arrives |
 |---|---|
