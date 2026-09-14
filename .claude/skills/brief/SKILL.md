@@ -1,6 +1,6 @@
 ---
 name: brief
-description: Write the periodic brief — what to do this week, what is coming in the next two to three weeks, and things captured and forgotten. Use when the user says "brief", "weekly review", "what changed", or on the schedule.
+description: Write the periodic brief, covering what to do this week, what is coming in the next two to three weeks, and things captured and forgotten. Use when the user says "brief", "weekly review", "what changed", or on the schedule.
 ---
 
 # brief
@@ -30,8 +30,8 @@ Neutral and factual, like a reference entry. State the fact and stop. Follow Orw
 | "This has been sitting unresolved for some time" | "Open since 12 August." |
 | "It might be worth considering whether to..." | "Decide whether to..." |
 | "The deadline is fast approaching" | "Due Sunday." |
-| "The vault has no record of X" | *(nothing — say only what is there)* |
-| "No calendar event exists" | *(nothing — it is not an action)* |
+| "The vault has no record of X" | *(nothing, say only what is there)* |
+| "No calendar event exists" | *(nothing, it is not an action)* |
 | "a number of items" | "four items" |
 
 No closing remark. No commentary on the system's own reasoning, counters, or file paths.
@@ -120,7 +120,7 @@ to date; silence is the signal.
 ## Structure
 
 Three sections. One or two are usually empty, and an empty section is omitted
-entirely — `Don't forget` is often empty.
+entirely, and `Don't forget` is often empty.
 
 Three heading levels, and they are not interchangeable:
 
@@ -150,7 +150,7 @@ Use the real name of the thing, in title case. Standard abbreviations are fine.
 
 A single generic word is not a title. If the entry is called `Sheet` or `Website` or
 `Interview`, name which one. Where the vault does not know which one, do not paper over it
-with a vague description — quote the user's own words verbatim so at least he recognises
+with a vague description. Quote the user's own words verbatim so at least he recognises
 what he meant, and offer to drop it.
 
 **Link anything that has a URL.** An article, a page, a tool, a repository: the title is the
@@ -284,9 +284,9 @@ Richard Cook, 18 principles. About 20 minutes.
 
 Removed because they carried no information:
 
-- **Still open** — a list of everything outstanding, most of it not actionable today.
-- **Worth knowing** — vault housekeeping.
-- **Compiled this week** — page and source counts.
+- **Still open**, a list of everything outstanding, most of it not actionable today.
+- **Worth knowing**, vault housekeeping.
+- **Compiled this week**, page and source counts.
 - Anything of the form "the vault has no record", "no calendar event exists", "nothing has
   been added since". Absence is not an action.
 - Instructions for work the user already knows how to do.

@@ -1,17 +1,16 @@
 ---
 name: ask
-description: Answer a question from the vault — synthesised prose with citations and an explicit note on what the vault does not know. Use whenever the user asks something the brain might know, or says "ask my brain", "what do I know about", "what did I read about".
+description: Answer a question from the vault with synthesised prose, citations, and an explicit note on what the vault does not know. Use whenever the user asks something the brain might know, or says "ask my brain", "what do I know about", "what did I read about".
 ---
 
 # ask
 
-Answer the question, do not hand back a list of pages. The answer is the deliverable — a
-ranked list of five files the user then has to read themselves is a search engine, and they
-already have one.
+Answer the question, do not hand back a list of pages. The answer is the deliverable. A ranked list of five files the user then has to read
+themselves is a search engine, and they already have one.
 
 ## How to write
 
-Neutral, plain, direct — a reference article, not an essay. Follow Orwell's rules: no
+Neutral and plain, a reference article rather than an essay. Follow Orwell's rules: no
 familiar figures of speech, no long word where a short one works, cut every word that can
 go, active over passive, everyday English over jargon. Give numbers where you have them.
 No throat-clearing, no closing remark.
@@ -19,11 +18,11 @@ No throat-clearing, no closing remark.
 ## Retrieve
 
 1. Read `index.md`. It is the catalogue, and at this vault's size it is the retrieval layer.
-2. `grep` the vault for the question's key terms and entity names — deliberate, not a
+2. `grep` the vault for the question's key terms and entity names, which is deliberate rather than a
    shortfall. Entity names dominate this corpus and plain text search is strong on them.
 3. Read the pages that look relevant, in full.
 4. Read `mem/` when the question touches the user's own goals, projects, or people.
-5. Only if `wiki/` comes up thin, fall back to `raw/`. **When that fallback fires, say so** —
+5. Only if `wiki/` comes up thin, fall back to `raw/`. **When that fallback fires, say so**, because
    it means compilation missed something, and that is worth knowing.
 
 ## Answer
@@ -31,7 +30,7 @@ No throat-clearing, no closing remark.
 Synthesised prose. Every claim carries a citation to the page it came from, and through
 that page to the original source. If you cannot cite it, do not assert it.
 
-Keep `## What sources say` distinct from `## Current view` when the distinction matters —
+Keep `## What sources say` distinct from `## Current view` when the distinction matters, and
 never present the user's own evolving position as though a source established it.
 
 **Always end with a coverage note.** What the vault does not know, what is thinly sourced,
@@ -44,8 +43,8 @@ the answer and the easiest to skip:
 
 ## Offer to file it
 
-If the answer was substantial — a comparison, a synthesis, a connection across several
-pages — offer to file it to `wiki/synthesis/`. Good answers should compound rather than
+If the answer was substantial, whether a comparison, a synthesis or a connection across
+several pages, offer to file it to `wiki/synthesis/`. Good answers should compound rather than
 vanish into scrollback.
 
 If they accept: write it with `type: synthesis`, cite every page it drew on, add it to

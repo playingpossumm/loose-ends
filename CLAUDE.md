@@ -1,4 +1,4 @@
-# loose-ends — vault schema
+# loose-ends vault schema
 
 This file is the contract. It tells you how this vault is structured and how to maintain it.
 Read it before touching anything. Karpathy's llm-wiki write-up calls this the key
@@ -6,21 +6,21 @@ configuration file, and it is right: it is what makes you a disciplined maintain
 than a generic assistant.
 
 > **Every path in this file and in every skill is relative to `vault/`.**
-> `raw/inbox/` means `vault/raw/inbox/`. The repository root holds the *system* — skills,
-> server, scripts, docs — and is public. `vault/` holds *your content* and is a separate
+> `raw/inbox/` means `vault/raw/inbox/`. The repository root holds the *system*, meaning skills,
+> server, scripts and docs, and is public. `vault/` holds *your content* and is a separate
 > private repository. Never write anything outside `vault/` when compiling.
 
 Design rationale lives in [README.md](README.md); the decision trail is in
-[docs/decisions.md](docs/decisions.md). **Do not re-litigate settled decisions** — if
+[docs/decisions.md](docs/decisions.md). **Do not re-litigate settled decisions**. If
 something here seems wrong, say so, don't quietly do it differently.
 
 ## The two stores
 
-| | `wiki/` — world knowledge | `mem/` — self knowledge |
+| | `wiki/`, world knowledge | `mem/`, self knowledge |
 |---|---|---|
 | Author | you (the model) | the human |
 | Rebuildable | yes, from `raw/` | **no** |
-| Contradictions are | findings — flag, keep both | bugs — surface, let the human fix |
+| Contradictions are | findings, so flag and keep both | bugs, so surface and let the human fix |
 | You may | write freely | **propose only, never write unasked** |
 
 Never blur these. A claim about the world goes in `wiki/`. A fact about the user goes in
@@ -48,7 +48,7 @@ log.md         append-only, chronological
 
 ### Items in `raw/inbox/`
 
-Written by whichever door captured them — `/capture`, the Telegram script, the MCP server,
+Written by whichever door captured them, whether `/capture`, the Telegram script, the MCP server,
 or by hand. Read these before compiling:
 
 ```yaml
@@ -65,7 +65,7 @@ status: uncompiled | compiled
 ---
 ```
 
-**`attachment:` means the markdown is a stub.** The real content is in the file it names —
+**`attachment:` means the markdown is a stub.** The real content is in the file it names, so
 open that. A Telegram-captured PDF has a one-line body and the whole document beside it.
 
 **A forwarded origin is provenance about a third party.** `forwarded from Kyara` means Kyara
@@ -155,8 +155,8 @@ the deadline and anything needing an office to be open is a morning one.
 1. **Claim-level citation.** Every claim traces to a `sources/` page plus a locator. A
    summary drawn from a screenshot cites that screenshot. No uncited claims, ever.
 2. **Tag every edit with its cause.** When a source causes a change to a page, record the
-   source id in that page's `sources:`. This is what makes `unsource` possible — without
-   it, a bad source is unremovable.
+   source id in that page's `sources:`. This is what makes `unsource` possible, because without
+   it a bad source is unremovable.
 3. **Never overwrite on contradiction.** Keep both claims with their dates and sources,
    flag it, and log it. Resolution is the human's act, not yours.
 4. **`raw/` is immutable.** Read it, never edit it. It is the only ground truth.
@@ -187,6 +187,6 @@ the deadline and anything needing an office to be open is a morning one.
 ## Answering questions
 
 Search `index.md` first, then read the pages it points at. Plain `grep` is the retrieval
-layer — that is deliberate, not a gap. Answer in synthesised prose with citations, and
+layer, which is deliberate rather than a gap. Answer in synthesised prose with citations, and
 **always end with a coverage note**: what the vault does not know yet, and what would fill
 the gap. An answer with no coverage note is incomplete.
