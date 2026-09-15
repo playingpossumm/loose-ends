@@ -250,7 +250,7 @@ which is given in
 - `send_brief.py` no longer carries the decide-now subject suffix, removed when the brief
   lost that section.
 - `Code.gs` reads `Session.getEffectiveUser()`. Under a time-driven trigger `getActiveUser()`
-  returns an empty string, which released the brief to nobody and reported success.
+  can return an empty string, which would release the brief to nobody while reporting success.
 - Brief escalations sit under an `### Overdue` group so the entry stays a `####`.
 
 ### 2026-09-13
