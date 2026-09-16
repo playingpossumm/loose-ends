@@ -238,7 +238,9 @@ def build() -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", default=str(VAULT.parent / "vault-doc.html"))
+    ap.add_argument("--out", default=str(VAULT / "vault-doc.html"),
+                    help="Default is inside vault/, the private repo. The parent "
+                         "directory is the public one.")
     args = ap.parse_args()
     text = build()
     Path(args.out).write_text(text, encoding="utf-8")
