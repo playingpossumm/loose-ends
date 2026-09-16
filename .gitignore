@@ -24,6 +24,7 @@ autopilot.log
 
 # Timestamp of the last brief actually delivered. Local state.
 .last-brief
+.last-nudge
 
 # Vault exports are built from vault/ content, which is private.
 /vault-*.html

@@ -15,7 +15,7 @@ Five tasks are registered:
                         that arrived overnight and changes what you would do
   <name>-Capture        drains Telegram into the inbox and compiles what is safe to
                         compile without asking, daily
-  <name>-NudgeMorning   07:00, daily: what is due today, and what is overdue
+  <name>-NudgeMorning   07:00 daily, and again at sign-in: what is due today and overdue
   <name>-NudgeEvening   19:30, daily: the same, for loops marked `nudge: evening`
 
 Both nudges are silent unless something is due or past its date. A reminder is only useful
@@ -93,6 +93,33 @@ def harden(name: str, wake: bool = False) -> None:
                        capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         print(f"    warning: could not adjust settings — {(r.stderr or '').strip()[:200]}")
+
+
+def at_logon(name: str) -> None:
+    """Also fire this task when the user signs in, keeping its scheduled time.
+
+    A task registered by schtasks runs only while its user is signed in. If the machine is
+    awake but nobody is signed in at the scheduled minute, the occurrence is skipped and
+    never recovered, because StartWhenAvailable only catches up a run the machine was off
+    for. So the 07:00 nudge reached a morning inbox only on days you were already signed in
+    by seven, and on 15 and 16 September it did not arrive at all.
+
+    A logon trigger closes that gap. due_check.py keeps its own record of what went out
+    today, so the two triggers cannot send the same nudge twice.
+
+    Running the task whether or not anyone is signed in would be better still, but that
+    needs the batch-logon privilege and therefore an elevated shell. This does not.
+    """
+    ps = (
+        f"$t = Get-ScheduledTask -TaskName '{name}'; "
+        f"$logon = New-ScheduledTaskTrigger -AtLogOn -User $t.Principal.UserId; "
+        f"$logon.Delay = 'PT3M'; "
+        f"Set-ScheduledTask -TaskName '{name}' -Trigger @($t.Triggers[0], $logon) | Out-Null"
+    )
+    r = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.returncode != 0:
+        print(f"    warning: could not add a logon trigger, {(r.stderr or '').strip()[:200]}")
 
 
 def create(name: str, mode: str, sched: list[str], when: str, wake: bool = False,
@@ -205,7 +232,10 @@ def main() -> None:
         # Through autopilot rather than due_check.py directly, so the nudge inherits the same
         # network wait, retries and failure email as the brief. It was scheduled directly
         # until 31 August, which meant a cold network killed the reminder in silence.
-        ok &= create(DUE_AM, "--due-check morning", ["/sc", "DAILY"], args.nudge_morning)
+        made = create(DUE_AM, "--due-check morning", ["/sc", "DAILY"], args.nudge_morning)
+        if made:
+            at_logon(DUE_AM)
+        ok &= made
         ok &= create(DUE_PM, "--due-check evening", ["/sc", "DAILY"], args.nudge_evening)
 
     if ok:

@@ -264,16 +264,58 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
     return subject, "\n".join(text), page
 
 
+# Which window last went out, and on what date. Local state, like .last-brief beside it.
+SENT_LOG = ROOT / ".last-nudge"
+
+
+def already_sent(window: str, today: date) -> bool:
+    """True when this window has already gone out today.
+
+    The morning task fires at 07:00 and again at logon, because a 07:00 trigger is skipped
+    outright on a morning when nobody is signed in: StartWhenAvailable only recovers a run
+    the machine was off for, not one it was awake and locked for. Two triggers can mean the
+    same nudge twice in a day, and a channel that repeats itself is one you stop opening.
+    """
+    if not SENT_LOG.is_file():
+        return False
+    for line in SENT_LOG.read_text(encoding="utf-8").splitlines():
+        name, _, stamp = line.partition("=")
+        if name.strip() == window and stamp.strip() == today.isoformat():
+            return True
+    return False
+
+
+def record_sent(window: str, today: date) -> None:
+    """Record the send. Written only after the mail server has accepted the message, so a
+    failed send leaves the day open for the next trigger to retry."""
+    seen = {}
+    if SENT_LOG.is_file():
+        for line in SENT_LOG.read_text(encoding="utf-8").splitlines():
+            name, _, stamp = line.partition("=")
+            if name.strip():
+                seen[name.strip()] = stamp.strip()
+    seen[window] = today.isoformat()
+    SENT_LOG.write_text("".join(f"{k}={v}\n" for k, v in sorted(seen.items())),
+                        encoding="utf-8")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="print instead of sending")
     ap.add_argument("--window", choices=("morning", "evening"), default=None,
                     help="which daily send this is. Defaults to whichever is nearer now.")
+    ap.add_argument("--force", action="store_true",
+                    help="send even if this window already went out today")
     args = ap.parse_args()
 
     today = date.today()
     window = args.window or ("morning" if datetime.now().hour < 13 else "evening")
+
+    if not args.dry_run and not args.force and already_sent(window, today):
+        print(f"{today} {window}: already sent today.")
+        return
+
     groups = buckets(read_dated(), today, window)
 
     if not any(groups.values()):
@@ -305,6 +347,7 @@ def main() -> None:
         s.starttls()
         s.login(env["BRAIN_SMTP_USER"], env["BRAIN_SMTP_PASS"])
         s.send_message(msg)
+    record_sent(window, today)
     n = sum(len(v) for v in groups.values())
     print(f"Sent: {subject} ({n} item{'s' if n != 1 else ''})")
 
