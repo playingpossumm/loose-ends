@@ -241,10 +241,30 @@ def main() -> None:
     ap.add_argument("--out", default=str(VAULT / "vault-doc.html"),
                     help="Default is inside vault/, the private repo. The parent "
                          "directory is the public one.")
+    ap.add_argument("--allow-outside-vault", action="store_true",
+                    help="write the document somewhere other than vault/, for a copy you "
+                         "are about to hand to someone. It is private content wherever it "
+                         "lands, so nothing about this makes it safe to commit.")
     args = ap.parse_args()
+
+    # This document is built entirely from private vault content, so the default has to be
+    # inside the private repo and anything else has to be asked for. On 8 September 2026 the
+    # default pointed at the public repository, the file was committed by accident, and it
+    # stayed public for eight days. A path is easy to mistype once and easy to regret for a
+    # long time afterwards, which makes refusing the quiet mistake worth one extra flag.
+    out = Path(args.out).resolve()
+    if not args.allow_outside_vault and not out.is_relative_to(VAULT.resolve()):
+        sys.exit(
+            f"Refusing to write outside the vault.\n"
+            f"  asked for: {out}\n"
+            f"  vault is:  {VAULT.resolve()}\n"
+            f"This document is built from private content. Write it inside the vault, or "
+            f"pass --allow-outside-vault if you meant it."
+        )
+
     text = build()
-    Path(args.out).write_text(text, encoding="utf-8")
-    print(f"Wrote {args.out} ({len(text):,} characters)")
+    out.write_text(text, encoding="utf-8")
+    print(f"Wrote {out} ({len(text):,} characters)")
 
 
 if __name__ == "__main__":

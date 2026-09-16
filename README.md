@@ -27,8 +27,16 @@ git clone https://github.com/playingpossumm/loose-ends.git
 cd loose-ends
 python -m venv .venv
 .venv/Scripts/python -m pip install -r mcp/requirements.txt   # Scripts/ is bin/ on macOS and Linux
+python scripts/install_hooks.py
 python scripts/init_vault.py
 ```
+
+`install_hooks.py` is the step people skip, and it is the one that keeps private content out
+of a public repository. It installs a pre-commit hook that refuses anything staged from
+`vault/`, any generated export, and any `.env` file, whether the path was matched by an
+ignore rule or forced past one with `git add -f`. The hook also reads what is being committed
+rather than trusting the filename, so an export saved under an innocent name is caught too.
+Check it is active with `python scripts/install_hooks.py --check`.
 
 Keep the vault as its own private repository:
 

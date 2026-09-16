@@ -169,6 +169,15 @@ the deadline and anything needing an office to be open is a morning one.
 8. **No persistent memory outside these files.** Do not imply otherwise.
 9. **Cap the blast radius.** One ingest touches at most 15 pages. If it wants more, stop
    and ask.
+10. **Never stage vault content into this repository.** The project root is the public repo
+    `loose-ends`; `vault/` inside it is the separate private repo. Anything derived from
+    vault content, an export above all, belongs in `vault/` and nowhere else. Before any
+    `git add` here, read what you are staging rather than trusting a path or a wildcard,
+    and never reach for `git add -A`, `git add .` or `git add -f` to save a step. On
+    2026-09-08 a session committed a generated export of the whole vault into the public
+    repository as a side effect of adding the script that produced it. It was public for
+    eight days and the repository was cloned about two hundred times while it sat there.
+    A pre-commit hook now blocks this, and you must not pass `--no-verify` to get around it.
 
 ## Operations
 

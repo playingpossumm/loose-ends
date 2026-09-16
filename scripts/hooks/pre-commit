@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# Refuse to commit vault content to the public repository.
+#
+# On 8 September 2026 a generated vault export was committed here by accident. The script
+# that built it defaulted its output into this folder, no ignore rule covered the filename,
+# and `git add` swept it in alongside the code it belonged to. It stayed public for eight
+# days, during which the repository was cloned about two hundred times.
+#
+# An ignore rule alone would not have stopped it, because `git add -f` and a path that does
+# not match the pattern both walk straight past one. This hook is the backstop that checks
+# what is actually staged, whatever route it took to get there.
+#
+# Install it by running scripts/install_hooks.py, which points core.hooksPath here so the
+# hook is version controlled rather than living unshared inside .git.
+#
+# To commit something this blocks on purpose, pass --no-verify and be certain.
+
+fail() {
+	echo ""
+	echo "  COMMIT BLOCKED: $1"
+	echo ""
+	echo "  $2"
+	echo ""
+	echo "  This repository is public. The vault is private and belongs in loose-ends-vault."
+	echo "  If you are certain this is safe, commit again with --no-verify."
+	echo ""
+	exit 1
+}
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+# 1. Paths that carry vault content by definition. Checked against the staged path itself,
+#    so a README that merely mentions vault/ is unaffected.
+for path in $staged; do
+	case "$path" in
+	vault/*|*/vault/*)
+		fail "$path is inside the private vault" \
+		     "Vault content is committed to loose-ends-vault, never to this repository." ;;
+	vault-*.html|*/vault-*.html|vault-doc.html)
+		fail "$path is a generated vault export" \
+		     "Exports are built from private content. Write them into vault/ instead." ;;
+	.env|.env.local|*/.env|*/.env.local)
+		fail "$path holds credentials" \
+		     "Only .env.example belongs in git, and it must carry no real values." ;;
+	doc-payload.json|*/doc-payload.json)
+		fail "$path is a build artifact" \
+		     "It is regenerated on every run and should stay out of history." ;;
+	esac
+done
+
+# 2. Content that proves a vault export regardless of what it was named. The marker is the
+#    line build_doc.py writes into every document it produces, so renaming the file to
+#    something innocuous does not get it past this.
+#
+#    The trailing digit matters. build_doc.py holds the same sentence as a template, with a
+#    placeholder where the date goes, so a marker without it flags the generator alongside
+#    its output. A hook that cries wolf on the repository's own source is a hook someone
+#    turns off, which would cost more than the narrower check risks missing.
+for path in $staged; do
+	git show ":$path" 2>/dev/null | grep -qE "Generated from the loose-ends vault on [0-9]" && \
+		fail "$path contains a vault export" \
+		     "The export marker was found inside this file, whatever its name suggests."
+done
+
+exit 0

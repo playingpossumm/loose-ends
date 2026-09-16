@@ -28,3 +28,6 @@ autopilot.log
 
 # Vault exports are built from vault/ content, which is private.
 /vault-*.html
+
+# Build artifact from build_doc.py. Regenerated every run.
+doc-payload.json
