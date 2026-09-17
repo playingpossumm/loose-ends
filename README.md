@@ -252,9 +252,12 @@ which is given in
 
 ## Changelog
 
+### 2026-09-17
+- New install step: `scripts/install_hooks.py`. It registers a pre-commit hook that refuses
+  anything staged from `vault/`, any generated export, and any `.env` file.
+- `build_doc.py` writes only inside `vault/` unless `--allow-outside-vault` says otherwise.
+
 ### 2026-09-14
-- Logo added, taken from the projects page it already appears on.
-- README sections dropped: Escalation, Cost, Notes.
 - `send_brief.py` no longer carries the decide-now subject suffix, removed when the brief
   lost that section.
 - `Code.gs` reads `Session.getEffectiveUser()`. Under a time-driven trigger `getActiveUser()`
@@ -266,8 +269,7 @@ which is given in
 - Opening paragraph capped at two sentences.
 - `Don't forget` restricted to things to read and things to buy.
 - Nudges fire on the due date and on days 1, 3, 7 and 14 after it. Due tomorrow dropped.
-- Nudges written to the brief's register, enforced on the loop `summary:` field. Dates are
-  `Sunday 13 September`, not ISO. Entry titles are `h4`, matching the brief stylesheet.
+- Nudges written to the brief's register, enforced on the loop `summary:` field.
 - `Findings` section removed.
 - Queue tag renamed to `[WEEKLY BRIEF]`.
 
@@ -295,7 +297,6 @@ which is given in
 - Added `/ingest-all`.
 - Added the daily due-date check.
 - Brief email renders as HTML.
-- Renamed from `second-brain`.
 
 ## Docs
 
