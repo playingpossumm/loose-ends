@@ -263,6 +263,25 @@ a job made to `mem/` dies with the runner. Pull the vault before editing it by h
 hand (Nudges and Brief have a dry-run box that prints instead of sending), then add the
 schedules and disable the Windows tasks with `Disable-ScheduledTask`, so nothing runs twice.
 
+### To-do checklist in Telegram
+
+Each morning, with the 06:52 reminder, the bot sends a checklist: every open loop due by
+Sunday, overdue ones first, one button per item. `scripts/telegram_checklist.py` builds it.
+
+A tap waits in Telegram's queue like a message. The next drain, hourly on GitHub, closes
+that loop exactly as `/close` would record it, moves it to `loops/closed/`, logs it, and turns
+the button into a tick. Tapping the tick reopens the loop, but only a loop the checklist
+closed: one closed by `/close` stays closed.
+
+- **Not instant.** A tap lands at the next drain, within the hour. The bot is polled, not
+  pushed to, which is what lets it run without a server.
+- **No model.** Each button carries the loop's file name, so nothing is matched by guessing.
+- **Your chat only.** Taps from any other chat are ignored, the same guard capture uses.
+- **Only dated open loops.** Undated loops and `loops/dates` stay in the brief and the emails.
+
+Try it by hand with `python scripts/telegram_checklist.py --dry-run`, which prints the
+buttons instead of sending them.
+
 ### Why a scheduled brief or nudge still arrives
 
 Six layers, each covering a way the previous one fails:

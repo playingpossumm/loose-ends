@@ -28,6 +28,8 @@ import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 
+from telegram_checklist import handle as handle_tap
+
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
 INBOX = VAULT / "raw" / "inbox"
@@ -181,7 +183,8 @@ def save(msg: dict, token: str) -> Path | None:
 
 def drain(token: str, chat_id: str, watch: bool) -> int:
     offset = int(STATE.read_text().strip()) if STATE.is_file() else 0
-    saved = skipped = 0
+    saved = skipped = taps = 0
+    boards: dict = {}
 
     while True:
         res = call(token, "getUpdates", offset=offset, timeout=LONG_POLL if watch else 0)
@@ -191,6 +194,12 @@ def drain(token: str, chat_id: str, watch: bool) -> int:
 
         for u in updates:
             offset = u["update_id"] + 1
+            if cq := u.get("callback_query"):
+                # A tap on the to-do checklist: close or reopen that loop. telegram_checklist.py.
+                if line := handle_tap(token, chat_id, cq, boards, date.today()):
+                    taps += 1
+                    print(line)
+                continue
             msg = u.get("message") or u.get("channel_post")
             if not msg:
                 continue
@@ -211,6 +220,8 @@ def drain(token: str, chat_id: str, watch: bool) -> int:
 
     if skipped:
         print(f"Ignored {skipped} message(s) from other chats.")
+    if taps:
+        print(f"Applied {taps} tap(s) from the to-do checklist.")
     return saved
 
 

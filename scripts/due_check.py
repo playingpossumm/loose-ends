@@ -251,9 +251,9 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
         text += [note, ""]
         html.append(f"<p><em>{note}</em></p>")
 
-    text.append("Run /close when it is done, or to drop it with a reason.")
-    html.append("<p class='foot'>Run <code>/close</code> when it is done, "
-                "or to drop it with a reason.</p>")
+    text.append("Tick it off in the Telegram checklist, or run /close to drop it with a reason.")
+    html.append("<p class='foot'>Tick it off in the Telegram checklist, or run "
+                "<code>/close</code> to drop it with a reason.</p>")
 
     page = (
         f"<!doctype html><html><head><meta charset='utf-8'>"

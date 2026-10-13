@@ -261,6 +261,9 @@ which is given in
   when something last compiled.
 - The nightly compile no longer tries to drain Telegram a second time.
 - Brief and nudge emails use dark blue in place of green.
+- A to-do checklist in Telegram each morning: what is due this week and anything overdue,
+  one button per item. A tap closes that loop at the next drain; tap again to undo. No model
+  is involved. See `docs/setup.md`, "To-do checklist in Telegram".
 - The scheduled jobs can run as GitHub Actions in the vault repository instead of Windows
   tasks, so nothing waits on the laptop. See `docs/setup.md`, "Running without the laptop".
 - `autopilot.py` also runs off Windows, as on a GitHub Actions runner: it finds `claude` on

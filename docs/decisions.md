@@ -341,6 +341,16 @@ is now free; revisit query once there is evidence of reaching for it.
 Built this round: `scripts/telegram_capture.py`. Tested: text, links, forwards with
 provenance, photos, PDFs, voice-note fallback, empty messages, filename collisions.
 
+### Added 2026-10-13: acting from the phone, without a model
+
+A to-do checklist, `scripts/telegram_checklist.py`: one button per open loop due this week,
+and a tap closes that loop. It stays inside this round's limits. Nothing answers in real
+time: the tap is applied at the next drain, so polling still suffices and no server is
+needed. Nothing interprets either: the button carries the loop's file name, so the act is
+exact and needs no model, which is what kept query-from-phone out. The same chat-id check
+applies. Email was rejected for this: an email cannot hold a tick, a link would need a web
+service behind it, and mail scanners follow links on their own.
+
 ## Locked: round 10 (morning delivery)
 
 **The brief is written on Friday and Sunday evening and delivered at 07:00 on Saturday and
