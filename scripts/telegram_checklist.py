@@ -4,16 +4,17 @@ Each morning the bot sends what is due this week and anything overdue, as a numb
 the message, with one small button per number beneath it. The list is in the message rather
 than on the buttons because Telegram centres button text and offers no way to change it.
 
-A tap waits in Telegram's queue like any message, and the next drain (telegram_capture.py,
-hourly on GitHub) closes that loop in the vault, writes the same "Done" record a /close
-would, and ticks the line. Tap the number again to undo it.
+With the relay set up (scripts/telegram_relay/Code.gs), a tap ticks the line at once and the
+vault's GitHub workflow closes that loop a minute later, writing the same "Done" record a
+/close would. Without it, the tap waits in Telegram's queue until the next drain
+(telegram_capture.py) and both happen then. Tap the number again to undo it.
 
 No model is involved. Each button carries the loop's file name, so a tap closes exactly that
 loop and nothing is matched by guesswork. Only taps from BRAIN_TELEGRAM_CHAT_ID count, the
 same guard capture uses.
 
-A tap registers at the next drain, not at once: the bot is polled rather than pushed to,
-which is what lets it run without a server. See docs/decisions.md, round 9.
+The relay renders the message with the same rules as render() below, so the workflow's own
+edit afterwards changes nothing unless the vault disagreed. See docs/decisions.md, round 9.
 
 Only open loops with a date are listed. Undated ones, and the birthdays and deadlines in
 loops/dates, stay in the brief and the reminder emails.
@@ -55,10 +56,11 @@ PER_ROW = 6
 # never a loop closed some other way.
 TICK_NOTE = "Ticked in Telegram, from the to-do checklist."
 
-FOOTER = "Tap a number once it's done, and again to undo. Ticks reach the vault within the hour."
+FOOTER = "Tap a number once it's done, and again to undo."
 
-# One line of the list, as Telegram sends the text back: box, number, title, then a date,
-# "done", or "not in the vault".
+# One line of the list, as Telegram sends the text back: box, number, title, then the due date,
+# or "not in the vault". A ticked line keeps its date, so an undo can restore it without the
+# vault, which the relay cannot read.
 LINE = re.compile(r"^[☐☑✕] (\d+)  (.+) · (.+)$")
 
 
@@ -157,7 +159,7 @@ def render(head: str, rows: list[dict]) -> tuple[str, list]:
     for r in rows:
         title = esc(r["title"])
         if r["state"] == "done":
-            lines.append(f"☑ {r['n']}  <s>{title}</s> · done")
+            lines.append(f"☑ {r['n']}  <s>{title} · {esc(r['when'])}</s>")
             buttons.append({"text": f"✓{r['n']}", "callback_data": f"u:{r['key']}"})
         elif r["state"] == "gone":
             lines.append(f"✕ {r['n']}  {title} · not in the vault")
@@ -264,13 +266,19 @@ def untick(stem: str, today: date) -> tuple[str, str, str, date | None]:
     return f"  undone: {title}", "open", title, due
 
 
-def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date) -> str | None:
+def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
+           pushed: bool = False) -> str | None:
     """Apply one tap from a checklist. Returns a line for the drain's output, or None when
     the tap is not one of ours or not from your chat.
 
     `boards` carries each message's state across one drain, so several taps on the same
     checklist build on each other instead of each starting from the message as it was when
     that tap was made.
+
+    `pushed` means the relay already answered the tap and ticked the message the moment it
+    was made. The message is then edited only when the vault disagrees, a tick on a loop
+    that was gone or an undo of one closed some other way, because this tap's copy of the
+    message predates any taps made after it, and redrawing from it would untick them.
     """
     msg = cq.get("message") or {}
     if (str(cq.get("from", {}).get("id")) != str(chat_id)
@@ -292,6 +300,10 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date) -> str
     if mid not in boards:
         boards[mid] = parse(msg) or ("", (msg.get("reply_markup") or {}).get("inline_keyboard", []))
     head, rows = boards[mid]
+
+    expected = "done" if action == "d" else "open"
+    if pushed and head and state == expected:
+        return line
 
     if head:
         for r in rows:
@@ -317,7 +329,8 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date) -> str
 
     # Both can fail without harm: an answer more than a few seconds late is refused, and an
     # edit that changes nothing is an error. The vault is already right either way.
-    for method, payload in (edit, ("answerCallbackQuery", {"callback_query_id": cq.get("id")})):
+    calls = [edit] if pushed else [edit, ("answerCallbackQuery", {"callback_query_id": cq.get("id")})]
+    for method, payload in calls:
         try:
             post(token, method, payload)
         except Exception:  # noqa: BLE001

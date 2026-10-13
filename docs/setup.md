@@ -284,6 +284,36 @@ checklist closed: one closed by `/close` stays closed.
 Try it by hand with `python scripts/telegram_checklist.py --dry-run`, which prints the
 buttons instead of sending them.
 
+### Instant Telegram: the relay
+
+Polling means a checklist tap waits for the next drain, and a day without one loses messages
+to Telegram's 24-hour limit. The relay removes both: `scripts/telegram_relay/Code.gs`, a Google
+Apps Script web app set as the bot's webhook, so Telegram pushes each update to it as it is
+sent.
+
+- **A tap** is answered and ticked in the message at once, redrawn with the same rules as
+  `telegram_checklist.py`.
+- **Every update**, tap or message, goes on to the vault's `telegram.yml` workflow through
+  GitHub's `repository_dispatch`. It runs `telegram_capture.py --update` and commits, usually
+  within a minute or two. An update GitHub refuses is kept in the script's properties and
+  retried with the next one, and hourly.
+- **While the webhook is set**, Telegram refuses `getUpdates`, so `--once` says so and exits,
+  and the Capture workflow has nothing to drain.
+
+To set it up:
+
+1. A fine-grained GitHub token with Contents: read and write, on the vault repository only.
+2. A new project at script.google.com, with `Code.gs` pasted in.
+3. Deploy > New deployment > Web app, executing as you, with access for Anyone. Approve the
+   permissions it asks for.
+4. Project Settings > Script properties: `TELEGRAM_TOKEN`, `CHAT_ID`, `GITHUB_TOKEN`,
+   `GITHUB_REPO` as owner/name, and `WEB_APP_URL`, the deployment's URL.
+5. Run `setUpWebhook` once from the editor.
+
+`python scripts/telegram_capture.py --webhook-status` says whether it is set, how many updates
+wait, and the last delivery error. `--webhook-off`, or `removeWebhook` in the editor, goes back
+to draining.
+
 ### Why a scheduled brief or nudge still arrives
 
 Six layers, each covering a way the previous one fails:

@@ -12,6 +12,13 @@ Usage:
     python scripts/telegram_capture.py --once     # drain the backlog and exit
     python scripts/telegram_capture.py --watch    # keep polling until Ctrl-C
     python scripts/telegram_capture.py --setup    # print your chat id, for first-time config
+    python scripts/telegram_capture.py --update FILE   # apply one update the relay pushed
+    python scripts/telegram_capture.py --webhook-status
+    python scripts/telegram_capture.py --webhook-off   # back to draining
+
+With the relay (scripts/telegram_relay/Code.gs) set as the bot's webhook, Telegram pushes each
+update as it is sent and the vault's GitHub workflow applies it with --update. Telegram then
+refuses getUpdates, so --once says so and exits cleanly rather than failing every run.
 
 Stdlib only, deliberately — this runs unattended and should not rot when a dependency does.
 """
@@ -181,7 +188,38 @@ def save(msg: dict, token: str) -> Path | None:
     return page
 
 
+def process(u: dict, token: str, chat_id: str, boards: dict, pushed: bool = False) -> str:
+    """Apply one update: save a message, or apply a tap on the to-do checklist.
+
+    Returns what it was, "saved", "tap", "skipped" for another chat, or "" for nothing.
+    """
+    if cq := u.get("callback_query"):
+        # A tap on the to-do checklist: close or reopen that loop. telegram_checklist.py.
+        if line := handle_tap(token, chat_id, cq, boards, date.today(), pushed=pushed):
+            print(line)
+            return "tap"
+        return ""
+    msg = u.get("message") or u.get("channel_post")
+    if not msg:
+        return ""
+    # Only your own chat. Without this, anyone who finds the bot writes to your vault.
+    if str(msg.get("chat", {}).get("id")) != str(chat_id):
+        return "skipped"
+    if page := save(msg, token):
+        print(f"  {page.relative_to(VAULT).as_posix()}")
+        return "saved"
+    return ""
+
+
+def webhook_url(token: str) -> str:
+    return (call(token, "getWebhookInfo").get("result") or {}).get("url", "")
+
+
 def drain(token: str, chat_id: str, watch: bool) -> int:
+    if webhook_url(token):
+        print("A webhook is set: Telegram pushes each update as it is sent, so there is "
+              "nothing to drain.")
+        return 0
     offset = int(STATE.read_text().strip()) if STATE.is_file() else 0
     saved = skipped = taps = 0
     boards: dict = {}
@@ -194,22 +232,10 @@ def drain(token: str, chat_id: str, watch: bool) -> int:
 
         for u in updates:
             offset = u["update_id"] + 1
-            if cq := u.get("callback_query"):
-                # A tap on the to-do checklist: close or reopen that loop. telegram_checklist.py.
-                if line := handle_tap(token, chat_id, cq, boards, date.today()):
-                    taps += 1
-                    print(line)
-                continue
-            msg = u.get("message") or u.get("channel_post")
-            if not msg:
-                continue
-            # Only your own chat. Without this, anyone who finds the bot writes to your vault.
-            if str(msg.get("chat", {}).get("id")) != str(chat_id):
-                skipped += 1
-                continue
-            if page := save(msg, token):
-                saved += 1
-                print(f"  {page.relative_to(VAULT).as_posix()}")
+            kind = process(u, token, chat_id, boards)
+            saved += kind == "saved"
+            skipped += kind == "skipped"
+            taps += kind == "tap"
 
         STATE.write_text(str(offset), encoding="utf-8")
 
@@ -231,6 +257,9 @@ def main() -> None:
     g.add_argument("--once", action="store_true", help="drain the backlog and exit")
     g.add_argument("--watch", action="store_true", help="keep long-polling until Ctrl-C")
     g.add_argument("--setup", action="store_true", help="print your chat id for first-time config")
+    g.add_argument("--update", metavar="FILE", help="apply one update, as JSON, that the relay pushed")
+    g.add_argument("--webhook-status", action="store_true", help="say whether the relay is set")
+    g.add_argument("--webhook-off", action="store_true", help="remove the webhook and drain again")
     args = ap.parse_args()
 
     env = load_env()
@@ -257,9 +286,32 @@ def main() -> None:
                 print(f"  BRAIN_TELEGRAM_CHAT_ID={cid}    # {name}")
         return
 
+    if args.webhook_status:
+        info = call(token, "getWebhookInfo").get("result") or {}
+        url = info.get("url", "")
+        # The address carries the relay's key in its query string, so only its path is shown.
+        print(f"Webhook: {url.split('?')[0] if url else 'none, updates are drained'}")
+        if url:
+            print(f"Waiting at Telegram: {info.get('pending_update_count', 0)}")
+            if info.get("last_error_message"):
+                print(f"Last error: {info['last_error_message']}")
+        return
+    if args.webhook_off:
+        res = call(token, "deleteWebhook")
+        print("Webhook removed: updates are drained again." if res.get("ok") else f"Telegram error: {res}")
+        return
+
     chat_id = env.get("BRAIN_TELEGRAM_CHAT_ID")
     if not chat_id:
         sys.exit("Missing BRAIN_TELEGRAM_CHAT_ID. Run --setup to find it.")
+
+    if args.update:
+        kind = process(json.loads(Path(args.update).read_text(encoding="utf-8")), token, chat_id,
+                       {}, pushed=True)
+        print({"saved": "Captured 1 message into raw/inbox/.",
+               "tap": "Applied 1 tap from the to-do checklist.",
+               "skipped": "Ignored a message from another chat."}.get(kind, "Nothing to apply."))
+        return
 
     if args.watch:
         print("Watching Telegram. Ctrl-C to stop.")

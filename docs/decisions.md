@@ -351,6 +351,16 @@ exact and needs no model, which is what kept query-from-phone out. The same chat
 applies. Email was rejected for this: an email cannot hold a tick, a link would need a web
 service behind it, and mail scanners follow links on their own.
 
+### Revised 2026-10-13: Telegram pushes, through a relay
+
+Polling was chosen because it needs no host. The checklist changed its cost: a tap that does
+nothing for up to an hour reads as broken, and a laptop asleep through its drain had already
+lost messages to the 24-hour limit. The relay, `scripts/telegram_relay/Code.gs`, is a Google
+Apps Script web app: free, on the account the 07:00 release already uses, so it adds no
+host, subscription or server to keep up. It holds the bot token and a GitHub token scoped to
+the vault, answers taps, and passes every update to GitHub; compiling still happens there.
+Removing the webhook restores draining at once.
+
 ## Locked: round 10 (morning delivery)
 
 **The brief is written on Friday and Sunday evening and delivered at 07:00 on Saturday and

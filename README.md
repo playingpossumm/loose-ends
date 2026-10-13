@@ -261,6 +261,9 @@ which is given in
   when something last compiled.
 - The nightly compile no longer tries to drain Telegram a second time.
 - Brief and nudge emails use dark blue in place of green.
+- The Telegram relay, an optional Google Apps Script webhook: checklist taps tick at once,
+  and every update reaches the vault's GitHub workflow as it is sent, so nothing waits for a
+  drain. See `docs/setup.md`, "Instant Telegram: the relay".
 - A to-do checklist in Telegram each morning: what is due this week and anything overdue,
   as a numbered list with a button per number. A tap closes that loop at the next drain; tap
   again to undo. No model
