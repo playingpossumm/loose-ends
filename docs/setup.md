@@ -224,6 +224,45 @@ or in a bag, because Google does the sending. What it does not cover is the lapt
 all Friday and Sunday evening, no evening run means nothing queued, and the 06:00 catch-up
 then writes and sends directly.
 
+### Running without the laptop: GitHub Actions
+
+Everything above depends on one Windows machine being awake at the right minute. A laptop
+that sleeps with the lid shut runs the jobs late, sometimes the next morning, and a day asleep
+loses Telegram messages, which Telegram keeps for 24 hours. The same scripts can run on
+GitHub's machines instead, as four workflows in the **vault** repository:
+
+| Workflow | Runs | Does |
+|---|---|---|
+| Capture | every two hours | `telegram_capture.py --once`, then commits `raw/` |
+| Compile | daily, 18:07 | `autopilot.py --capture`, rebuilds `index.md`, commits |
+| Nudges | 06:52 and 19:27 | `autopilot.py --due-check morning` or `evening` |
+| Brief | your brief days, 19:03 | `autopilot.py --weekly`, which queues for the 07:00 release |
+
+Each job checks out this repository at the root and the vault into `vault/`, the same layout
+as on the laptop, and sets `TZ` to your time zone so dates and send windows stay local.
+
+**Keep the workflows in the private vault repository.** Actions logs in a public repository
+are public, and these print note titles and, in a dry run, a whole reminder or brief.
+
+**Secrets**, under the vault repository's Settings > Secrets and variables > Actions:
+
+- the seven `BRAIN_*` settings from `.env`: `gh secret set -f .env --repo you/your-vault`
+- `CLAUDE_CODE_OAUTH_TOKEN`, made with `claude setup-token`, so Claude runs on your
+  subscription. It lasts a year. Store it from a variable rather than pasting at the prompt,
+  which on Windows can save an empty value without complaint:
+  `$t = Get-Clipboard`, check `$t.Length`, then `gh secret set CLAUDE_CODE_OAUTH_TOKEN --body $t`
+
+**Run state** that the scripts keep beside themselves on the laptop, `autopilot.log` and
+`.last-brief`, lives in the vault's `.state/` and is copied in and out by each job, because a
+runner keeps nothing between runs. The brief's staleness check reads that log.
+
+**The jobs commit to the vault on their own**, with explicit paths and never `mem/`. A change
+a job made to `mem/` dies with the runner. Pull the vault before editing it by hand.
+
+**Test before switching.** Install the workflows with only `workflow_dispatch`, run each by
+hand (Nudges and Brief have a dry-run box that prints instead of sending), then add the
+schedules and disable the Windows tasks with `Disable-ScheduledTask`, so nothing runs twice.
+
 ### Why a scheduled brief or nudge still arrives
 
 Six layers, each covering a way the previous one fails:
