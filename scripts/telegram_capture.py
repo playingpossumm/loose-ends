@@ -195,7 +195,8 @@ def process(u: dict, token: str, chat_id: str, boards: dict, pushed: bool = Fals
     """
     if cq := u.get("callback_query"):
         # A tap on the to-do checklist: close or reopen that loop. telegram_checklist.py.
-        if line := handle_tap(token, chat_id, cq, boards, date.today(), pushed=pushed):
+        if line := handle_tap(token, chat_id, cq, boards, date.today(), pushed=pushed,
+                              update_id=u.get("update_id")):
             print(line)
             return "tap"
         return ""

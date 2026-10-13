@@ -53,8 +53,12 @@ MAX_KEY = 60
 PER_ROW = 6
 
 # Written into the Done section, and checked before an undo: a tick can only undo itself,
-# never a loop closed some other way.
+# never a loop closed some other way. The checklist's message number follows it, so a stale
+# copy of an older checklist cannot reopen a loop ticked from a newer one.
 TICK_NOTE = "Ticked in Telegram, from the to-do checklist."
+
+# The newest relay tap applied to each checklist, by message number. See reconcile().
+APPLIED = VAULT / ".state" / "checklist.json"
 
 FOOTER = "Tap a number once it's done, and again to undo."
 
@@ -232,7 +236,7 @@ def facts(path: Path, stem: str) -> tuple[str, date | None]:
     return field(text, "title") or stem, date.fromisoformat(due) if due else None
 
 
-def tick(stem: str, today: date) -> tuple[str, str, str, date | None]:
+def tick(stem: str, today: date, mid: int | None = None) -> tuple[str, str, str, date | None]:
     """Close a loop. Returns (output line, state, title, due)."""
     src, dst = VAULT / OPEN / f"{stem}.md", VAULT / CLOSED / f"{stem}.md"
     if not src.is_file():
@@ -241,14 +245,19 @@ def tick(stem: str, today: date) -> tuple[str, str, str, date | None]:
             return f"  already done: {title}", "done", title, due
         return f"  not found: {stem}", "gone", stem, None
     title, due = facts(src, stem)
+    note = TICK_NOTE + (f" Message {mid}." if mid is not None else "")
     move(src, dst, {"status": "done", "folder": CLOSED, "updated": today.isoformat()},
-         f"## Done — {today.isoformat()}\n\n{TICK_NOTE}")
+         f"## Done — {today.isoformat()}\n\n{note}")
     append_log(f"## [{today.isoformat()}] close | {title} — done, ticked in Telegram")
     return f"  ticked: {title}", "done", title, due
 
 
-def untick(stem: str, today: date) -> tuple[str, str, str, date | None]:
-    """Reopen a loop the checklist closed. Returns (output line, state, title, due)."""
+def untick(stem: str, today: date,
+           only_message: int | None = None) -> tuple[str, str, str, date | None]:
+    """Reopen a loop the checklist closed. Returns (output line, state, title, due).
+
+    With `only_message`, reopen it only if that checklist message ticked it.
+    """
     src, dst = VAULT / CLOSED / f"{stem}.md", VAULT / OPEN / f"{stem}.md"
     if not src.is_file():
         if dst.is_file():
@@ -260,14 +269,83 @@ def untick(stem: str, today: date) -> tuple[str, str, str, date | None]:
     last = text.rfind("\n## Done — ")
     if last == -1 or TICK_NOTE not in text[last:] or "\n## Reopened — " in text[last:]:
         return f"  left closed: {title}, closed some other way", "done", title, due
+    if only_message is not None and f"Message {only_message}." not in text[last:]:
+        return f"  left closed: {title}, ticked from another checklist", "done", title, due
     move(src, dst, {"status": "open", "folder": OPEN, "updated": today.isoformat()},
          f"## Reopened — {today.isoformat()}\n\nTick undone in Telegram.")
     append_log(f"## [{today.isoformat()}] close | {title} — reopened, tick undone in Telegram")
     return f"  undone: {title}", "open", title, due
 
 
+def last_applied(mid) -> int:
+    try:
+        return int(json.loads(APPLIED.read_text(encoding="utf-8")).get(str(mid), -1))
+    except (OSError, ValueError):
+        return -1
+
+
+def record_applied(mid, update_id: int) -> None:
+    try:
+        seen = json.loads(APPLIED.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        seen = {}
+    seen[str(mid)] = update_id
+    APPLIED.parent.mkdir(parents=True, exist_ok=True)
+    APPLIED.write_text(json.dumps(seen, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def reconcile(token: str, chat_id: str, msg: dict, parsed: tuple, action: str, key: str,
+              today: date, update_id: int | None) -> str:
+    """Make the vault match the checklist as it stood just after this tap.
+
+    A relay tap carries the message as it was on screen, every earlier tick already drawn,
+    so the list after this tap is the whole of what he meant, not only this toggle. That is
+    what makes overlapping taps safe. The workflow applies taps one at a time, and when
+    several wait GitHub keeps only the newest, whose picture holds the ones it replaced. A
+    tap older than the newest applied is skipped, so a late one cannot undo a newer one.
+
+    Rows he did not touch on this message are only ticked, never reopened, unless this same
+    message ticked them: an old copy of a checklist must not undo what a newer one did.
+    """
+    mid = msg.get("message_id")
+    if update_id is not None and update_id <= last_applied(mid):
+        return f"  skipped a tap older than one already applied, on checklist {mid}"
+    head, rows = parsed
+    out, corrected = [], False
+    for r in rows:
+        if r["state"] == "gone":
+            continue
+        tapped = r["key"] == key
+        want = ("done" if action == "d" else "open") if tapped else r["state"]
+        stem = stem_for(r["key"])
+        if stem is None:
+            r["state"], corrected = "gone", True
+            continue
+        if want == "done":
+            line, state, title, due = tick(stem, today, mid)
+        else:
+            line, state, title, due = untick(stem, today, None if tapped else mid)
+        if not line.strip().startswith("already"):
+            out.append(line)
+        corrected = corrected or state != want
+        r["state"], r["title"] = state, title
+        if due:
+            r["when"] = short(due)
+    if update_id is not None:
+        record_applied(mid, update_id)
+    if corrected:
+        text, keyboard = render(head, rows)
+        try:
+            post(token, "editMessageText", {"chat_id": chat_id, "message_id": mid, "text": text,
+                                            "parse_mode": "HTML",
+                                            "reply_markup": {"inline_keyboard": keyboard}})
+        except Exception:  # noqa: BLE001
+            pass
+    return "\n".join(out) if out else f"  checklist {mid}: the vault already matches"
+
+
 def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
-           pushed: bool = False) -> str | None:
+           pushed: bool = False, update_id: int | None = None) -> str | None:
     """Apply one tap from a checklist. Returns a line for the drain's output, or None when
     the tap is not one of ours or not from your chat.
 
@@ -288,11 +366,14 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
     if action not in ("d", "u") or not key:
         return None
 
+    if pushed and (parsed := parse(msg)):
+        return reconcile(token, chat_id, msg, parsed, action, key, today, update_id)
+
     stem = stem_for(key)
     if stem is None:
         line, state, title, due = f"  not found: {key}", "gone", key, None
     elif action == "d":
-        line, state, title, due = tick(stem, today)
+        line, state, title, due = tick(stem, today, msg.get("message_id"))
     else:
         line, state, title, due = untick(stem, today)
 
