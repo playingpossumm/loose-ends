@@ -266,12 +266,14 @@ schedules and disable the Windows tasks with `Disable-ScheduledTask`, so nothing
 ### To-do checklist in Telegram
 
 Each morning, with the 06:52 reminder, the bot sends a checklist: every open loop due by
-Sunday, overdue ones first, one button per item. `scripts/telegram_checklist.py` builds it.
+Sunday, overdue ones first, as a numbered list with a small button per number beneath it.
+The list sits in the message, left-aligned, because Telegram centres the text on buttons and
+offers no way to change it. `scripts/telegram_checklist.py` builds it.
 
 A tap waits in Telegram's queue like a message. The next drain, hourly on GitHub, closes
-that loop exactly as `/close` would record it, moves it to `loops/closed/`, logs it, and turns
-the button into a tick. Tapping the tick reopens the loop, but only a loop the checklist
-closed: one closed by `/close` stays closed.
+that loop exactly as `/close` would record it, moves it to `loops/closed/`, logs it, and ticks
+and strikes through that line. Tapping the number again reopens the loop, but only a loop the
+checklist closed: one closed by `/close` stays closed.
 
 - **Not instant.** A tap lands at the next drain, within the hour. The bot is polled, not
   pushed to, which is what lets it run without a server.

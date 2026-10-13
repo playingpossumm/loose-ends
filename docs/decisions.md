@@ -343,8 +343,8 @@ provenance, photos, PDFs, voice-note fallback, empty messages, filename collisio
 
 ### Added 2026-10-13: acting from the phone, without a model
 
-A to-do checklist, `scripts/telegram_checklist.py`: one button per open loop due this week,
-and a tap closes that loop. It stays inside this round's limits. Nothing answers in real
+A to-do checklist, `scripts/telegram_checklist.py`: the open loops due this week as a
+numbered list, a button per number, and a tap closes that loop. It stays inside this round's limits. Nothing answers in real
 time: the tap is applied at the next drain, so polling still suffices and no server is
 needed. Nothing interprets either: the button carries the loop's file name, so the act is
 exact and needs no model, which is what kept query-from-phone out. The same chat-id check

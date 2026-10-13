@@ -1,9 +1,12 @@
-"""Your to-do list as a Telegram checklist: tap an item once it is done.
+"""Your to-do list as a Telegram checklist: tap an item's number once it is done.
 
-Each morning the bot sends what is due this week and anything overdue, one button per item.
+Each morning the bot sends what is due this week and anything overdue, as a numbered list in
+the message, with one small button per number beneath it. The list is in the message rather
+than on the buttons because Telegram centres button text and offers no way to change it.
+
 A tap waits in Telegram's queue like any message, and the next drain (telegram_capture.py,
 hourly on GitHub) closes that loop in the vault, writes the same "Done" record a /close
-would, and turns the button into a tick. Tap the tick to undo it.
+would, and ticks the line. Tap the number again to undo it.
 
 No model is involved. Each button carries the loop's file name, so a tap closes exactly that
 loop and nothing is matched by guesswork. Only taps from BRAIN_TELEGRAM_CHAT_ID count, the
@@ -25,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import os
 import re
@@ -44,9 +48,18 @@ CLOSED = "loops/closed"
 # not goes as a short hash, found again by hashing the names on disk.
 MAX_KEY = 60
 
+# Number buttons per row beneath the list.
+PER_ROW = 6
+
 # Written into the Done section, and checked before an undo: a tick can only undo itself,
 # never a loop closed some other way.
 TICK_NOTE = "Ticked in Telegram, from the to-do checklist."
+
+FOOTER = "Tap a number once it's done, and again to undo. Ticks reach the vault within the hour."
+
+# One line of the list, as Telegram sends the text back: box, number, title, then a date,
+# "done", or "not in the vault".
+LINE = re.compile(r"^[☐☑✕] (\d+)  (.+) · (.+)$")
 
 
 def load_env() -> dict[str, str]:
@@ -102,7 +115,7 @@ def todos(today: date) -> list[dict]:
     return sorted(out, key=lambda i: (i["due"], i["title"]))
 
 
-# --- buttons ------------------------------------------------------------------------------
+# --- the message --------------------------------------------------------------------------
 
 
 def key_for(stem: str) -> str:
@@ -123,23 +136,59 @@ def short(d: date) -> str:
     return f"{d.day} {d:%b}"
 
 
-def open_button(stem: str, title: str, due: date | None) -> dict:
-    when = f" · {short(due)}" if due else ""
-    return {"text": f"☐ {title}{when}", "callback_data": f"d:{key_for(stem)}"}
-
-
-def done_button(stem: str, title: str) -> dict:
-    return {"text": f"☑ {title} · done", "callback_data": f"u:{key_for(stem)}"}
-
-
-def gone_button(stem: str) -> dict:
-    # "x" is an action nothing handles, so a tap on it changes nothing.
-    return {"text": f"✕ {stem} · not in the vault", "callback_data": "x"}
-
-
 def header(today: date) -> str:
-    return (f"Your to-dos, {today:%A} {today.day} {today:%B}\n"
-            "Tap one when it's done, and again to undo. Ticks reach the vault within the hour.")
+    return f"Your to-dos, {today:%A} {today.day} {today:%B}"
+
+
+def rows_for(items: list[dict]) -> list[dict]:
+    return [{"n": n, "key": key_for(i["stem"]), "title": i["title"], "when": short(i["due"]),
+             "state": "open"} for n, i in enumerate(items, 1)]
+
+
+def esc(s: str) -> str:
+    """Escape for Telegram's HTML. Quotes stay as they are: they only matter in attributes."""
+    return html.escape(s, quote=False)
+
+
+def render(head: str, rows: list[dict]) -> tuple[str, list]:
+    """The message, as Telegram HTML, and the number buttons beneath it."""
+    lines = [esc(head), ""]
+    buttons = []
+    for r in rows:
+        title = esc(r["title"])
+        if r["state"] == "done":
+            lines.append(f"☑ {r['n']}  <s>{title}</s> · done")
+            buttons.append({"text": f"✓{r['n']}", "callback_data": f"u:{r['key']}"})
+        elif r["state"] == "gone":
+            lines.append(f"✕ {r['n']}  {title} · not in the vault")
+            buttons.append({"text": f"✕{r['n']}", "callback_data": "x"})
+        else:
+            lines.append(f"☐ {r['n']}  {title} · {esc(r['when'])}")
+            buttons.append({"text": str(r["n"]), "callback_data": f"d:{r['key']}"})
+    lines += ["", esc(FOOTER)]
+    return "\n".join(lines), [buttons[i:i + PER_ROW] for i in range(0, len(buttons), PER_ROW)]
+
+
+def parse(msg: dict) -> tuple[str, list[dict]] | None:
+    """A checklist's rows, rebuilt from the message as Telegram sends it back with a tap.
+
+    None for a checklist sent before the list moved into the message, whose buttons carried
+    the titles themselves.
+    """
+    lines = (msg.get("text") or "").splitlines()
+    listed = {int(m.group(1)): (m.group(2), m.group(3)) for l in lines if (m := LINE.match(l))}
+    if not lines or not listed:
+        return None
+    rows = []
+    for b in (b for row in (msg.get("reply_markup") or {}).get("inline_keyboard", []) for b in row):
+        digits = re.sub(r"\D", "", b.get("text", ""))
+        action, _, key = (b.get("callback_data") or "").partition(":")
+        if not digits or int(digits) not in listed:
+            continue
+        title, when = listed[int(digits)]
+        state = {"u": "done", "x": "gone"}.get(action, "open")
+        rows.append({"n": int(digits), "key": key, "title": title, "when": when, "state": state})
+    return lines[0], rows
 
 
 # --- applying a tap -----------------------------------------------------------------------
@@ -175,47 +224,53 @@ def move(src: Path, dst: Path, values: dict[str, str], section: str) -> None:
     src.unlink()
 
 
-def tick(stem: str, today: date) -> tuple[str, dict]:
+def facts(path: Path, stem: str) -> tuple[str, date | None]:
+    text = path.read_text(encoding="utf-8")
+    due = field(text, "due")
+    return field(text, "title") or stem, date.fromisoformat(due) if due else None
+
+
+def tick(stem: str, today: date) -> tuple[str, str, str, date | None]:
+    """Close a loop. Returns (output line, state, title, due)."""
     src, dst = VAULT / OPEN / f"{stem}.md", VAULT / CLOSED / f"{stem}.md"
     if not src.is_file():
         if dst.is_file():
-            title = field(dst.read_text(encoding="utf-8"), "title") or stem
-            return f"  already done: {title}", done_button(stem, title)
-        return f"  not found: {stem}", gone_button(stem)
-    title = field(src.read_text(encoding="utf-8"), "title") or stem
+            title, due = facts(dst, stem)
+            return f"  already done: {title}", "done", title, due
+        return f"  not found: {stem}", "gone", stem, None
+    title, due = facts(src, stem)
     move(src, dst, {"status": "done", "folder": CLOSED, "updated": today.isoformat()},
          f"## Done — {today.isoformat()}\n\n{TICK_NOTE}")
     append_log(f"## [{today.isoformat()}] close | {title} — done, ticked in Telegram")
-    return f"  ticked: {title}", done_button(stem, title)
+    return f"  ticked: {title}", "done", title, due
 
 
-def untick(stem: str, today: date) -> tuple[str, dict]:
+def untick(stem: str, today: date) -> tuple[str, str, str, date | None]:
+    """Reopen a loop the checklist closed. Returns (output line, state, title, due)."""
     src, dst = VAULT / CLOSED / f"{stem}.md", VAULT / OPEN / f"{stem}.md"
     if not src.is_file():
         if dst.is_file():
-            text = dst.read_text(encoding="utf-8")
-            title, due = field(text, "title") or stem, field(text, "due")
-            return (f"  already open: {title}",
-                    open_button(stem, title, date.fromisoformat(due) if due else None))
-        return f"  not found: {stem}", gone_button(stem)
-    text = src.read_text(encoding="utf-8").replace("\r\n", "\n")
-    title, due = field(text, "title") or stem, field(text, "due")
+            title, due = facts(dst, stem)
+            return f"  already open: {title}", "open", title, due
+        return f"  not found: {stem}", "gone", stem, None
+    title, due = facts(src, stem)
+    text = src.read_text(encoding="utf-8")
     last = text.rfind("\n## Done — ")
     if last == -1 or TICK_NOTE not in text[last:] or "\n## Reopened — " in text[last:]:
-        return f"  left closed: {title}, closed some other way", done_button(stem, title)
+        return f"  left closed: {title}, closed some other way", "done", title, due
     move(src, dst, {"status": "open", "folder": OPEN, "updated": today.isoformat()},
          f"## Reopened — {today.isoformat()}\n\nTick undone in Telegram.")
     append_log(f"## [{today.isoformat()}] close | {title} — reopened, tick undone in Telegram")
-    return f"  undone: {title}", open_button(stem, title, date.fromisoformat(due) if due else None)
+    return f"  undone: {title}", "open", title, due
 
 
 def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date) -> str | None:
     """Apply one tap from a checklist. Returns a line for the drain's output, or None when
     the tap is not one of ours or not from your chat.
 
-    `boards` carries each message's buttons across one drain, so several taps on the same
-    checklist build on each other instead of each starting from the buttons as they were
-    when that tap was made.
+    `boards` carries each message's state across one drain, so several taps on the same
+    checklist build on each other instead of each starting from the message as it was when
+    that tap was made.
     """
     msg = cq.get("message") or {}
     if (str(cq.get("from", {}).get("id")) != str(chat_id)
@@ -227,27 +282,42 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date) -> str
 
     stem = stem_for(key)
     if stem is None:
-        line, button = f"  not found: {key}", gone_button(key)
+        line, state, title, due = f"  not found: {key}", "gone", key, None
     elif action == "d":
-        line, button = tick(stem, today)
+        line, state, title, due = tick(stem, today)
     else:
-        line, button = untick(stem, today)
+        line, state, title, due = untick(stem, today)
 
     mid = msg.get("message_id")
-    board = boards.setdefault(mid, (msg.get("reply_markup") or {}).get("inline_keyboard", []))
-    for row in board:
-        for b in row:
+    if mid not in boards:
+        boards[mid] = parse(msg) or ("", (msg.get("reply_markup") or {}).get("inline_keyboard", []))
+    head, rows = boards[mid]
+
+    if head:
+        for r in rows:
+            if r["key"] == key:
+                r["state"], r["title"] = state, title
+                if due:
+                    r["when"] = short(due)
+        text, keyboard = render(head, rows)
+        edit = ("editMessageText", {"chat_id": chat_id, "message_id": mid, "text": text,
+                                    "parse_mode": "HTML",
+                                    "reply_markup": {"inline_keyboard": keyboard}})
+    else:
+        # A checklist from before the list moved into the message: relabel its button.
+        label = {"done": f"☑ {title} · done",
+                 "gone": f"✕ {title} · not in the vault"}.get(
+                     state, f"☐ {title}" + (f" · {short(due)}" if due else ""))
+        data = {"done": f"u:{key}", "gone": "x"}.get(state, f"d:{key}")
+        for b in (b for row in rows for b in row):
             if b.get("callback_data") in (f"d:{key}", f"u:{key}"):
-                b.clear()
-                b.update(button)
+                b.update({"text": label, "callback_data": data})
+        edit = ("editMessageReplyMarkup", {"chat_id": chat_id, "message_id": mid,
+                                           "reply_markup": {"inline_keyboard": rows}})
 
     # Both can fail without harm: an answer more than a few seconds late is refused, and an
     # edit that changes nothing is an error. The vault is already right either way.
-    for method, payload in (
-        ("editMessageReplyMarkup", {"chat_id": chat_id, "message_id": mid,
-                                    "reply_markup": {"inline_keyboard": board}}),
-        ("answerCallbackQuery", {"callback_query_id": cq.get("id")}),
-    ):
+    for method, payload in (edit, ("answerCallbackQuery", {"callback_query_id": cq.get("id")})):
         try:
             post(token, method, payload)
         except Exception:  # noqa: BLE001
@@ -263,7 +333,7 @@ def main() -> None:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="print instead of sending")
     args = ap.parse_args()
-    # The buttons carry box characters a Windows console cannot print in its own codepage.
+    # The list carries box characters a Windows console cannot print in its own codepage.
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     today = date.today()
@@ -272,18 +342,17 @@ def main() -> None:
         print(f"{today}: nothing due this week, no checklist sent.")
         return
 
-    keyboard = [[open_button(i["stem"], i["title"], i["due"])] for i in items]
+    text, keyboard = render(header(today), rows_for(items))
     if args.dry_run:
-        print(header(today))
-        for row in keyboard:
-            print(f"  [{row[0]['text']}]  ->  {row[0]['callback_data']}")
+        print(text)
+        print("  " + "  ".join(f"[{b['text']}]" for row in keyboard for b in row))
         return
 
     env = load_env()
     token, chat_id = env.get("BRAIN_TELEGRAM_TOKEN"), env.get("BRAIN_TELEGRAM_CHAT_ID")
     if not token or not chat_id:
         sys.exit("Missing BRAIN_TELEGRAM_TOKEN or BRAIN_TELEGRAM_CHAT_ID. See .env.example.")
-    res = post(token, "sendMessage", {"chat_id": chat_id, "text": header(today),
+    res = post(token, "sendMessage", {"chat_id": chat_id, "text": text, "parse_mode": "HTML",
                                       "reply_markup": {"inline_keyboard": keyboard}})
     if not res.get("ok"):
         sys.exit(f"Telegram error: {res}")
