@@ -32,6 +32,10 @@ is missed, and the run reports success anyway.
 costs nothing: the script tracks an offset, so a second run in the same minute fetches
 nothing.
 
+**Unattended, skip it.** `scripts/autopilot.py --capture` drains immediately before starting
+this skill, and a headless run cannot get permission to run the script anyway. Trying only put
+a warning in every nightly log that messages might be missing when they were not.
+
 ## What writes itself, and what waits
 
 Not every source carries the same risk, so not every source needs the same approval. Plan

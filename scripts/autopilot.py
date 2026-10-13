@@ -33,7 +33,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import date, datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,6 +54,24 @@ CATCHUP_WINDOW_HOURS = 18
 # it, the brief has already been delivered and a revision is necessarily a second email.
 RELEASE_HOUR = 7
 
+# The days that trigger runs, Saturday and Monday as Python numbers them. Must match
+# setUpTriggers in scripts/gmail_scheduler/Code.gs, like the hour.
+RELEASE_DAYS = (5, 0)
+
+# How far ahead the next release may be for the evening run to queue for it. On time, the run
+# is twelve hours ahead of it. Further out means Windows delayed the run: the laptop was asleep
+# at 19:00, so the task ran when it next woke. On 5 October that was Monday at 08:54, after
+# Monday's release, and a brief queued then was never sent, because the Gmail script only looks
+# three days back and the next release was Saturday.
+QUEUE_AHEAD = timedelta(hours=13)
+
+# The trigger fires within about a quarter of an hour of the release hour, so a brief queued in
+# the last minutes before it can land after the trigger has run. Closer than this, send.
+QUEUE_MARGIN = timedelta(minutes=30)
+
+# How long the daily pass can go without a clean run before the brief says it may have stopped.
+STALE_DAYS = 7
+
 UPDATE_PROMPT = (
     "Run the /brief skill in update mode. A brief already exists in briefs/ for this "
     "period and was sent last night. Material has arrived since. Read the latest brief, "
@@ -68,7 +86,9 @@ UPDATE_PROMPT = (
 )
 
 INGEST_PROMPT = (
-    "Run the /ingest-all skill against the inbox, unattended. Apply the triage in that "
+    "Run the /ingest-all skill against the inbox, unattended. Telegram was drained a moment "
+    "ago by the caller, so skip the skill's \"Drain first\" step: do not run "
+    "telegram_capture.py, and do not report it as skipped. Apply the triage in that "
     "skill exactly: plan the whole batch, then write only the sources whose plan touches "
     "`wiki/` alone. Hold every source that would write a dated loop, change a date already "
     "recorded, touch `mem/`, contradict an existing claim, or that reads more than one "
@@ -270,30 +290,36 @@ def ingest() -> bool:
     return ok
 
 
-def staleness() -> str:
-    """How long since the vault was last compiled, and how much is waiting.
+def last_ok(stage: str) -> datetime | None:
+    """When `stage` last finished cleanly, read from this log."""
+    if not LOG.is_file():
+        return None
+    stamps = re.findall(rf"^\[([0-9T:-]+)\] {re.escape(stage)}: ok$",
+                        LOG.read_text(encoding="utf-8", errors="replace"), re.M)
+    return datetime.fromisoformat(stamps[-1]) if stamps else None
 
-    Computed here rather than left to the model. The brief skill asks it to check `log.md`
-    and work out whether the last ingest was seven or more days ago, which is date
-    arithmetic on a file it has to read anyway — reliable most of the time and wrong
-    silently the rest. The scheduled brief is the one nobody is watching, so it gets the
-    numbers handed to it.
+
+def staleness() -> str:
+    """Whether the daily pass is still running, stated for the brief so it need not guess.
+
+    Read from this log, not from `log.md`. A pass that finds an empty inbox compiles nothing
+    and writes nothing to `log.md`, so judging by the last compile made a quiet week look like
+    a broken pipeline: the 11 October brief said the pass might not be running when it had run
+    every day. Every case gets a stated fact, including the healthy one, because a prompt that
+    says nothing leaves the model to work it out from `log.md` again.
     """
-    log_file = VAULT / "log.md"
-    if not log_file.is_file():
+    last = last_ok("ingest")
+    if last is None:
         return ""
-    dates = re.findall(r"^## \[(\d{4}-\d{2}-\d{2})\] ingest",
-                       log_file.read_text(encoding="utf-8", errors="replace"), re.M)
-    if not dates:
-        return ""
-    days = (datetime.now().date() - date.fromisoformat(max(dates))).days
-    waiting = inbox_count()
-    if days < 7 and waiting <= 5:
-        return ""
-    return (f"\n\nFACTS FOR THE STALENESS LINE, already computed — do not recalculate: "
-            f"the vault was last compiled {days} day{'s' if days != 1 else ''} ago, and "
-            f"{waiting} item{'s are' if waiting != 1 else ' is'} waiting in the inbox. "
-            f"Follow the Staleness section of the skill.")
+    days = (datetime.now() - last).days
+    if days < STALE_DAYS:
+        return (f"\n\nFACTS FOR THE STALENESS LINE, already computed: the daily pass last ran "
+                f"cleanly on {last.day} {last:%B at %H:%M}, so it is running. Write no "
+                f"staleness line, whatever log.md shows. Held sources are reported as the "
+                f"skill says.")
+    return (f"\n\nFACTS FOR THE STALENESS LINE, already computed, do not recalculate: the "
+            f"daily pass last ran cleanly {days} days ago, on {last.day} {last:%B}. Follow the "
+            f"Staleness section of the skill.")
 
 
 def due_check(window: str) -> bool:
@@ -355,13 +381,32 @@ def refresh(last: datetime) -> bool:
     return False
 
 
+def next_release(now: datetime) -> datetime:
+    """When the Apps Script trigger next releases a queued brief."""
+    for ahead in range(8):
+        day = now.date() + timedelta(days=ahead)
+        at = datetime(day.year, day.month, day.day, RELEASE_HOUR)
+        if day.weekday() in RELEASE_DAYS and at > now:
+            return at
+    raise ValueError("RELEASE_DAYS is empty")
+
+
+def release_is_ahead(now: datetime | None = None) -> bool:
+    """True when a brief queued now would go out at the next release, in good time."""
+    now = now or datetime.now()
+    return QUEUE_MARGIN <= next_release(now) - now <= QUEUE_AHEAD
+
+
 def weekly(queue: bool = False) -> bool:
     """Write the brief and mail it.
 
     queue=True tags the message so Gmail holds it back and an Apps Script trigger releases
     it at 07:00 the next morning. That is the evening run, whose whole purpose is to have
-    the brief written before the machine is shut. The morning catch-up passes queue=False:
-    by then the release trigger has already fired, so a queued message would wait a week.
+    the brief written before the machine is shut. It is honoured only while that release is
+    still ahead, decided after writing rather than at the start, since writing takes minutes
+    and a run Windows delayed may already be past the release it was meant for. A late brief
+    is better than one queued for a release that has gone. The morning catch-up passes
+    queue=False and sends directly.
     """
     capture()  # fold in anything sent from the phone before writing the brief
 
@@ -385,6 +430,10 @@ def weekly(queue: bool = False) -> bool:
         # but say so — a silent no-op is the failure mode worth catching here.
         log("  no new brief file; sending the most recent one")
 
+    if queue and not release_is_ahead():
+        log(f"  not queuing for the release on {next_release(datetime.now()):%A at %H:%M}: "
+            f"sending directly")
+        queue = False
     cmd = [str(PY), str(ROOT / "scripts" / "send_brief.py")] + (["--queue"] if queue else [])
     if not run(cmd, "queue brief" if queue else "email brief", timeout=180, retries=2):
         return False
@@ -431,8 +480,8 @@ def main() -> None:
     elif args.due_check:
         stage, ok = f"due check ({args.due_check})", due_check(args.due_check)
     else:
-        # The evening run queues for a 07:00 release; the catch-up has missed that window
-        # and sends directly, which is the point of it.
+        # The evening run queues for a 07:00 release while that release is still ahead; the
+        # catch-up sends directly, which is the point of it.
         stage, ok = "brief", weekly(queue=args.weekly)
     log(f"done: {'ok' if ok else 'FAILED'}")
     if not ok:

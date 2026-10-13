@@ -103,13 +103,18 @@ Say what each one is and why it waited, up to three. Above three, give the count
 most consequential. A held source with a date in it goes first, because that is the one where
 waiting costs something.
 
-Separately, check `log.md` for the most recent `ingest` entry. If it is **seven or more days
-old**, the daily pass has not been running at all, which is a different fault:
+Separately, check when the daily pass last ran: the last `ingest: ok` line in `autopilot.log`,
+in the repository root beside `vault/`. **Not `log.md`.** A pass that finds an empty inbox
+compiles nothing and writes nothing there, so a quiet week reads exactly like a broken one. If
+the last clean run is **seven or more days old**, the pass has stopped, which is a different
+fault:
 
 ```
-*Nothing has compiled for 9 days. The daily pass may not be running — check
-autopilot.log.*
+*The daily pass last ran 9 days ago. It may have stopped: check autopilot.log.*
 ```
+
+The scheduled run reads `autopilot.log` for you and states the result in the prompt. Use what
+it states, including when it says the pass is running, and do not work it out again.
 
 Both lines go directly under the opening paragraph, before the first section. A warning about
 whether the contents can be trusted is useless after the contents have been read.

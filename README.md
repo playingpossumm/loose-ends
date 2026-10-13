@@ -252,6 +252,16 @@ which is given in
 
 ## Changelog
 
+### 2026-10-13
+- A brief whose evening run Windows delays past the 07:00 release is sent directly, not queued
+  for a release that has already happened.
+- Scheduled nudges keep to their own part of the day: the morning one not before 05:00, the
+  evening one not before 13:00. A run delayed into the wrong part of the day is skipped.
+- The staleness line reads `autopilot.log` for when the daily pass last ran, not `log.md` for
+  when something last compiled.
+- The nightly compile no longer tries to drain Telegram a second time.
+- Brief and nudge emails use dark blue in place of green.
+
 ### 2026-09-17
 - New install step: `scripts/install_hooks.py`. It registers a pre-commit hook that refuses
   anything staged from `vault/`, any generated export, and any `.env` file.

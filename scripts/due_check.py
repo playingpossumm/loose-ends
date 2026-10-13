@@ -267,6 +267,27 @@ def render(groups: dict[str, list[dict]], today: date) -> tuple[str, str, str]:
 # Which window last went out, and on what date. Local state, like .last-brief beside it.
 SENT_LOG = ROOT / ".last-nudge"
 
+# The earliest hour each scheduled send may go out: the evening one not before 13:00, the
+# hour this file already uses to tell the two windows apart, and the morning one not before
+# 05:00. A run that starts earlier was delayed by a sleeping laptop or started by the wrong
+# trigger, and is not that day's send:
+#
+#   evening at 08:47   last night's 19:30 run, which Windows started during a brief wake and
+#                      froze until the lid opened. On 5 October one like it sent the evening
+#                      reminder at 08:59 and used up that day's evening send, so the real
+#                      19:30 run found it "already sent".
+#   morning at 04:03   the sign-in trigger, after Windows Update restarted the laptop at four
+#                      and signed back in (11 October).
+#
+# A skipped run records nothing, so the day's own run still goes out. Both floors sit below any
+# time --nudge-morning or --nudge-evening would sensibly be given.
+EARLIEST = {"morning": 5, "evening": 13}
+
+
+def before_its_hour(window: str, now: datetime) -> bool:
+    """True when a scheduled send for `window` has started too early in the day to be its own."""
+    return now.hour < EARLIEST[window]
+
 
 def already_sent(window: str, today: date) -> bool:
     """True when this window has already gone out today.
@@ -309,8 +330,15 @@ def main() -> None:
                     help="send even if this window already went out today")
     args = ap.parse_args()
 
-    today = date.today()
-    window = args.window or ("morning" if datetime.now().hour < 13 else "evening")
+    now = datetime.now()
+    today = now.date()
+    window = args.window or ("morning" if now.hour < 13 else "evening")
+
+    # Only a scheduled run names its window, so only a scheduled run can be in the wrong one.
+    if args.window and not args.dry_run and not args.force and before_its_hour(window, now):
+        print(f"{today} {window}: skipped, {now:%H:%M} is before the "
+              f"{EARLIEST[window]:02d}:00 start of this send.")
+        return
 
     if not args.dry_run and not args.force and already_sent(window, today):
         print(f"{today} {window}: already sent today.")

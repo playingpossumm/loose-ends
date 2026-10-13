@@ -82,7 +82,7 @@ CSS = """
           font-size:15px; line-height:1.6; color:#1b1f24; }
   .card { background:#ffffff; border:1px solid #e3e6ea; border-radius:10px; padding:26px 28px; }
   h1 { font-size:21px; line-height:1.25; margin:0 0 18px; letter-spacing:-.01em; }
-  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#1f6f5c;
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.09em; color:#1e3a8a;
        margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid #e8ebee; }
   /* Three levels carry the brief: h2 section, h3 date group, h4 entry. The gap above a
      heading has to be clearly larger than the gap to its own text, or a section reads as
@@ -106,7 +106,7 @@ CSS = """
   blockquote { margin:0 0 14px; padding:2px 0 2px 14px; border-left:3px solid #cfd6dd; color:#4b5563; }
   hr { border:none; border-top:1px solid #e8ebee; margin:22px 0; }
   em { color:#5b6470; }
-  a { color:#1f6f5c; }
+  a { color:#1e3a8a; }
   table { border-collapse:collapse; width:100%; margin:0 0 14px; font-size:14px; }
   th, td { text-align:left; padding:7px 10px; border-bottom:1px solid #e8ebee; vertical-align:top; }
   th { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:#6b7480; }

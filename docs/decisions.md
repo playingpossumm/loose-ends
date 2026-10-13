@@ -396,3 +396,27 @@ and sends the revision as a second email. A catch-up that finds nothing queued, 
 never ran, writes and sends directly, because a `/brief` run can overrun the hour. And a
 laptop shut at six neither wakes nor blocks the release: the brief written last night still
 goes out at seven.
+
+### Addendum: runs Windows delays
+
+The laptop sleeps with the lid shut and hibernates two hours later, and Windows runs a task it
+slept through when it next wakes, sometimes the next morning. Sometimes it starts the task
+during a momentary wake and freezes it until the lid opens. Three things assumed a task runs
+at its own hour, and between 3 and 13 October each failed once.
+
+**A late evening brief is sent, not queued.** Sunday 4 October's run started on Monday at
+08:54, after Monday's release, and queued a brief that was never delivered: the Gmail script
+looks three days back and the next release was Saturday. `weekly()` now queues only while the
+next release is between 30 minutes and 13 hours away, decided after writing.
+
+**A nudge outside its part of the day is skipped.** An evening run that started at 08:59 used
+up that day's evening send; a sign-in at 04:03 after an update restart sent the morning one at
+four. Morning sends start at 05:00 and evening ones at 13:00, the split the file already used,
+low enough that no sensible `--nudge-evening` falls before it. A skipped run writes nothing, so
+the day's own run still goes out. What is given up: a reminder whose day was slept through
+entirely is not sent late. The brief still carries it, and a reminder that arrives the next
+morning about the night before is the noise the two windows exist to avoid.
+
+**Staleness is judged by whether the pass ran, not whether it compiled.** An empty inbox writes
+nothing to `log.md`, so the 11 October brief reported a pass that had run every day as possibly
+stopped.

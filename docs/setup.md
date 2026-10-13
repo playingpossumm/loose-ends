@@ -171,6 +171,12 @@ the hour you can act on it. A loop moves itself to 19:30 with `nudge: evening` i
 frontmatter when its nature disagrees with that, since reading is an evening act whatever the
 deadline.
 
+**Each send keeps to its own part of the day.** A scheduled nudge does not go out before 05:00
+in the morning or 13:00 in the evening. Windows runs a task the laptop slept through when it
+next wakes, so last night's evening run can start at breakfast; sent then, it used up that
+day's evening send. A sign-in at four, after an update restart, would otherwise send the
+morning one at four. A skipped run records nothing, so the day's own run still goes out.
+
 ### Morning delivery: Gmail holds it until 07:00
 
 The evening run exists so the brief is written while the machine is awake. On its own it also
@@ -184,7 +190,10 @@ supported way to have Google send something on a timer.
 
 **1. Tag the message.** Nothing to do, `autopilot.py --weekly` already passes `--queue` to
 `send_brief.py`, which puts `[WEEKLY BRIEF]` in the subject and an `X-Brain-Queued` header on
-the message. A brief sent by hand is untagged and arrives immediately, as before.
+the message. A brief sent by hand is untagged and arrives immediately, as before. So is a
+scheduled one that Windows ran too late for the release it was meant for, because the laptop
+was asleep at 19:00 and the task ran when it next woke: queued after Monday's release, it
+would wait for Saturday's, and the script only looks three days back.
 
 **2. Keep the tagged copy out of the inbox.** In Gmail, create a filter with *subject
 contains* `weekly brief`, and tick **Skip the Inbox** and **Never send it to Spam**. Without
