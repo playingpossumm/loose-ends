@@ -413,6 +413,13 @@ def dry_run() -> bool:
     return bool(os.environ.get("BRAIN_DRY_RUN"))
 
 
+def test_email() -> bool:
+    """A test that reaches your inbox: write the brief and email it now, untagged, but drain
+    nothing and mark nothing as sent. Set by BRAIN_TEST_EMAIL, which the vault's workflow
+    passes for its "email me a test" box; the workflow then saves nothing either."""
+    return bool(os.environ.get("BRAIN_TEST_EMAIL"))
+
+
 def weekly(queue: bool = False) -> bool:
     """Write the brief and mail it.
 
@@ -424,7 +431,7 @@ def weekly(queue: bool = False) -> bool:
     is better than one queued for a release that has gone. The morning catch-up passes
     queue=False and sends directly.
     """
-    if not dry_run():
+    if not dry_run() and not test_email():
         capture()  # fold in anything sent from the phone before writing the brief
 
     claude = find_claude()
@@ -450,6 +457,9 @@ def weekly(queue: bool = False) -> bool:
     if dry_run():
         return run([str(PY), str(ROOT / "scripts" / "send_brief.py"), "--dry-run"],
                    "email brief (dry run)", timeout=180)
+    if test_email():
+        return run([str(PY), str(ROOT / "scripts" / "send_brief.py")],
+                   "email brief (test)", timeout=180, retries=2)
     if queue and not release_is_ahead():
         log(f"  not queuing for the release on {next_release(datetime.now()):%A at %H:%M}: "
             f"sending directly")
