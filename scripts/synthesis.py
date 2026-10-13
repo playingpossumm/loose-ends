@@ -3,8 +3,9 @@
 THE PROBLEM THIS EXISTS FOR
 ---------------------------
 On 2026-09-07 the vault held 57 source pages, 1 entity page and 1 concept page. The source
-pages were good — real claims, properly attributed. Nothing connected them. Asking "what do
-I know about GMAP SEA" meant re-reading 28 pages and learning nothing that persisted.
+pages were good — real claims, properly attributed. Nothing connected them. Asking what the
+vault knew about its biggest subject meant re-reading 28 pages and learning nothing that
+persisted.
 
 `/ingest` is instructed to promote a mention to its own page at three independent sources,
 and that rule had never once fired. It cannot: `/ingest` compiles one source at a time and
@@ -34,7 +35,6 @@ import argparse
 import json
 import os
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

@@ -89,7 +89,7 @@ def block(lines: list[str], label: str) -> list[str]:
 
 
 # Acronyms the compiler writes lowercase in `category:`, which read as typos otherwise.
-ACRONYMS = {"ai", "llm", "ui", "cv", "rag", "gmap", "fpfa", "mcp", "api"}
+ACRONYMS = {"ai", "llm", "ui", "cv", "rag", "fpfa", "mcp", "api"}
 
 # A category with fewer than this many sources is not yet a subject. Giving each its own
 # heading buried the four that matter under fifteen that did not.

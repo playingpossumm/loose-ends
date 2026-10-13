@@ -1,13 +1,14 @@
 /**
  * Morning delivery for the loose-ends brief.
  *
- * The laptop writes the brief on Friday and Sunday evening and mails it to you with
+ * The brief is written on Friday and Sunday evening, by the laptop or by the vault's Brief
+ * workflow on GitHub, and mailed to you with
  * [WEEKLY BRIEF] in the subject. The 06:00 catch-up may queue a revised copy over it; the
  * newest tagged message is the one that goes out. A Gmail filter on that text archives it, so it never
  * reaches the inbox. This script runs on Google's servers at 07:00 on Saturday and Monday,
  * finds the queued brief, and sends it on without the tag.
  *
- * The point is that Google does the delivering. The laptop can be shut, asleep, or in a bag.
+ * The point is that Google does the delivering, whatever the writer was doing at seven.
  *
  * Nothing here deletes anything: a released brief is labelled rather than trashed, and the
  * label is also what stops it being sent twice.
@@ -56,7 +57,7 @@ function releaseBrief() {
 }
 
 /**
- * The newest message that the laptop actually queued.
+ * The newest message that send_brief.py actually queued.
  *
  * The subject search is what Gmail can match; the header is what proves the message came
  * from send_brief.py rather than from anything else that happened to use the words.

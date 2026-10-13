@@ -12,8 +12,10 @@ than a generic assistant.
 >
 > **Scheduled jobs write to the vault too.** Capture, the nightly compile, the reminders and
 > the brief can run as GitHub Actions in the vault repository and commit there on their own
-> (`docs/setup.md`, "Running without the laptop"). Run `git -C vault pull --rebase` before
-> changing anything in `vault/`, or your edits land on a copy the jobs have moved past.
+> (`docs/setup.md`, "Running without the laptop"), and with the Telegram relay set, every
+> message and checklist tap is committed there as it arrives. Run `git -C vault pull --rebase`
+> before changing anything in `vault/`, or your edits land on a copy the jobs have moved past.
+> A capture made here reaches those jobs only once the vault is pushed.
 
 Design rationale lives in [README.md](README.md); the decision trail is in
 [docs/decisions.md](docs/decisions.md). **Do not re-litigate settled decisions**. If

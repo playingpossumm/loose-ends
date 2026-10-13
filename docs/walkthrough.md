@@ -287,6 +287,10 @@ Five tasks:
 The morning run sends nothing on a normal week. It exists for the evening having failed, and
 for material arriving overnight that changes what you would do.
 
+The same jobs can run as GitHub Actions in the vault repository instead, at 18:07, 19:03,
+06:52 and 19:27, so a shut laptop delays nothing. That setup is in `docs/setup.md`, under
+"Running without the laptop".
+
 The due check is separate from the brief because a deadline needs saying on the day. It goes
 quiet once an item is more than 14 days overdue, and the brief takes over then with a forced
 decision: drop it, set a new date, or do it now.
@@ -305,6 +309,9 @@ Tuesday, at the machine →  scripts/telegram_capture.py --once
                         four files appear in vault/raw/inbox/
                      →  /ingest-all
 ```
+
+With the relay described in `docs/setup.md`, "Instant Telegram", each message lands in the
+vault as it is sent and the drain above is not needed.
 
 It handles text, links, forwarded messages, images and PDFs. Forwarded messages record the
 original sender. Only your own chat identifier is accepted.

@@ -15,26 +15,30 @@ between every source.
 
 Read [CLAUDE.md](../../../CLAUDE.md) first if you have not this session.
 
-## Drain first
+## Pull and drain first
 
 Before planning anything, run:
 
 ```
+git -C vault pull --rebase
 python scripts/telegram_capture.py --once
 ```
 
-`/ingest-all` compiles what is in `raw/inbox/`, and Telegram messages only land there when
-that script runs. Without this step, "compile everything" silently means "compile everything
-that arrived before the last scheduled drain", so a note sent from your phone an hour ago
-is missed, and the run reports success anyway.
+`/ingest-all` compiles what is in `raw/inbox/`, and two things put files there that this copy
+of the vault has not seen. The scheduled jobs on GitHub commit to the vault there, and with the
+Telegram relay set, every message is committed there as it is sent. Without the pull, "compile
+everything" silently means "compile everything this copy happened to have", so a note sent
+from your phone an hour ago is missed, and the run reports success anyway.
 
-`--weekly` already drains before writing the brief, for the same reason. Draining twice
-costs nothing: the script tracks an offset, so a second run in the same minute fetches
-nothing.
+The drain is for when the relay is off, since Telegram messages then land in the inbox only
+when that script runs. With the relay set it says a webhook is set and exits. `--weekly`
+already drains before writing the brief, for the same reason. Draining twice costs nothing:
+the script tracks an offset, so a second run in the same minute fetches nothing.
 
-**Unattended, skip it.** `scripts/autopilot.py --capture` drains immediately before starting
-this skill, and a headless run cannot get permission to run the script anyway. Trying only put
-a warning in every nightly log that messages might be missing when they were not.
+**Unattended, skip both.** `scripts/autopilot.py --capture` drains immediately before starting
+this skill, and on GitHub the vault was checked out moments earlier. A headless run cannot get
+permission to run either command anyway, and trying only put a warning in every nightly log
+that messages might be missing when they were not.
 
 ## What writes itself, and what waits
 

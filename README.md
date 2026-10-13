@@ -17,8 +17,8 @@ they are things like an article you saved and never opened, a deadline mentioned
 passing, or a message you still owe someone. You never type one yourself, because they come
 out of material you captured for some entirely different reason.
 
-**Requirements:** Claude Code, and a machine you use most days. No API keys, no server, no
-database, no vector store, no monthly cost.
+**Requirements:** Claude Code, and either a machine you use most days or a free GitHub account
+to run the schedule. No API keys, no server, no database, no vector store, no monthly cost.
 
 ## Install
 
@@ -57,7 +57,7 @@ it has run, everything the system writes back to you is generic.
 |---|---|
 | `/capture` | Record a link, file, note, or the current conversation. |
 | `/ingest` | Compile one source. Shows its plan first. |
-| `/ingest-all` | Compile every source waiting, under one approval. Drains Telegram first. |
+| `/ingest-all` | Compile every source waiting, under one approval. Pulls the vault and drains Telegram first. |
 | `/ask` | Answer a question with citations, and state what the vault does not cover. |
 | `/close` | Produce the artifact that finishes a loop, then file it. |
 | `/brief` | Write the periodic report. |
@@ -110,6 +110,7 @@ loose-ends/              the system. shareable.
    ├─ wiki/              sources, entities, concepts
    ├─ loops/             open, dated, closed
    ├─ mem/               profile, goals, projects, people, rules
+   ├─ .github/workflows/ the schedule, when it runs on GitHub
    └─ index.md  log.md   generated catalogue, and a record of what happened
 ```
 
@@ -129,14 +130,24 @@ file, though at a few hundred pages there is nothing to gain from doing so.
 being asked, which matters because remembering to run `/brief` is the exact habit the brief
 exists to replace.
 
-With no server and no API key anywhere in this, everything runs as a Windows task on your own
-laptop, which is what makes it free and also why the safeguards further down are necessary.
+The schedule runs in one of two places, both free. Windows tasks on your own laptop need
+nothing beyond this repository, though a laptop asleep at the scheduled minute runs the job
+late, which is what the safeguards further down are for. GitHub Actions in your private vault
+repository run the same scripts on GitHub's machines, so nothing waits for the laptop.
+
+A brief arrives at **07:00 on Saturday and 07:00 on Monday** either way, having been written
+the evening before, held out of the inbox overnight by a Gmail filter, and released the next
+morning by an Apps Script trigger, so arrival never depends on the machine that wrote it. The
+setup for all of it is in [`docs/setup.md`](docs/setup.md).
+
+### Windows tasks
 
 ```
 python scripts/install_schedule.py --day FRI,SUN --time 19:00
 ```
 
-That is the base case used here, and it registers the five tasks below.
+That registers the five tasks below, and since every day and time in it is an argument,
+running it again with different values replaces all five.
 
 | Task | Runs | Does |
 |---|---|---|
@@ -146,18 +157,28 @@ That is the base case used here, and it registers the five tasks below.
 | `NudgeMorning` | daily 07:00 | due today and overdue |
 | `NudgeEvening` | daily 19:30 | the same, for loops marked `nudge: evening` |
 
-A brief therefore arrives at **07:00 on Saturday and 07:00 on Monday**, having been written
-the evening before, held out of the inbox overnight by a Gmail filter, and released the next
-morning by an Apps Script trigger, which means that writing depends on the laptop being on
-while arrival does not, and the setup for all of it is in [`docs/setup.md`](docs/setup.md).
+### GitHub Actions
 
-Every day and time above is an argument to `install_schedule.py`, so running it again with
-different values replaces all five tasks.
+The base case used here since 13 October 2026 is five workflows in the vault repository, with
+Claude Code running on your subscription through a token made by `claude setup-token`.
+
+| Workflow | Runs | Does |
+|---|---|---|
+| `Compile` | daily 18:07 | drains Telegram, compiles what triage allows |
+| `Brief` | Fri and Sun 19:03 | writes the brief, queues it for the morning |
+| `Brief` | Sat and Mon 05:33 | sends the brief directly if the evening run did not |
+| `Nudges` | daily 06:52 and 19:27 | due today and overdue, and in the morning the Telegram checklist |
+| `Telegram` | as each update arrives | saves a message, or applies a checklist tap |
+| `Capture` | by hand | drains Telegram, for when the relay is off |
+
+The minutes sit just off the hour because GitHub starts scheduled runs late when its machines
+are busy, and can drop one altogether, which is what the morning catch-up is for. A run that
+fails emails you a link to itself.
 
 ### Triage
 
-The daily 18:00 pass compiles what it can safely handle without you and leaves everything else
-alone, planning each source first and then deciding from what that plan would write.
+The daily evening pass compiles what it can safely handle without you and leaves everything
+else alone, planning each source first and then deciding from what that plan would write.
 
 | The plan writes | Then |
 |---|---|
@@ -176,7 +197,8 @@ Running `/ingest-all` clears the backlog whenever you are ready to go through it
 
 ### Reliability
 
-A task only runs while the laptop is on, so the schedule assumes it will sometimes miss.
+On the laptop a task only runs while the machine is on, so the schedule assumes it will
+sometimes miss.
 
 - Runs at 19:00, delivered 07:00, so the machine is awake when it matters
 - Overrides the three Windows defaults that would skip a run on battery, on unplugging, or
@@ -189,6 +211,9 @@ A task only runs while the laptop is on, so the schedule assumes it will sometim
 
 The nudges get the same network wait, the same retries and the same failure email, and a
 machine that was switched off will run its missed tasks at the next startup.
+
+On GitHub nothing sleeps, so what remains of that list is the retries and the failure email.
+A compile or brief that fails partway there commits only its run log, never half of its work.
 
 ### Nudges
 
@@ -234,13 +259,20 @@ and a password is far easier to never store than it is to remove afterwards.
 
 ### Telegram
 
-Send anything to your own bot from a phone and the 18:00 drain files it that same evening,
-which works because Telegram holds bot messages for 24 hours and nothing has to be running at
-the moment you send.
+Send anything to your own bot from a phone and it lands in `raw/inbox/` within a minute or
+two, through an optional relay, which is a Google Apps Script web app that receives each
+message as it is sent and hands it to the vault's Telegram workflow. Without the relay, the
+evening drain files it the same day, because Telegram holds bot messages for 24 hours and
+nothing has to be running when you send.
 
 It takes text, links, forwarded messages, images and PDFs, recording who originally sent a
 forwarded message, and it accepts messages from your own chat id only, capturing whatever you
 send without ever replying to it.
+
+Each morning the bot also sends a checklist of what is due by Sunday and anything overdue, as
+a numbered list with a button per number. Tapping a number closes that loop as `/close` would
+record it, and tapping it again reopens it. With the relay the tick shows at once, and without
+it at the next drain.
 
 ## MCP server
 
@@ -265,9 +297,21 @@ which is given in
   and every update reaches the vault's GitHub workflow as it is sent, so nothing waits for a
   drain. See `docs/setup.md`, "Instant Telegram: the relay".
 - A to-do checklist in Telegram each morning: what is due this week and anything overdue,
-  as a numbered list with a button per number. A tap closes that loop at the next drain; tap
-  again to undo. No model
-  is involved. See `docs/setup.md`, "To-do checklist in Telegram".
+  as a numbered list with a button per number. A tap closes that loop, at once with the relay
+  and otherwise at the next drain, and a second tap undoes it. No model is involved. See
+  `docs/setup.md`, "To-do checklist in Telegram".
+- Overlapping checklist taps are safe. Taps run one at a time and each carries the whole
+  checklist as it stood, so a tick and an undo seconds apart land in order, and a tap on an
+  older checklist never undoes a newer one.
+- A compile or brief that fails partway on GitHub commits only its run log. Before, it
+  committed `raw/` too, which could mark a source compiled with nothing written from it, and
+  any other half-done change stopped the push altogether. Compile now commits what it drained
+  from Telegram before it starts.
+- The failure email names a fix that works where the run happened: on GitHub a link to the
+  run, or how to renew the Claude token. On the laptop the command matches the stage that
+  failed, where three of the four had named a flag that does not exist.
+- `/ingest-all` pulls the vault before planning, since the jobs on GitHub and the relay commit
+  there.
 - The scheduled jobs can run as GitHub Actions in the vault repository instead of Windows
   tasks, so nothing waits on the laptop. See `docs/setup.md`, "Running without the laptop".
 - `autopilot.py` also runs off Windows, as on a GitHub Actions runner: it finds `claude` on
@@ -324,7 +368,7 @@ which is given in
 
 | | |
 |---|---|
-| [`docs/setup.md`](docs/setup.md) | Obsidian, MCP, email, Telegram, scheduling |
+| [`docs/setup.md`](docs/setup.md) | Obsidian, MCP, email, Telegram, scheduling on the laptop or GitHub |
 | [`docs/walkthrough.md`](docs/walkthrough.md) | Full setup with a worked example |
 | [`docs/decisions.md`](docs/decisions.md) | Every design decision and how it was reached |
 | [`docs/architecture-qa.md`](docs/architecture-qa.md) | The questions behind those decisions |

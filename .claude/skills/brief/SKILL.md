@@ -60,8 +60,9 @@ The first sentence names the work that completes, and what completing it opens u
 second names what is still outstanding, briefly, and stops.
 
 ```
-The CV and the personal website both finish this weekend, which clears the run at GMAP
-submission on Friday 18 September. RAG and the masters check are still open from last week.
+The CV and the personal website both finish this weekend, which clears the run at the
+scholarship submission on Friday 18 September. RAG and the masters check are still open from
+last week.
 ```
 
 What that replaced was four sentences, eleven dates and no order of importance:
@@ -69,8 +70,8 @@ What that replaced was four sentences, eleven dates and no order of importance:
 ```
 RAG passed its date yesterday, Friday 11 September, and the two days to Sunday 13 September
 already hold the CV, the personal website, the brief redesign and agents and subagents.
-Every part of the GMAP preparation is due Thursday 17 September and submission opens Friday
-18 September. The masters check is three days past its third date, and route B has no dates
+Every part of the scholarship preparation is due Thursday 17 September and submission opens
+Friday 18 September. The masters check is three days past its third date, and route B has no dates
 of its own until it is done.
 ```
 
@@ -171,21 +172,21 @@ looking for it.
 ### Timing after the title
 
 **No dates after a title. Ever.** The date group above the entry carries the date, and
-repeating it is noise. That includes ranges: `#### GMAP Application Prep — Monday 14 to
+repeating it is noise. That includes ranges: `#### Scholarship Prep — Monday 14 to
 Sunday 27` says nothing the heading above it has not already said.
 
 | Wrong | Right |
 |---|---|
-| `#### GMAP Application Prep — Monday 14 to Sunday 27` | `#### GMAP Application Prep` |
-| `#### GMAP SEA Submission — Saturday 19 to Sunday 20` | `#### GMAP SEA Submission` |
+| `#### Scholarship Prep — Monday 14 to Sunday 27` | `#### Scholarship Prep` |
+| `#### Scholarship Submission — Saturday 19 to Sunday 20` | `#### Scholarship Submission` |
 | `#### CV Update — Sunday 13 September` | `#### CV Update` |
 
 Where a range genuinely matters, the detail line is the place for it, and only when the span
 changes what the reader would do:
 
 ```
-#### GMAP SEA Submission
-Management trainee programme, with a logic and numerical test. The window closes Sunday.
+#### Scholarship Submission
+An essay and two references. The window closes Sunday.
 ```
 
 Two exceptions, and nothing else:
@@ -230,7 +231,7 @@ Find the closing date and which documents are needed.
 ### Across the week
 
 #### CV and Portfolio
-Stage one of the GMAP preparation.
+Stage one of the scholarship preparation.
 
 #### Personal Website
 The last of the three portfolio projects.

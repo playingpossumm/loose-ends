@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import smtplib
 import sys
 from email.message import EmailMessage

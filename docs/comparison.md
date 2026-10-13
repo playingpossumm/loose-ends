@@ -227,7 +227,10 @@ an unofficial reverse-engineered library that can get your number banned without
 
 This project avoids the cost by giving up synchronicity. **Telegram queues bot updates for 24
 hours**, so nothing has to be listening when you send. You message the bot from anywhere; the
-backlog drains next time you open your laptop.
+backlog drains next time you open your laptop. An optional relay on Google Apps Script, free on
+the same Google account, now receives each message as it is sent and passes it to GitHub, so
+capture no longer waits for the laptop. Answering still needs a model on the other end, and
+none is offered.
 
 | | Always-on host | Deferred capture |
 |---|---|---|

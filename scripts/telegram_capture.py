@@ -1,9 +1,10 @@
 """Pull messages you sent yourself on Telegram into the vault inbox.
 
-The point of this script is that it does NOT need to be running when you send. Telegram
-queues bot updates for 24 hours, so you message your bot from anywhere, and next time you
-open your laptop this drains the backlog into raw/inbox/. No always-on host, no VPS, and
-Telegram's bot API is official — unlike the WhatsApp route, there is no ban risk.
+Two ways in. With the relay (scripts/telegram_relay/Code.gs) set as the bot's webhook, each
+update is pushed as it is sent and applied here with --update. Without it, nothing needs to be
+running when you send: Telegram queues bot updates for 24 hours, and --once drains the
+backlog into raw/inbox/. No always-on host, no VPS, and Telegram's bot API is official —
+unlike the WhatsApp route, there is no ban risk.
 
 It captures only. It does not compile, and it does not answer questions — answering needs
 a model, and that lives in Claude Code where /ingest and /ask already are.
@@ -45,10 +46,10 @@ API = "https://api.telegram.org"
 
 # Telegram holds undelivered updates for 24h. Anything older is gone regardless.
 #
-# This is why the daily scheduled drain exists and must not be removed on the grounds that
-# /ingest-all now drains too. The scheduled run is not a convenience for compiling — it is
-# the only thing standing between a 24-hour gap in your attention and permanent data loss.
-# Compile whenever you like; the drain has to happen daily whether you compile or not.
+# Without the relay, this is why the daily scheduled drain exists and must not be removed on
+# the grounds that /ingest-all drains too. The scheduled run is not a convenience for
+# compiling — it is the only thing standing between a 24-hour gap in your attention and
+# permanent data loss. With the relay set, Telegram pushes instead and refuses to be drained.
 LONG_POLL = 50
 
 

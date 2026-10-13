@@ -229,14 +229,15 @@ then writes and sends directly.
 Everything above depends on one Windows machine being awake at the right minute. A laptop
 that sleeps with the lid shut runs the jobs late, sometimes the next morning, and a day asleep
 loses Telegram messages, which Telegram keeps for 24 hours. The same scripts can run on
-GitHub's machines instead, as four workflows in the **vault** repository:
+GitHub's machines instead, as five workflows in the **vault** repository:
 
 | Workflow | Runs | Does |
 |---|---|---|
-| Capture | every two hours | `telegram_capture.py --once`, then commits `raw/` |
-| Compile | daily, 18:07 | `autopilot.py --capture`, rebuilds `index.md`, commits |
-| Nudges | 06:52 and 19:27 | `autopilot.py --due-check morning` or `evening` |
-| Brief | your brief days, 19:03 | `autopilot.py --weekly`, which queues for the 07:00 release |
+| Compile | daily, 18:07 | drains Telegram and commits what it found, then `autopilot.py --capture`, rebuilds `index.md`, commits |
+| Nudges | 06:52 and 19:27 | `autopilot.py --due-check morning` or `evening`; the morning run also sends the checklist |
+| Brief | your brief days, 19:03, and 05:33 the morning after | `autopilot.py --weekly`, which queues for the 07:00 release; in the morning `--weekly-catchup` |
+| Telegram | each update the relay pushes | `telegram_capture.py --update`, then commits |
+| Capture | by hand | `telegram_capture.py --once`, for when the relay is off |
 
 Each job checks out this repository at the root and the vault into `vault/`, the same layout
 as on the laptop, and sets `TZ` to your time zone so dates and send windows stay local.
@@ -254,10 +255,31 @@ are public, and these print note titles and, in a dry run, a whole reminder or b
 
 **Run state** that the scripts keep beside themselves on the laptop, `autopilot.log` and
 `.last-brief`, lives in the vault's `.state/` and is copied in and out by each job, because a
-runner keeps nothing between runs. The brief's staleness check reads that log.
+runner keeps nothing between runs. The brief's staleness check reads that log. `checklist.json`
+beside them records the newest tap applied to each checklist.
 
-**The jobs commit to the vault on their own**, with explicit paths and never `mem/`. A change
-a job made to `mem/` dies with the runner. Pull the vault before editing it by hand.
+**The jobs commit to the vault on their own**, with explicit paths and never `mem/`. Compile
+and Brief clear whatever the run staged itself, add their own paths, and discard the rest
+before pulling, so a stray change can neither ride along nor block the push. A change a job
+made to `mem/` dies with the runner.
+
+**A run that fails commits its run log and nothing else.** A compile that fails partway may
+already have filed sources out of the inbox without writing their pages, and committing that
+would mark them compiled with nothing written from them. Compile commits what it drained from
+Telegram before it starts, so a failure cannot lose a message.
+
+**The morning catch-up runs at 05:33.** A runner does not sleep through its slot, but GitHub
+can start a scheduled run late, which the send windows and the queue check allow for, and under
+heavy load can drop one. The catch-up writes and sends the brief directly when the evening run
+did not, and when the evening brief went out it stops within seconds without running Claude. A
+run that fails emails you a link to itself, so you can re-run it from the Actions tab once the
+cause is fixed.
+
+**Captures made on the laptop reach these jobs only once pushed.** `/capture`, the Web
+Clipper, `brain_capture` and a file moved into `raw/inbox/` all write to your local copy of the
+vault, which the jobs never see, so commit and push the vault after capturing there. Pull it
+before reading or editing for the same reason in reverse, since the jobs and the relay commit
+on GitHub. The MCP server reads the local copy, so it is only as current as your last pull.
 
 **Test before switching.** Install the workflows with only `workflow_dispatch`, run each by
 hand (Nudges and Brief have a dry-run box that prints instead of sending), then add the
@@ -270,13 +292,15 @@ Sunday, overdue ones first, as a numbered list with a small button per number be
 The list sits in the message, left-aligned, because Telegram centres the text on buttons and
 offers no way to change it. `scripts/telegram_checklist.py` builds it.
 
-A tap waits in Telegram's queue like a message. The next drain, hourly on GitHub, closes
-that loop exactly as `/close` would record it, moves it to `loops/closed/`, logs it, and ticks
-and strikes through that line. Tapping the number again reopens the loop, but only a loop the
-checklist closed: one closed by `/close` stays closed.
+A tap closes that loop exactly as `/close` would record it, moves it to `loops/closed/`, logs
+it, and ticks and strikes through that line. With the relay below, the tick appears at once and
+the vault follows within a minute or two, and without it the tap waits in Telegram's queue
+until the next drain. Tapping the number again reopens the loop, but only a loop the checklist
+closed, so one closed by `/close` stays closed.
 
-- **Not instant.** A tap lands at the next drain, within the hour. The bot is polled, not
-  pushed to, which is what lets it run without a server.
+- **Overlapping taps are safe.** Taps run one at a time, and each carries the whole checklist
+  as it stood, so a tick and an undo seconds apart land in order, and a tap on an older
+  checklist never undoes what a newer one ticked.
 - **No model.** Each button carries the loop's file name, so nothing is matched by guessing.
 - **Your chat only.** Taps from any other chat are ignored, the same guard capture uses.
 - **Only dated open loops.** Undated loops and `loops/dates` stay in the brief and the emails.
@@ -298,17 +322,20 @@ sent.
   within a minute or two. An update GitHub refuses is kept in the script's properties and
   retried with the next one, and hourly.
 - **While the webhook is set**, Telegram refuses `getUpdates`, so `--once` says so and exits,
-  and the Capture workflow has nothing to drain.
+  which is why the Capture workflow runs only by hand.
 
 To set it up:
 
 1. A fine-grained GitHub token with Contents: read and write, on the vault repository only.
+   Give it a year, since the default is 30 days, and note the date: once it lapses, taps still
+   tick in Telegram, but every update waits in the script until the token is replaced.
 2. A new project at script.google.com, with `Code.gs` pasted in.
 3. Deploy > New deployment > Web app, executing as you, with access for Anyone. Approve the
    permissions it asks for.
 4. Project Settings > Script properties: `TELEGRAM_TOKEN`, `CHAT_ID`, `GITHUB_TOKEN`,
    `GITHUB_REPO` as owner/name, and `WEB_APP_URL`, the deployment's URL.
-5. Run `setUpWebhook` once from the editor.
+5. Run `setUpWebhook` once from the editor. It also makes `WEBHOOK_KEY`, the secret part of
+   the address Telegram calls, and an hourly trigger that retries anything GitHub refused.
 
 `python scripts/telegram_capture.py --webhook-status` says whether it is set, how many updates
 wait, and the last delivery error. `--webhook-off`, or `removeWebhook` in the editor, goes back
@@ -329,7 +356,8 @@ Six layers, each covering a way the previous one fails:
 
 The middle four cover the nudges too, since both run through `autopilot.py`. The first and
 last are the brief's alone; a nudge that fails outright is picked up by the next morning's
-run, where the item counts as overdue.
+run, where the item counts as overdue. On GitHub all six apply, the second attempt being the
+05:33 catch-up.
 
 The installer also overrides three Windows defaults that work against this: tasks may start
 on battery, survive being unplugged, and run a missed occurrence at the next opportunity
@@ -368,9 +396,9 @@ All of them run whether or not Claude Code is open. `--cadence` takes `daily`, `
 `--permission-mode acceptEdits`, so it may write to the vault and nothing else. Every run
 appends to `autopilot.log`.
 
-**Your laptop has to be on.** These are Windows scheduled tasks; they do not run on a
-machine that is off or asleep, and there is no way around that without paying for an
-always-on host.
+**On this path your laptop has to be on.** These are Windows scheduled tasks, and they do
+not run on a machine that is off or asleep. GitHub Actions, above, is the free way around
+that.
 
 What they *do* handle, because the installer overrides Windows' laptop-hostile defaults:
 
@@ -383,9 +411,8 @@ What they *do* handle, because the installer overrides Windows' laptop-hostile d
 So a Friday evening spent away from your desk means nothing is queued, and the brief arrives
 whenever the machine next opens, the 06:00 catch-up sends it directly rather than queuing it
 for a morning that has already passed. Late, not lost. Once the evening run has happened, the
-arrival time no longer depends on the laptop at all. The only way to get it exactly on time
-regardless is a machine that never sleeps,
-which is the ~$10-15/mo this project deliberately avoids.
+arrival time no longer depends on the laptop at all. Getting it exactly on time regardless
+needs a machine that never sleeps, and GitHub's runners, above, are that machine at no cost.
 
 Check it:  `schtasks /query /tn SecondBrain-WeeklyBrief`
 Force it:  `schtasks /run /tn SecondBrain-WeeklyBrief`
@@ -393,8 +420,9 @@ Force it:  `schtasks /run /tn SecondBrain-WeeklyBrief`
 ## 6. Telegram capture from your phone (optional)
 
 Send things to the brain from anywhere. Telegram queues bot updates for 24 hours, so
-**nothing needs to be running when you send**, you message the bot, and next time you open
-your laptop the backlog drains into `raw/inbox/`.
+**nothing needs to be running when you send**, and the next drain files the backlog into
+`raw/inbox/`. With the relay in step 5, "Instant Telegram", each message is filed as you send
+it instead.
 
 Telegram rather than WhatsApp on purpose: the bot API is official and free, where every
 WhatsApp route either risks your account (Baileys, which is what OpenClaw uses by default)
@@ -411,7 +439,7 @@ or needs a $10-15/mo always-on host.
 
    Put the printed `BRAIN_TELEGRAM_CHAT_ID` into `.env`. Messages from any other chat are
    ignored, without this, anyone who found your bot could write into your vault.
-4. Then whenever you sit down:
+4. Then, until the relay is set up, whenever you sit down:
 
 ```
 .venv\Scripts\python.exe scripts/telegram_capture.py --once
@@ -432,20 +460,23 @@ Worth being precise about, because it is the easiest thing to get wrong:
 
 | Step | Automatic? |
 |---|---|
-| Telegram message → `raw/inbox/` | **yes**, daily 18:00, and again before each brief |
-| Web Clipper → `raw/inbox/` | **yes**, the moment you click |
-| `raw/inbox/` → compiled pages and loops | **no**, you run `/ingest` |
+| Telegram message → `raw/inbox/` | **yes**, as you send it with the relay, otherwise at the evening drain and before each brief |
+| Web Clipper → `raw/inbox/` | **yes**, the moment you click, into the local copy, which the GitHub jobs see once it is pushed |
+| `raw/inbox/` → compiled pages and loops | **partly**, the evening pass compiles what writes only to `wiki/` and holds the rest |
 | Writing and emailing the brief | **yes**, on your schedule |
+| Due-date reminders and the morning checklist | **yes**, daily |
 
-Capture is automated; **compilation is not**, on purpose. `/ingest` is the one irreversible
-step, it rewrites ten to fifteen pages at once, so it shows you a plan and waits. Fire it
-off unattended and a misread source spreads before anyone notices.
+Capture is automated, and **compilation only partly**, on purpose. The evening pass compiles a
+source only when its plan writes to `wiki/` alone, which a regeneration can undo, and holds
+anything that would set a date, touch `mem/`, contradict a page or read more than one way,
+because a misread there spreads before anyone notices.
 
 The safety net: the weekly brief counts what is sitting uncompiled and tells you, so nothing
 can quietly rot in the inbox. If something has been waiting more than two weeks, it says so
 directly.
 
-To compile, open Claude Code in this folder and run `/ingest`, once per source.
+To compile what was held, open Claude Code in this folder and run `/ingest-all`, which pulls
+the vault first.
 
 ## Daily use
 

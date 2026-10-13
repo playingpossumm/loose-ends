@@ -149,7 +149,7 @@ def clean_title(raw: str) -> str:
     carry: no trailing parenthetical, and no trailing clause that only repeats the due date,
     which the reminder already prints beside the title.
 
-    The clause survives whenever it carries meaning, as in "for GMAP SEA", and whenever
+    The clause survives whenever it carries meaning, as in "for the scholarship", and whenever
     dropping it would leave a single generic word, since "Trip" names nothing.
     """
     title = re.sub(r"\s*\([^)]*\)\s*$", "", raw).strip()

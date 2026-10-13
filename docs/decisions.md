@@ -440,3 +440,33 @@ morning about the night before is the noise the two windows exist to avoid.
 **Staleness is judged by whether the pass ran, not whether it compiled.** An empty inbox writes
 nothing to `log.md`, so the 11 October brief reported a pass that had run every day as possibly
 stopped.
+
+### Addendum: the schedule moves to GitHub Actions
+
+Added 2026-10-13. The jobs run as workflows in the private vault repository rather than as
+Windows tasks, which stay installed but disabled. A laptop sleeping through its slot caused
+every failure in the addendum above, and a runner does not sleep. Claude Code runs there on
+the owner's subscription through `CLAUDE_CODE_OAUTH_TOKEN`, a one-year token made by `claude
+setup-token`, so no API key or bill is added, and GitHub's free minutes cover the load.
+
+| Option | Rejected because |
+|---|---|
+| Claude Code routines in Anthropic's cloud | they reach a private repository through Anthropic's GitHub app, which here belonged to a separate account that had to stay as it was |
+| An always-on host | $7-24/mo, which this project avoids |
+| **GitHub Actions in the vault repository** | **chosen** |
+
+The workflows live in the vault repository, never the public one, because Actions logs in a
+public repository are public and a dry run prints a whole brief. They commit to the vault on
+their own and never stage `mem/`.
+
+**The morning catch-up stays, at 05:33.** A runner does not sleep, but GitHub drops a scheduled
+run now and then under load, and a dropped Friday run would otherwise mean no brief that
+weekend. Under the relay it only ever does that one job: its revision step counts what the
+drain brings in overnight, and the drain finds nothing now that messages arrive as they are
+sent, so overnight material no longer revises a brief. That is a known gap.
+
+**What a run commits.** Only the paths it names, and after a failure only its run log. The
+first version committed `raw/` after a failure too, so a compile that failed partway could mark
+sources compiled with no page written from them, and any half-done change left beside the
+commit made `git pull --rebase` refuse, so the push failed and took the run log with it. A test
+against a throwaway repository found both before either happened.

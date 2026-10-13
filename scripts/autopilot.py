@@ -20,7 +20,8 @@ send the result. Permission mode is acceptEdits: they may write to the vault, no
 Every mode waits for the network first. If a run fails for any other reason it emails a
 report, because a job you only notice by its absence is not automation.
 
-Install as scheduled tasks with scripts/install_schedule.py.
+Install as Windows scheduled tasks with scripts/install_schedule.py, or run it from GitHub
+Actions in the vault repository: docs/setup.md, "Running without the laptop".
 """
 
 from __future__ import annotations
@@ -90,9 +91,10 @@ UPDATE_PROMPT = (
 )
 
 INGEST_PROMPT = (
-    "Run the /ingest-all skill against the inbox, unattended. Telegram was drained a moment "
-    "ago by the caller, so skip the skill's \"Drain first\" step: do not run "
-    "telegram_capture.py, and do not report it as skipped. Apply the triage in that "
+    "Run the /ingest-all skill against the inbox, unattended. The caller drained Telegram a "
+    "moment ago and the vault is as current as it will get, so skip the skill's \"Pull and "
+    "drain first\" step: do not run git or telegram_capture.py, and do not report it as "
+    "skipped. Apply the triage in that "
     "skill exactly: plan the whole batch, then write only the sources whose plan touches "
     "`wiki/` alone. Hold every source that would write a dated loop, change a date already "
     "recorded, touch `mem/`, contradict an existing claim, or that reads more than one "
@@ -209,6 +211,37 @@ def run(cmd: list[str], label: str, timeout: int = 900, retries: int = 0) -> boo
     return False
 
 
+# The flag that reruns each stage by hand. The due check carries its window in the stage name.
+RERUN = {"capture": "--capture", "brief": "--weekly", "brief refresh": "--weekly-catchup"}
+# What a run's log says when Claude Code has no valid login.
+SIGNED_OUT = ("oauth", "/login", "not logged in", "invalid bearer", "invalid api key")
+
+
+def how_to_fix(stage: str) -> tuple[str, str]:
+    """The fix line and the detail line for a failure email.
+
+    On a GitHub runner the log file dies with the runner and a laptop command is no help, so
+    both point at the run, whose page keeps the whole log. Only this run's lines are read: an
+    expired login further up the log would otherwise be blamed for every later failure.
+    """
+    this_run = LOG.read_text(encoding="utf-8").rsplit("=" * 60, 1)[-1].lower()
+    signed_out = any(s in this_run for s in SIGNED_OUT)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        run = (f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/"
+               f"{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/"
+               f"{os.environ.get('GITHUB_RUN_ID', '')}")
+        if signed_out:
+            return ("The Claude token has expired or is wrong. Make a new one with `claude "
+                    "setup-token` and store it as the vault repository's CLAUDE_CODE_OAUTH_TOKEN "
+                    "secret, as docs/setup.md describes under \"Running without the laptop\"."), run
+        return "Open the run, see which step failed, and use Re-run jobs once it is fixed.", run
+    if signed_out:
+        return "Run `claude` once and sign in again; the login expired.", str(LOG)
+    flag = (f"--due-check {stage[stage.find('(') + 1:-1]}" if stage.startswith("due check")
+            else RERUN.get(stage, "--" + stage.split()[0]))
+    return f"Run: .venv\\Scripts\\python.exe scripts\\autopilot.py {flag}", str(LOG)
+
+
 def report_failure(stage: str) -> None:
     """Email the failure. A job you only notice by its absence is not automation.
 
@@ -230,9 +263,7 @@ def report_failure(stage: str) -> None:
         # broke, so waiting will not fix it — and the log is on disk for anyone who wants
         # detail. It used to carry 25 lines of log tail, which made a failure look like
         # something to read rather than something to act on.
-        expired = "oauth" in LOG.read_text(encoding="utf-8")[-4000:].lower()
-        fix = ("Run `claude` once and sign in again; the login expired."
-               if expired else f"Run: .venv\\Scripts\\python.exe scripts\\autopilot.py --{stage.split()[0]}")
+        fix, detail = how_to_fix(stage)
 
         msg = EmailMessage()
         msg["Subject"] = f"Loose ends — {stage} did not run"
@@ -243,7 +274,7 @@ def report_failure(stage: str) -> None:
             f"The {stage} ran at {datetime.now():%H:%M} and failed, so the next scheduled "
             f"run will fail the same way until this is dealt with.\n\n"
             f"{fix}\n\n"
-            f"Detail: {LOG}\n"
+            f"Detail: {detail}\n"
         )
         with smtplib.SMTP(env["BRAIN_SMTP_HOST"],
                           int(env.get("BRAIN_SMTP_PORT", "587")), timeout=30) as s:
