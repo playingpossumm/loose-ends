@@ -261,6 +261,9 @@ which is given in
   when something last compiled.
 - The nightly compile no longer tries to drain Telegram a second time.
 - Brief and nudge emails use dark blue in place of green.
+- `autopilot.py` also runs off Windows, as on a GitHub Actions runner: it finds `claude` on
+  PATH and uses the interpreter running it. `BRAIN_DRY_RUN` writes the brief and prints the
+  email without draining or sending.
 
 ### 2026-09-17
 - New install step: `scripts/install_hooks.py`. It registers a pre-commit hook that refuses

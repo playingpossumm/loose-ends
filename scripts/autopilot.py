@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -38,7 +39,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("BRAIN_VAULT", ROOT / "vault")).resolve()
-PY = ROOT / ".venv" / "Scripts" / "python.exe"
+# The laptop's virtualenv. Anywhere else, such as a GitHub Actions runner, the interpreter
+# running this file is the one to use.
+_VENV_PY = ROOT / ".venv" / "Scripts" / "python.exe"
+PY = _VENV_PY if _VENV_PY.is_file() else Path(sys.executable)
 LOG = ROOT / "autopilot.log"
 STATE = ROOT / ".last-brief"
 
@@ -130,7 +134,9 @@ def find_claude() -> Path | None:
         found = sorted(ext.glob("anthropic.claude-code-*/resources/native-binary/claude.exe"))
         if found:
             return found[-1]
-    return None
+    # Anywhere else it is a command on PATH, as on a GitHub Actions runner after installing it.
+    on_path = shutil.which("claude")
+    return Path(on_path) if on_path else None
 
 
 # How long to wait for a network before giving up. This is a ceiling, not an interval: when
@@ -397,6 +403,16 @@ def release_is_ahead(now: datetime | None = None) -> bool:
     return QUEUE_MARGIN <= next_release(now) - now <= QUEUE_AHEAD
 
 
+def dry_run() -> bool:
+    """A test run: write the brief and print the email, but drain nothing and send nothing.
+
+    Set by BRAIN_DRY_RUN, which the vault's GitHub workflow passes when run by hand with its
+    dry-run box ticked. Draining is skipped too, since the test's changes are thrown away and
+    a message drained from Telegram cannot be drained again.
+    """
+    return bool(os.environ.get("BRAIN_DRY_RUN"))
+
+
 def weekly(queue: bool = False) -> bool:
     """Write the brief and mail it.
 
@@ -408,7 +424,8 @@ def weekly(queue: bool = False) -> bool:
     is better than one queued for a release that has gone. The morning catch-up passes
     queue=False and sends directly.
     """
-    capture()  # fold in anything sent from the phone before writing the brief
+    if not dry_run():
+        capture()  # fold in anything sent from the phone before writing the brief
 
     claude = find_claude()
     if not claude:
@@ -430,6 +447,9 @@ def weekly(queue: bool = False) -> bool:
         # but say so — a silent no-op is the failure mode worth catching here.
         log("  no new brief file; sending the most recent one")
 
+    if dry_run():
+        return run([str(PY), str(ROOT / "scripts" / "send_brief.py"), "--dry-run"],
+                   "email brief (dry run)", timeout=180)
     if queue and not release_is_ahead():
         log(f"  not queuing for the release on {next_release(datetime.now()):%A at %H:%M}: "
             f"sending directly")
