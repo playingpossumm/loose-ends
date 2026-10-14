@@ -470,3 +470,10 @@ first version committed `raw/` after a failure too, so a compile that failed par
 sources compiled with no page written from them, and any half-done change left beside the
 commit made `git pull --rebase` refuse, so the push failed and took the run log with it. A test
 against a throwaway repository found both before either happened.
+
+**Which commit a run sees.** The vault is checked out at `ref: main`, as it stands when the job
+starts. By default GitHub checks out the commit the run was triggered on. On 14 October a tick
+and an untick two seconds apart ran one after the other as intended, but both started from the
+commit before the tick, so the untick found nothing to undo and its push then conflicted. One
+at a time is only half of serialising runs; the other half is each one starting from where the
+last left off.

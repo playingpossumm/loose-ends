@@ -240,7 +240,10 @@ GitHub's machines instead, as five workflows in the **vault** repository:
 | Capture | by hand | `telegram_capture.py --once`, for when the relay is off |
 
 Each job checks out this repository at the root and the vault into `vault/`, the same layout
-as on the laptop, and sets `TZ` to your time zone so dates and send windows stay local.
+as on the laptop, and sets `TZ` to your time zone so dates and send windows stay local. The
+vault is checked out at `ref: main`, as it stands when the job starts. Without that, GitHub
+checks out the commit the run was triggered on, and a run that waited its turn works from a
+copy missing whatever the run before it saved.
 
 **Keep the workflows in the private vault repository.** Actions logs in a public repository
 are public, and these print note titles and, in a dry run, a whole reminder or brief.

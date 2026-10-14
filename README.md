@@ -284,6 +284,11 @@ which is given in
 
 ## Changelog
 
+### 2026-10-14
+- Every workflow checks out the vault as it stands when the job starts. By default GitHub
+  checks out the commit a run was triggered on, so a checklist tap that waited its turn
+  behind another worked from a copy without it, and a quick untick was lost.
+
 ### 2026-10-13
 - A brief whose evening run Windows delays past the 07:00 release is sent directly, not queued
   for a release that has already happened.
