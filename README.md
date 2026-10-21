@@ -284,6 +284,12 @@ which is given in
 
 ## Changelog
 
+### 2026-10-21
+- The morning release moves the brief it sends into the inbox, unread. Gmail filed the
+  released copy into the archived queued conversation, so it reached only the
+  `brief-released` label. Paste the new `scripts/gmail_scheduler/Code.gs` into the Apps
+  Script project; the triggers stay as they are.
+
 ### 2026-10-14
 - Every workflow checks out the vault as it stands when the job starts. By default GitHub
   checks out the commit a run was triggered on, so a checklist tap that waited its turn

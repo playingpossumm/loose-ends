@@ -6,7 +6,7 @@
  * [WEEKLY BRIEF] in the subject. The 06:00 catch-up may queue a revised copy over it; the
  * newest tagged message is the one that goes out. A Gmail filter on that text archives it, so it never
  * reaches the inbox. This script runs on Google's servers at 07:00 on Saturday and Monday,
- * finds the queued brief, and sends it on without the tag.
+ * finds the queued brief, sends it on without the tag, and moves that copy into the inbox.
  *
  * The point is that Google does the delivering, whatever the writer was doing at seven.
  *
@@ -53,7 +53,37 @@ function releaseBrief() {
   for (var i = 0; i < threads.length; i++) {
     released.addToThread(threads[i]);
   }
-  Logger.log('released: ' + subject + ' (' + threads.length + ' queued thread(s) cleared)');
+
+  // A brief sent to yourself can come back archived: Gmail may file it into the queued copy's
+  // conversation, which the filter already took out of the inbox, or the filter can catch it
+  // on arrival. Either way it sat under brief-released and never reached the inbox. A filter
+  // acts only on arrival, so moving the conversation afterwards sticks.
+  var moved = toInbox(subject);
+  Logger.log('released: ' + subject + ' (' + threads.length + ' queued thread(s) cleared, ' +
+             moved + ' moved to the inbox)');
+}
+
+/**
+ * Move the released copy's conversation to the inbox, unread.
+ *
+ * It is found by its subject without the tag, so a queued copy in a conversation of its own
+ * stays where the filter put it. Sent mail can take a few seconds to become searchable, hence
+ * the retries. Returns the number of conversations moved; 0 in the log means it never showed.
+ */
+function toInbox(subject) {
+  // Punctuation out: Gmail ignores it in a phrase search, and a quote would end the phrase.
+  var phrase = subject.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  var query = 'from:me subject:"' + phrase + '" -subject:"weekly brief" newer_than:1d';
+  for (var attempt = 0; attempt < 6; attempt++) {
+    var found = GmailApp.search(query, 0, 5);
+    if (found.length) {
+      GmailApp.moveThreadsToInbox(found);
+      GmailApp.markThreadsUnread(found);
+      return found.length;
+    }
+    Utilities.sleep(5000);
+  }
+  return 0;
 }
 
 /**

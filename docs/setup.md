@@ -209,8 +209,10 @@ Run `testRelease` from the editor to check the wiring rather than waiting for Sa
 
 **What the script does.** It searches for the newest message tagged in the last three days,
 confirms the `X-Brain-Queued` header so it forwards nothing else, sends it on to you without
-the tag, and labels the queued copy `brief-released` so it cannot go twice. Nothing is
-deleted, and if nothing is queued it does nothing and says so in its log.
+the tag, and labels the queued copy `brief-released` so it cannot go twice. It then moves the
+released copy into the inbox, unread, because Gmail can file a message you send yourself into
+the archived queued conversation, where it would sit under `brief-released` and nowhere else.
+Nothing is deleted, and if nothing is queued it does nothing and says so in its log.
 
 **The safeguard still runs, and now it runs first.** The 06:00 catch-up drains Telegram and
 asks whether anything that arrived overnight changes what you would do. Because that is an
