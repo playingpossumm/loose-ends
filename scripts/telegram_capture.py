@@ -196,8 +196,10 @@ def process(u: dict, token: str, chat_id: str, boards: dict, pushed: bool = Fals
     """
     if cq := u.get("callback_query"):
         # A tap on the to-do checklist: close or reopen that loop. telegram_checklist.py.
+        # relay_rendered: the relay already drew this tap in the message. See Code.gs.
         if line := handle_tap(token, chat_id, cq, boards, date.today(), pushed=pushed,
-                              update_id=u.get("update_id")):
+                              update_id=u.get("update_id"),
+                              rendered=bool(u.get("relay_rendered"))):
             print(line)
             return "tap"
         return ""

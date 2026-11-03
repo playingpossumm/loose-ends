@@ -8,7 +8,10 @@
  *
  * The message is redrawn here with the same rules as render() in
  * scripts/telegram_checklist.py, so the workflow, which only redraws when the vault
- * disagrees, normally has nothing to change. Keep the two in step.
+ * disagrees, normally has nothing to change. Keep the two in step. That covers the "next
+ * week" and "drop" buttons on a loop more than two weeks late, and the undo of a drop. The
+ * update passed on carries relay_rendered: true once the message is drawn, so the workflow
+ * draws it instead when this relay could not.
  *
  * Script properties, under Project Settings > Script properties:
  *   TELEGRAM_TOKEN   the bot token: BRAIN_TELEGRAM_TOKEN in .env
@@ -25,8 +28,10 @@
 var props = PropertiesService.getScriptProperties();
 
 var FOOTER = "Tap a number once it's done, and again to undo.";
+var LATE_NOTE = 'More than two weeks late: move it to next week, or drop it.';
 var PER_ROW = 6;
 var LINE = /^([☐☑✕]) (\d+)  (.+) · (.+)$/;
+var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** Telegram calls this. Returning nothing answers 200, which is what Telegram needs. */
 function doPost(e) {
@@ -47,7 +52,7 @@ function doPost(e) {
     // The tick on screen is a courtesy. Nothing here may stop the update reaching the vault.
     try {
       telegram('answerCallbackQuery', {callback_query_id: cq.id});
-      tickNow(cq);
+      update.relay_rendered = tickNow(cq) === true;
     } catch (err) {
       console.error('Could not tick the message: ' + err);
     }
@@ -65,12 +70,15 @@ function doPost(e) {
   if (!sent) props.setProperty('pending_' + update.update_id, JSON.stringify(update));
 }
 
-/** Tick or untick the tapped line now, from the message as Telegram sent it with the tap. */
+/**
+ * Draw the tap now, from the message as Telegram sent it with the tap: a tick or its undo, or
+ * on a late line, a move to next week, a drop, or the undo of a drop. True once drawn.
+ */
 function tickNow(cq) {
   var data = String(cq.data || '');
   var action = data.split(':')[0];
   var key = data.slice(action.length + 1);
-  if ((action !== 'd' && action !== 'u') || !key) return;
+  if (['d', 'u', 's', 'k', 'r'].indexOf(action) === -1 || !key) return false;
 
   var msg = cq.message;
   var lines = String(msg.text || '').split('\n');
@@ -80,46 +88,79 @@ function tickNow(cq) {
     if (m) listed[m[2]] = {title: m[3], when: m[4]};
   });
   // A checklist from before the list moved into the message: the workflow relabels it.
-  if (!Object.keys(listed).length) return;
+  if (!Object.keys(listed).length) return false;
 
+  // One row per number. A late line has two more buttons carrying the same number.
   var buttons = [].concat.apply([], (msg.reply_markup || {}).inline_keyboard || []);
-  var rows = [];
+  var byNumber = {};
   buttons.forEach(function (b) {
     var n = String(b.text).replace(/\D/g, '');
     var bdata = String(b.callback_data || '');
     var act = bdata.split(':')[0];
     var k = bdata.slice(act.length + 1);
     if (!listed[n]) return;
-    var state = act === 'u' ? 'done' : act === 'x' ? 'gone' : 'open';
-    if (k === key) state = action === 'd' ? 'done' : 'open';
-    rows.push({n: n, key: k, title: listed[n].title, when: listed[n].when, state: state});
+    var r = byNumber[n] || (byNumber[n] = {n: n, key: k, title: listed[n].title,
+                                           when: listed[n].when, state: 'open', late: false});
+    if (act === 's' || act === 'k') {
+      r.late = true;
+    } else {
+      r.key = k;
+      r.state = act === 'u' ? 'done' : act === 'x' ? 'gone' : act === 'r' ? 'dropped' : 'open';
+    }
+  });
+  var rows = Object.keys(byNumber).sort(function (a, b) { return a - b; })
+      .map(function (n) { return byNumber[n]; });
+
+  rows.forEach(function (r) {
+    if (r.key !== key) return;
+    if (action === 'd') r.state = 'done';
+    else if (action === 'k') r.state = 'dropped';
+    else if (action === 's') { r.state = 'open'; r.late = false; r.when = weekOn(); }
+    else { r.state = 'open'; if (action === 'r') r.late = true; }
   });
 
   var out = render(lines[0], rows);
   telegram('editMessageText', {chat_id: msg.chat.id, message_id: msg.message_id, text: out.text,
                                parse_mode: 'HTML', reply_markup: {inline_keyboard: out.keyboard}});
+  return true;
+}
+
+/** Seven days from today, drawn as the checklist draws a date: "10 Nov". */
+function weekOn() {
+  var d = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+  var parts = Utilities.formatDate(d, Session.getScriptTimeZone(), 'd M').split(' ');
+  return parts[0] + ' ' + MONTHS[Number(parts[1]) - 1];
 }
 
 /** The same message render() in telegram_checklist.py draws. */
 function render(head, rows) {
   var lines = [esc(head), ''];
   var buttons = [];
+  var lateRows = [];
   rows.forEach(function (r) {
     if (r.state === 'done') {
       lines.push('☑ ' + r.n + '  <s>' + esc(r.title) + ' · ' + esc(r.when) + '</s>');
       buttons.push({text: '✓' + r.n, callback_data: 'u:' + r.key});
+    } else if (r.state === 'dropped') {
+      lines.push('✕ ' + r.n + '  <s>' + esc(r.title) + ' · ' + esc(r.when) + '</s>');
+      buttons.push({text: '↺' + r.n, callback_data: 'r:' + r.key});
     } else if (r.state === 'gone') {
       lines.push('✕ ' + r.n + '  ' + esc(r.title) + ' · not in the vault');
       buttons.push({text: '✕' + r.n, callback_data: 'x'});
     } else {
       lines.push('☐ ' + r.n + '  ' + esc(r.title) + ' · ' + esc(r.when));
       buttons.push({text: String(r.n), callback_data: 'd:' + r.key});
+      if (r.late) {
+        lateRows.push([{text: r.n + ' · next week', callback_data: 's:' + r.key},
+                       {text: r.n + ' · drop', callback_data: 'k:' + r.key}]);
+      }
     }
   });
   lines.push('', esc(FOOTER));
+  if (lateRows.length) lines.push(esc(LATE_NOTE));
   var keyboard = [];
   for (var i = 0; i < buttons.length; i += PER_ROW) keyboard.push(buttons.slice(i, i + PER_ROW));
-  return {text: lines.join('\n'), keyboard: keyboard};
+  return {text: lines.join('\n'), keyboard: keyboard.concat(lateRows)};
 }
 
 function esc(s) {

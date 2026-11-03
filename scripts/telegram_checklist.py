@@ -9,6 +9,11 @@ vault's GitHub workflow closes that loop a minute later, writing the same "Done"
 /close would. Without it, the tap waits in Telegram's queue until the next drain
 (telegram_capture.py) and both happen then. Tap the number again to undo it.
 
+A loop more than two weeks past its date gets two more buttons, "next week" and "drop": one
+tap moves its date to seven days from today, or closes it as dropped, so what the brief keeps
+calling overdue can be settled from the phone. A dropped line is struck through with an undo
+button beside it.
+
 No model is involved. Each button carries the loop's file name, so a tap closes exactly that
 loop and nothing is matched by guesswork. Only taps from BRAIN_TELEGRAM_CHAT_ID count, the
 same guard capture uses.
@@ -35,7 +40,7 @@ import os
 import re
 import sys
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +61,18 @@ PER_ROW = 6
 # never a loop closed some other way. The checklist's message number follows it, so a stale
 # copy of an older checklist cannot reopen a loop ticked from a newer one.
 TICK_NOTE = "Ticked in Telegram, from the to-do checklist."
+
+# Written into the Killed section by a drop, and checked before a drop is undone, the same way.
+DROP_NOTE = "Dropped in Telegram, from the to-do checklist."
+
+# A loop more than this many days past its date gets "next week" and "drop" buttons. The brief
+# moves an item into its Overdue group at the same point, and the reminder emails stop there.
+LATE_DAYS = 14
+LATE_NOTE = "More than two weeks late: move it to next week, or drop it."
+
+# What each button asks for: d ticks and u unticks; s moves a late loop to seven days from
+# today, k drops it, and r undoes a drop.
+WANT = {"d": "done", "u": "open", "s": "moved", "k": "dropped", "r": "open"}
 
 # The newest relay tap applied to each checklist, by message number. See reconcile().
 APPLIED = VAULT / ".state" / "checklist.json"
@@ -146,9 +163,14 @@ def header(today: date) -> str:
     return f"Your to-dos, {today:%A} {today.day} {today:%B}"
 
 
-def rows_for(items: list[dict]) -> list[dict]:
+def late(due: date | None, today: date | None) -> bool:
+    """More than two weeks past its date."""
+    return bool(due and today and (today - due).days > LATE_DAYS)
+
+
+def rows_for(items: list[dict], today: date | None = None) -> list[dict]:
     return [{"n": n, "key": key_for(i["stem"]), "title": i["title"], "when": short(i["due"]),
-             "state": "open"} for n, i in enumerate(items, 1)]
+             "state": "open", "late": late(i["due"], today)} for n, i in enumerate(items, 1)]
 
 
 def esc(s: str) -> str:
@@ -157,22 +179,30 @@ def esc(s: str) -> str:
 
 
 def render(head: str, rows: list[dict]) -> tuple[str, list]:
-    """The message, as Telegram HTML, and the number buttons beneath it."""
+    """The message, as Telegram HTML, and the buttons beneath it: a number for each line, then a
+    row of "next week" and "drop" for each line more than two weeks late."""
     lines = [esc(head), ""]
-    buttons = []
+    buttons, late_rows = [], []
     for r in rows:
-        title = esc(r["title"])
+        n, title, when = r["n"], esc(r["title"]), esc(r["when"])
         if r["state"] == "done":
-            lines.append(f"☑ {r['n']}  <s>{title} · {esc(r['when'])}</s>")
-            buttons.append({"text": f"✓{r['n']}", "callback_data": f"u:{r['key']}"})
+            lines.append(f"☑ {n}  <s>{title} · {when}</s>")
+            buttons.append({"text": f"✓{n}", "callback_data": f"u:{r['key']}"})
+        elif r["state"] == "dropped":
+            lines.append(f"✕ {n}  <s>{title} · {when}</s>")
+            buttons.append({"text": f"↺{n}", "callback_data": f"r:{r['key']}"})
         elif r["state"] == "gone":
-            lines.append(f"✕ {r['n']}  {title} · not in the vault")
-            buttons.append({"text": f"✕{r['n']}", "callback_data": "x"})
+            lines.append(f"✕ {n}  {title} · not in the vault")
+            buttons.append({"text": f"✕{n}", "callback_data": "x"})
         else:
-            lines.append(f"☐ {r['n']}  {title} · {esc(r['when'])}")
-            buttons.append({"text": str(r["n"]), "callback_data": f"d:{r['key']}"})
-    lines += ["", esc(FOOTER)]
-    return "\n".join(lines), [buttons[i:i + PER_ROW] for i in range(0, len(buttons), PER_ROW)]
+            lines.append(f"☐ {n}  {title} · {when}")
+            buttons.append({"text": str(n), "callback_data": f"d:{r['key']}"})
+            if r.get("late"):
+                late_rows.append([{"text": f"{n} · next week", "callback_data": f"s:{r['key']}"},
+                                  {"text": f"{n} · drop", "callback_data": f"k:{r['key']}"}])
+    lines += ["", esc(FOOTER)] + ([esc(LATE_NOTE)] if late_rows else [])
+    keyboard = [buttons[i:i + PER_ROW] for i in range(0, len(buttons), PER_ROW)]
+    return "\n".join(lines), keyboard + late_rows
 
 
 def parse(msg: dict) -> tuple[str, list[dict]] | None:
@@ -185,16 +215,36 @@ def parse(msg: dict) -> tuple[str, list[dict]] | None:
     listed = {int(m.group(1)): (m.group(2), m.group(3)) for l in lines if (m := LINE.match(l))}
     if not lines or not listed:
         return None
-    rows = []
+    rows: dict[int, dict] = {}
     for b in (b for row in (msg.get("reply_markup") or {}).get("inline_keyboard", []) for b in row):
         digits = re.sub(r"\D", "", b.get("text", ""))
         action, _, key = (b.get("callback_data") or "").partition(":")
         if not digits or int(digits) not in listed:
             continue
-        title, when = listed[int(digits)]
-        state = {"u": "done", "x": "gone"}.get(action, "open")
-        rows.append({"n": int(digits), "key": key, "title": title, "when": when, "state": state})
-    return lines[0], rows
+        n = int(digits)
+        r = rows.setdefault(n, {"n": n, "key": key, "title": listed[n][0], "when": listed[n][1],
+                                "state": "open", "late": False})
+        if action in ("s", "k"):
+            r["late"] = True
+        else:
+            r["key"] = key
+            r["state"] = {"u": "done", "x": "gone", "r": "dropped"}.get(action, "open")
+    return lines[0], [rows[n] for n in sorted(rows)]
+
+
+def shown_date(when: str, today: date) -> date | None:
+    """A date as the checklist draws it, "10 Nov", read back in the year nearest today."""
+    try:
+        d = datetime.strptime(when, "%d %b")
+    except ValueError:
+        return None
+    options = []
+    for y in (today.year - 1, today.year, today.year + 1):
+        try:
+            options.append(date(y, d.month, d.day))
+        except ValueError:
+            pass
+    return min(options, key=lambda c: abs((c - today).days)) if options else None
 
 
 # --- applying a tap -----------------------------------------------------------------------
@@ -236,27 +286,71 @@ def facts(path: Path, stem: str) -> tuple[str, date | None]:
     return field(text, "title") or stem, date.fromisoformat(due) if due else None
 
 
-def tick(stem: str, today: date, mid: int | None = None) -> tuple[str, str, str, date | None]:
-    """Close a loop. Returns (output line, state, title, due)."""
+def closed_state(path: Path) -> str:
+    """How a closed loop is drawn: struck through as done, or crossed out as dropped."""
+    return "dropped" if field(path.read_text(encoding="utf-8"), "status") == "killed" else "done"
+
+
+def close(stem: str, today: date, mid: int | None, status: str) -> tuple[str, str, str, date | None]:
+    """Close a loop as done or killed. Returns (output line, state, title, due)."""
     src, dst = VAULT / OPEN / f"{stem}.md", VAULT / CLOSED / f"{stem}.md"
     if not src.is_file():
         if dst.is_file():
             title, due = facts(dst, stem)
-            return f"  already done: {title}", "done", title, due
+            state = closed_state(dst)
+            return f"  already {state}: {title}", state, title, due
         return f"  not found: {stem}", "gone", stem, None
     title, due = facts(src, stem)
-    note = TICK_NOTE + (f" Message {mid}." if mid is not None else "")
-    move(src, dst, {"status": "done", "folder": CLOSED, "updated": today.isoformat()},
-         f"## Done — {today.isoformat()}\n\n{note}")
-    append_log(f"## [{today.isoformat()}] close | {title} — done, ticked in Telegram")
-    return f"  ticked: {title}", "done", title, due
+    heading, note, verb = (("Done", TICK_NOTE, "done, ticked") if status == "done"
+                           else ("Killed", DROP_NOTE, "dropped"))
+    note += f" Message {mid}." if mid is not None else ""
+    move(src, dst, {"status": status, "folder": CLOSED, "updated": today.isoformat()},
+         f"## {heading} — {today.isoformat()}\n\n{note}")
+    append_log(f"## [{today.isoformat()}] close | {title} — {verb} in Telegram")
+    return (f"  ticked: {title}" if status == "done" else f"  dropped: {title}",
+            "done" if status == "done" else "dropped", title, due)
+
+
+def tick(stem: str, today: date, mid: int | None = None) -> tuple[str, str, str, date | None]:
+    """Close a loop as done. Returns (output line, state, title, due)."""
+    return close(stem, today, mid, "done")
+
+
+def drop(stem: str, today: date, mid: int | None = None) -> tuple[str, str, str, date | None]:
+    """Close a loop as dropped. Returns (output line, state, title, due)."""
+    return close(stem, today, mid, "killed")
+
+
+def push_on(stem: str, today: date, to: date) -> tuple[str, str, str, date | None]:
+    """Move an open loop's date to `to`. Returns (output line, state, title, due)."""
+    p = VAULT / OPEN / f"{stem}.md"
+    if not p.is_file():
+        closed = VAULT / CLOSED / f"{stem}.md"
+        if closed.is_file():
+            title, due = facts(closed, stem)
+            state = closed_state(closed)
+            return f"  already {state}: {title}", state, title, due
+        return f"  not found: {stem}", "gone", stem, None
+    title, due = facts(p, stem)
+    if due == to:
+        return f"  already moved: {title}", "open", title, due
+    raw = p.read_bytes().decode("utf-8")
+    nl = "\r\n" if "\r\n" in raw else "\n"
+    text = set_fields(raw.replace("\r\n", "\n"), {"due": to.isoformat(), "updated": today.isoformat()})
+    was = f", from {due.isoformat()}" if due else ""
+    text = (text.rstrip("\n") + f"\n\n---\n\n## Moved — {today.isoformat()}\n\n"
+            f"Moved to {to.isoformat()}{was}, from the Telegram checklist.\n")
+    p.write_bytes(text.replace("\n", nl).encode("utf-8"))
+    append_log(f"## [{today.isoformat()}] loop | {title} — moved to {to.isoformat()} in Telegram")
+    return f"  moved: {title}, to {short(to)}", "open", title, to
 
 
 def untick(stem: str, today: date,
            only_message: int | None = None) -> tuple[str, str, str, date | None]:
-    """Reopen a loop the checklist closed. Returns (output line, state, title, due).
+    """Reopen a loop the checklist closed, by a tick or a drop. Returns (output line, state,
+    title, due).
 
-    With `only_message`, reopen it only if that checklist message ticked it.
+    With `only_message`, reopen it only if that checklist message closed it.
     """
     src, dst = VAULT / CLOSED / f"{stem}.md", VAULT / OPEN / f"{stem}.md"
     if not src.is_file():
@@ -265,15 +359,19 @@ def untick(stem: str, today: date,
             return f"  already open: {title}", "open", title, due
         return f"  not found: {stem}", "gone", stem, None
     title, due = facts(src, stem)
+    state = closed_state(src)
     text = src.read_text(encoding="utf-8")
-    last = text.rfind("\n## Done — ")
-    if last == -1 or TICK_NOTE not in text[last:] or "\n## Reopened — " in text[last:]:
-        return f"  left closed: {title}, closed some other way", "done", title, due
-    if only_message is not None and f"Message {only_message}." not in text[last:]:
-        return f"  left closed: {title}, ticked from another checklist", "done", title, due
+    last = max(text.rfind("\n## Done — "), text.rfind("\n## Killed — "))
+    section = text[last:] if last != -1 else ""
+    how = ("tick" if section.startswith("\n## Done — ") and TICK_NOTE in section else
+           "drop" if section.startswith("\n## Killed — ") and DROP_NOTE in section else None)
+    if how is None or "\n## Reopened — " in section:
+        return f"  left closed: {title}, closed some other way", state, title, due
+    if only_message is not None and f"Message {only_message}." not in section:
+        return f"  left closed: {title}, closed from another checklist", state, title, due
     move(src, dst, {"status": "open", "folder": OPEN, "updated": today.isoformat()},
-         f"## Reopened — {today.isoformat()}\n\nTick undone in Telegram.")
-    append_log(f"## [{today.isoformat()}] close | {title} — reopened, tick undone in Telegram")
+         f"## Reopened — {today.isoformat()}\n\n{how.capitalize()} undone in Telegram.")
+    append_log(f"## [{today.isoformat()}] close | {title} — reopened, {how} undone in Telegram")
     return f"  undone: {title}", "open", title, due
 
 
@@ -294,8 +392,17 @@ def record_applied(mid, update_id: int) -> None:
     APPLIED.write_text(json.dumps(seen, indent=1, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def moved_to(row: dict, due: date | None, today: date) -> date | None:
+    """Where a tap this picture includes, but the vault has not seen, moved a late loop: its
+    line drawn later than the vault's date and without the buttons it had while late."""
+    if row.get("late") or not late(due, today):
+        return None
+    shown = shown_date(row["when"], today)
+    return shown if shown and shown > due else None
+
+
 def reconcile(token: str, chat_id: str, msg: dict, parsed: tuple, action: str, key: str,
-              today: date, update_id: int | None) -> str:
+              today: date, update_id: int | None, rendered: bool = True) -> str:
     """Make the vault match the checklist as it stood just after this tap.
 
     A relay tap carries the message as it was on screen, every earlier tick already drawn,
@@ -305,35 +412,55 @@ def reconcile(token: str, chat_id: str, msg: dict, parsed: tuple, action: str, k
     tap older than the newest applied is skipped, so a late one cannot undo a newer one.
 
     Rows he did not touch on this message are only ticked, never reopened, unless this same
-    message ticked them: an old copy of a checklist must not undo what a newer one did.
+    message ticked them: an old copy of a checklist must not undo what a newer one did. A drop
+    is applied from the picture the same way, and so is a move, read from a line drawn with a
+    later date than the vault's.
+
+    `rendered` is false when the relay did not draw this tap. An older relay cannot draw a
+    move, a drop or its undo, and draws any tap on a checklist with late lines wrongly, so in
+    those cases the message is drawn here instead.
     """
     mid = msg.get("message_id")
     if update_id is not None and update_id <= last_applied(mid):
         return f"  skipped a tap older than one already applied, on checklist {mid}"
     head, rows = parsed
     out, corrected = [], False
+    # An older relay draws a late line's extra buttons as more lines, so it is redrawn here.
+    had_late = any(r.get("late") for r in rows)
     for r in rows:
         if r["state"] == "gone":
             continue
         tapped = r["key"] == key
-        want = ("done" if action == "d" else "open") if tapped else r["state"]
+        want = WANT[action] if tapped else r["state"]
         stem = stem_for(r["key"])
         if stem is None:
             r["state"], corrected = "gone", True
             continue
         if want == "done":
             line, state, title, due = tick(stem, today, mid)
+        elif want == "dropped":
+            line, state, title, due = drop(stem, today, mid)
+        elif want == "moved":
+            line, state, title, due = push_on(stem, today, today + timedelta(days=7))
+            want = "open"
         else:
             line, state, title, due = untick(stem, today, None if tapped else mid)
+            to = moved_to(r, due, today) if state == "open" else None
+            if to and to != due:
+                line, state, title, due = push_on(stem, today, to)
         if not line.strip().startswith("already"):
             out.append(line)
-        corrected = corrected or state != want
-        r["state"], r["title"] = state, title
+        now_late = state == "open" and late(due, today)
+        # What the relay drew for the tapped line: a move clears its late buttons, the undo of
+        # a drop brings them back, and an untick draws none.
+        drawn_late = {"s": False, "r": True}.get(action, r.get("late")) if tapped else r.get("late")
+        corrected = corrected or state != want or (state == "open" and now_late != drawn_late)
+        r.update(state=state, title=title, late=now_late)
         if due:
             r["when"] = short(due)
     if update_id is not None:
         record_applied(mid, update_id)
-    if corrected:
+    if corrected or (not rendered and (action in ("s", "k", "r") or had_late)):
         text, keyboard = render(head, rows)
         try:
             post(token, "editMessageText", {"chat_id": chat_id, "message_id": mid, "text": text,
@@ -345,7 +472,8 @@ def reconcile(token: str, chat_id: str, msg: dict, parsed: tuple, action: str, k
 
 
 def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
-           pushed: bool = False, update_id: int | None = None) -> str | None:
+           pushed: bool = False, update_id: int | None = None,
+           rendered: bool = True) -> str | None:
     """Apply one tap from a checklist. Returns a line for the drain's output, or None when
     the tap is not one of ours or not from your chat.
 
@@ -363,17 +491,21 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
             or str(msg.get("chat", {}).get("id")) != str(chat_id)):
         return None
     action, _, key = (cq.get("data") or "").partition(":")
-    if action not in ("d", "u") or not key:
+    if action not in WANT or not key:
         return None
 
     if pushed and (parsed := parse(msg)):
-        return reconcile(token, chat_id, msg, parsed, action, key, today, update_id)
+        return reconcile(token, chat_id, msg, parsed, action, key, today, update_id, rendered)
 
     stem = stem_for(key)
     if stem is None:
         line, state, title, due = f"  not found: {key}", "gone", key, None
     elif action == "d":
         line, state, title, due = tick(stem, today, msg.get("message_id"))
+    elif action == "k":
+        line, state, title, due = drop(stem, today, msg.get("message_id"))
+    elif action == "s":
+        line, state, title, due = push_on(stem, today, today + timedelta(days=7))
     else:
         line, state, title, due = untick(stem, today)
 
@@ -382,14 +514,14 @@ def handle(token: str, chat_id: str, cq: dict, boards: dict, today: date,
         boards[mid] = parse(msg) or ("", (msg.get("reply_markup") or {}).get("inline_keyboard", []))
     head, rows = boards[mid]
 
-    expected = "done" if action == "d" else "open"
+    expected = {"d": "done", "k": "dropped"}.get(action, "open")
     if pushed and head and state == expected:
         return line
 
     if head:
         for r in rows:
             if r["key"] == key:
-                r["state"], r["title"] = state, title
+                r.update(state=state, title=title, late=state == "open" and late(due, today))
                 if due:
                     r["when"] = short(due)
         text, keyboard = render(head, rows)
@@ -436,7 +568,7 @@ def main() -> None:
         print(f"{today}: nothing due this week, no checklist sent.")
         return
 
-    text, keyboard = render(header(today), rows_for(items))
+    text, keyboard = render(header(today), rows_for(items, today))
     if args.dry_run:
         print(text)
         print("  " + "  ".join(f"[{b['text']}]" for row in keyboard for b in row))

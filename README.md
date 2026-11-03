@@ -284,6 +284,12 @@ which is given in
 
 ## Changelog
 
+### 2026-11-03
+- A loop more than two weeks late gets "next week" and "drop" buttons on the Telegram
+  checklist, so the decision the brief's Overdue group asks for takes one tap rather than a
+  session. A drop can be undone from the same message. The relay draws both at once; a relay
+  not yet updated leaves the drawing to the workflow, a minute later.
+
 ### 2026-10-21
 - The morning release moves the brief it sends into the inbox, unread. Gmail filed the
   released copy into the archived queued conversation, so it reached only the

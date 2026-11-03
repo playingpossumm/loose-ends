@@ -303,9 +303,16 @@ the vault follows within a minute or two, and without it the tap waits in Telegr
 until the next drain. Tapping the number again reopens the loop, but only a loop the checklist
 closed, so one closed by `/close` stays closed.
 
+A loop more than two weeks past its date, the point where the reminder emails stop and the
+brief moves it into its Overdue group, gets a second row of buttons: **next week** moves its
+date to seven days from today and notes the move in the loop, and **drop** closes it as killed.
+A dropped line is crossed out with a ↺ button that undoes the drop, and, as with an untick,
+only a drop made from the checklist can be undone there.
+
 - **Overlapping taps are safe.** Taps run one at a time, and each carries the whole checklist
   as it stood, so a tick and an undo seconds apart land in order, and a tap on an older
-  checklist never undoes what a newer one ticked.
+  checklist never undoes what a newer one ticked. Drops and moves are applied from that picture
+  the same way.
 - **No model.** Each button carries the loop's file name, so nothing is matched by guessing.
 - **Your chat only.** Taps from any other chat are ignored, the same guard capture uses.
 - **Only dated open loops.** Undated loops and `loops/dates` stay in the brief and the emails.
@@ -341,6 +348,11 @@ To set it up:
    `GITHUB_REPO` as owner/name, and `WEB_APP_URL`, the deployment's URL.
 5. Run `setUpWebhook` once from the editor. It also makes `WEBHOOK_KEY`, the secret part of
    the address Telegram calls, and an hourly trigger that retries anything GitHub refused.
+
+**After changing `Code.gs`**, paste it over the old code, save, then Deploy > Manage
+deployments > edit (the pencil) > Version: New version > Deploy. The web app keeps its URL, so
+the webhook needs nothing. Until then the old relay passes taps it cannot draw to the workflow,
+which draws them a minute later; each update carries `relay_rendered` to say which happened.
 
 `python scripts/telegram_capture.py --webhook-status` says whether it is set, how many updates
 wait, and the last delivery error. `--webhook-off`, or `removeWebhook` in the editor, goes back

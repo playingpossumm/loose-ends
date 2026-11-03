@@ -361,6 +361,23 @@ host, subscription or server to keep up. It holds the bot token and a GitHub tok
 the vault, answers taps, and passes every update to GitHub; compiling still happens there.
 Removing the webhook restores draining at once.
 
+### Added 2026-11-03: a way out for what is stuck
+
+A loop more than two weeks late gets "next week" and "drop" buttons on the checklist. By then
+the reminder emails had stopped and the brief asked, every time, to drop it, set a new date or
+do it now, with no way to answer but a session: by 3 November the masters had been asked that
+in 18 briefs. The answer now takes one tap, and needs no model, since each button names its loop.
+
+| Option | Rejected because |
+|---|---|
+| Keep emailing weekly after day 14 | repeats the question without a way to answer it, which is what trains a channel to be ignored |
+| Escalate undated reading after six briefs | offered at the same time and not chosen |
+| **Buttons on the checklist** | **chosen** |
+
+"Next week" means seven days from the tap, not from the old date, which would still be late. A
+drop is undone only if the checklist made it, the same rule as an untick, and both are applied
+from the whole picture a tap carries, so overlapping taps stay safe.
+
 ## Locked: round 10 (morning delivery)
 
 **The brief is written on Friday and Sunday evening and delivered at 07:00 on Saturday and
