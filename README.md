@@ -284,6 +284,11 @@ which is given in
 
 ## Changelog
 
+### 2026-11-10
+- The first brief of each month lists the open projects and tasks that have no date, which
+  otherwise appeared nowhere: `Now` and `Soon` need a date, and `Don't forget` takes only
+  things to read and to buy.
+
 ### 2026-11-03
 - A loop more than two weeks late gets "next week" and "drop" buttons on the Telegram
   checklist, so the decision the brief's Overdue group asks for takes one tap rather than a

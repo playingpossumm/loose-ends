@@ -125,8 +125,8 @@ to date; silence is the signal.
 
 ## Structure
 
-Three sections. One or two are usually empty, and an empty section is omitted
-entirely, and `Don't forget` is often empty.
+Three sections, and in the first brief of each month a fourth, `Undated`. One or two are
+usually empty, and an empty section is omitted entirely, and `Don't forget` is often empty.
 
 Three heading levels, and they are not interchangeable:
 
@@ -260,6 +260,9 @@ trailing group to save a line.
 
 ## Don't forget
 <Only things to read and things to buy. See below.>
+
+## Undated
+<The first brief of the month only. See below.>
 ```
 
 ### Don't forget
@@ -285,6 +288,27 @@ confirm: those are tasks. They belong in `Now` or `Soon` under a date, or nowher
 #### [How Complex Systems Fail](https://how.complexsystems.fail/)
 Richard Cook, 18 principles. About 20 minutes.
 ```
+
+### Undated
+
+The first brief of each calendar month, meaning the first with no file for that month in
+`briefs/` yet, ends with a list of every open loop that has no `due:` and is not something to
+read or buy. A project or a task without a date appears nowhere else, since `Now` and `Soon`
+need a date and `Don't forget` takes only reading and buying, so without this it can sit for
+months unseen. Asked for on 10 November 2026.
+
+```markdown
+## Undated
+
+- **Roblox Project**, since 3 October
+- **Twitter Call Tracking**, since 31 October
+
+Give each a date, set it to someday, or drop it.
+```
+
+One line each, the title and the day it was opened, oldest first, then that one closing line
+and nothing more. A `someday` loop is left out: that shelf is deliberate. The other briefs of
+the month omit the section.
 
 ## What never appears
 
