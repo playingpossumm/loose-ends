@@ -87,7 +87,8 @@ UPDATE_PROMPT = (
     "counts them.\n\n"
     "If it does, revise that same brief file in place, add one line at the top saying what "
     "changed since last night, and follow the skill otherwise. Do not ask me anything; I am "
-    "not at the keyboard."
+    "not at the keyboard. " + "The vault is as current as it will get, so do not run git, "
+    "and do not report it as skipped."
 )
 
 INGEST_PROMPT = (
@@ -113,7 +114,8 @@ BRIEF_PROMPT = (
     "Run the /brief skill. Write the brief to briefs/ in the vault, following the skill "
     "exactly — the title format, the opening paragraph, and only the sections the skill "
     "defines. Do not ask me anything; I am not at the keyboard. If there is nothing worth "
-    "reporting, still write the brief and say so in one sentence."
+    "reporting, still write the brief and say so in one sentence. The vault is as current as "
+    "it will get, so do not run git, and do not report it as skipped."
 )
 
 
